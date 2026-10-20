@@ -1,0 +1,2784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>V-Tik | Profile</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Poppins", sans-serif;
+    background: #fff;
+    color: #111;
+}
+
+button,
+input,
+textarea {
+    font-family: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+/* =========================
+   TOP NAVIGATION
+========================= */
+
+.top-nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    height: 62px;
+    background: rgba(255,255,255,.96);
+
+    border-bottom: 1px solid #eee;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 18px;
+
+    backdrop-filter: blur(12px);
+}
+
+.nav-btn,
+.nav-icon {
+    border: none;
+    background: transparent;
+
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 25px;
+    color: #111;
+
+    border-radius: 50%;
+}
+
+.nav-btn:hover,
+.nav-icon:hover {
+    background: #f3f3f3;
+}
+
+.vtik-logo {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.vtik-logo span {
+    color: #fe2c55;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.menu-wrapper {
+    position: relative;
+}
+
+/* =========================
+   PROFILE MENU
+========================= */
+
+.profile-menu {
+    display: none;
+
+    position: absolute;
+    right: 0;
+    top: 48px;
+
+    width: 230px;
+
+    background: #fff;
+
+    border-radius: 14px;
+
+    box-shadow: 0 10px 35px rgba(0,0,0,.15);
+
+    overflow: hidden;
+
+    border: 1px solid #eee;
+}
+
+.profile-menu.active {
+    display: block;
+}
+
+.menu-item {
+    padding: 14px 17px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    border-bottom: 1px solid #f2f2f2;
+}
+
+.menu-item:hover {
+    background: #f6f6f6;
+}
+
+.menu-item.logout {
+    color: #fe2c55;
+    font-weight: 600;
+}
+
+/* =========================
+   PROFILE
+========================= */
+
+.profile-container {
+    max-width: 760px;
+    margin: auto;
+
+    padding: 28px 18px 100px;
+
+    text-align: center;
+}
+
+.profile-avatar {
+    width: 112px;
+    height: 112px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    border: 3px solid #fff;
+
+    box-shadow:
+        0 0 0 3px #fe2c55,
+        0 5px 20px rgba(0,0,0,.15);
+}
+
+.profile-name {
+    margin-top: 15px;
+}
+
+.profile-name h1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    font-size: 24px;
+}
+
+.verified {
+    width: 20px;
+    height: 20px;
+
+    background: #20a9ff;
+
+    color: #fff;
+
+    border-radius: 50%;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 12px;
+}
+
+.profile-name p {
+    color: #666;
+    margin-top: 3px;
+}
+
+.profile-stats {
+    display: flex;
+    justify-content: center;
+    gap: 42px;
+
+    margin: 22px 0;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat strong {
+    font-size: 18px;
+}
+
+.stat span {
+    color: #777;
+    font-size: 12px;
+}
+
+.bio {
+    color: #444;
+    line-height: 1.7;
+
+    font-size: 14px;
+}
+
+.website {
+    display: inline-block;
+
+    margin-top: 8px;
+
+    color: #111;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-decoration: none;
+}
+
+/* =========================
+   PROFILE BUTTONS
+========================= */
+
+.profile-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+
+    margin: 20px 0;
+}
+
+.profile-btn {
+    border: 1px solid #ddd;
+
+    background: #fff;
+
+    padding: 10px 20px;
+
+    border-radius: 6px;
+
+    font-weight: 600;
+
+    font-size: 13px;
+}
+
+.profile-btn:hover {
+    background: #f5f5f5;
+}
+
+.upload-btn {
+    background: #fe2c55;
+    border-color: #fe2c55;
+    color: #fff;
+}
+
+.upload-btn:hover {
+    background: #e91e49;
+}
+
+.share-btn {
+    padding: 10px 14px;
+}
+
+/* =========================
+   TABS
+========================= */
+
+.tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    border-bottom: 1px solid #ddd;
+
+    margin-top: 28px;
+}
+
+.tab {
+    border: none;
+    background: transparent;
+
+    padding: 14px 5px;
+
+    font-weight: 600;
+
+    color: #777;
+
+    position: relative;
+}
+
+.tab.active {
+    color: #111;
+}
+
+.tab.active::after {
+    content: "";
+
+    position: absolute;
+
+    bottom: -1px;
+    left: 25%;
+    right: 25%;
+
+    height: 3px;
+
+    background: #111;
+
+    border-radius: 3px;
+}
+
+/* =========================
+   VIDEO GRID
+========================= */
+
+.video-section {
+    margin-top: 4px;
+}
+
+.video-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 3px;
+}
+
+.video-card {
+    position: relative;
+
+    height: 280px;
+
+    background: #111;
+
+    overflow: hidden;
+
+    cursor: pointer;
+}
+
+.video-card video,
+.video-cover {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+}
+
+.video-cover {
+    background-size: cover;
+    background-position: center;
+}
+
+.video-overlay {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    padding: 28px 8px 8px;
+
+    color: white;
+
+    display: flex;
+    justify-content: space-between;
+
+    background: linear-gradient(
+        transparent,
+        rgba(0,0,0,.7)
+    );
+
+    font-size: 11px;
+
+    pointer-events: none;
+}
+
+/* =========================
+   VIDEO OPTIONS BUTTON
+========================= */
+
+.video-options {
+    position: absolute;
+
+    top: 9px;
+    right: 9px;
+
+    width: 38px;
+    height: 38px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: rgba(0,0,0,.65);
+
+    color: white;
+
+    font-size: 25px;
+
+    line-height: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 20;
+
+    transition: .2s;
+}
+
+.video-options:hover {
+    background: #fe2c55;
+    transform: scale(1.08);
+}
+
+/* =========================
+   FULL SCREEN VIDEO
+========================= */
+
+.video-viewer {
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 5000;
+
+    background: #000;
+
+    align-items: center;
+    justify-content: center;
+}
+
+.video-viewer.active {
+    display: flex;
+}
+
+.full-video {
+    width: 100%;
+    height: 100%;
+
+    max-width: 600px;
+
+    object-fit: contain;
+}
+
+.close-video {
+    position: absolute;
+
+    top: 18px;
+    left: 18px;
+
+    width: 42px;
+    height: 42px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: rgba(255,255,255,.18);
+
+    color: white;
+
+    font-size: 30px;
+
+    z-index: 20;
+}
+
+.video-actions {
+    position: absolute;
+
+    right: 18px;
+    bottom: 120px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 20px;
+
+    color: white;
+}
+
+.video-action {
+    text-align: center;
+
+    cursor: pointer;
+}
+
+.video-action-icon {
+    width: 48px;
+    height: 48px;
+
+    border-radius: 50%;
+
+    background: rgba(255,255,255,.15);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 25px;
+
+    margin-bottom: 4px;
+}
+
+.video-action small {
+    font-size: 11px;
+}
+
+.viewer-details {
+    position: absolute;
+
+    left: 20px;
+    bottom: 28px;
+
+    max-width: 75%;
+
+    color: white;
+}
+
+.viewer-details strong {
+    font-size: 16px;
+}
+
+.viewer-details p {
+    margin-top: 5px;
+
+    font-size: 13px;
+}
+
+/* =========================
+   VIDEO OPTIONS MODAL
+========================= */
+
+.video-options-modal {
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 6000;
+
+    background: rgba(0,0,0,.65);
+
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.video-options-modal.active {
+    display: flex;
+}
+
+.video-options-box {
+    width: 100%;
+    max-width: 520px;
+
+    background: white;
+
+    border-radius: 22px 22px 0 0;
+
+    padding: 15px 0 25px;
+
+    animation: slideUp .25s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.video-options-title {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 5px 20px 15px;
+
+    border-bottom: 1px solid #eee;
+}
+
+.video-options-title strong {
+    font-size: 17px;
+}
+
+.video-options-title button {
+    border: none;
+    background: none;
+
+    font-size: 28px;
+}
+
+.video-option-btn {
+    width: 100%;
+
+    border: none;
+
+    background: white;
+
+    padding: 16px 22px;
+
+    text-align: left;
+
+    font-size: 14px;
+
+    transition: .2s;
+}
+
+.video-option-btn:hover {
+    background: #f5f5f5;
+}
+
+.delete-option {
+    color: #fe2c55;
+
+    font-weight: 700;
+}
+
+.cancel-option {
+    margin-top: 8px;
+
+    border-top: 7px solid #f5f5f5;
+
+    text-align: center;
+
+    font-weight: 600;
+}
+
+/* =========================
+   MODALS
+========================= */
+
+.modal {
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0,0,0,.65);
+
+    z-index: 4000;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 15px;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-box {
+    width: 100%;
+    max-width: 480px;
+
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 24px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    font-size: 20px;
+}
+
+.modal-close {
+    border: none;
+
+    background: #f3f3f3;
+
+    width: 36px;
+    height: 36px;
+
+    border-radius: 50%;
+
+    font-size: 23px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+
+    margin-bottom: 6px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+
+    border: 1px solid #ddd;
+
+    border-radius: 9px;
+
+    padding: 12px;
+
+    outline: none;
+
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #fe2c55;
+}
+
+.form-group textarea {
+    resize: vertical;
+
+    min-height: 90px;
+}
+
+.modal-submit {
+    width: 100%;
+
+    border: none;
+
+    background: #fe2c55;
+
+    color: white;
+
+    padding: 13px;
+
+    border-radius: 9px;
+
+    font-weight: 700;
+
+    margin-top: 5px;
+}
+
+/* =========================
+   PROFILE PHOTO PREVIEW
+========================= */
+
+.photo-preview {
+    display: block;
+
+    width: 90px;
+    height: 90px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    margin: 10px auto 18px;
+
+    border: 3px solid #fe2c55;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+
+    .profile-container {
+        padding-top: 20px;
+    }
+
+    .profile-avatar {
+        width: 96px;
+        height: 96px;
+    }
+
+    .profile-name h1 {
+        font-size: 21px;
+    }
+
+    .profile-stats {
+        gap: 25px;
+    }
+
+    .profile-btn {
+        padding: 9px 13px;
+        font-size: 12px;
+    }
+
+    .video-card {
+        height: 210px;
+    }
+
+    .video-options {
+        width: 34px;
+        height: 34px;
+
+        font-size: 22px;
+    }
+
+    .modal-box {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 400px) {
+
+    .profile-stats {
+        gap: 17px;
+    }
+
+    .video-card {
+        height: 175px;
+    }
+
+    .profile-btn {
+        padding: 8px 10px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     TOP NAV
+========================= -->
+
+<header class="top-nav">
+
+    <button
+        class="nav-btn"
+        onclick="goBack()">
+        ←
+    </button>
+
+    <div class="vtik-logo">
+        V<span>-Tik</span>
+    </div>
+
+    <div class="nav-right">
+
+        <button
+            class="nav-icon"
+            onclick="openUpload()">
+            ＋
+        </button>
+
+        <div class="menu-wrapper">
+
+            <button
+                class="nav-icon"
+                onclick="toggleMenu()">
+                ☰
+            </button>
+
+            <div
+                class="profile-menu"
+                id="profileMenu">
+
+                <div
+                    class="menu-item"
+                    onclick="openCustomize()">
+                    ⚙️ Customize account
+                </div>
+
+                <div
+                    class="menu-item"
+                    onclick="openUpload()">
+                    🎬 Upload video
+                </div>
+
+                <div
+                    class="menu-item"
+                    onclick="alert('Privacy settings coming soon.')">
+                    🔒 Privacy
+                </div>
+
+                <div
+                    class="menu-item"
+                    onclick="alert('Creator tools coming soon.')">
+                    📊 Creator tools
+                </div>
+
+                <div
+                    class="menu-item logout"
+                    onclick="logout()">
+                    🚪 Log out
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- =========================
+     PROFILE
+========================= -->
+
+<main class="profile-container">
+
+    <div class="avatar-wrapper">
+
+        <img
+            id="profilePhoto"
+            class="profile-avatar"
+            src="https://i.pravatar.cc/200?img=12"
+            alt="Profile">
+
+    </div>
+
+
+    <div class="profile-name">
+
+        <h1>
+
+            <span id="displayName">
+                TRIPPLE R
+            </span>
+
+            <span class="verified">
+                ✓
+            </span>
+
+        </h1>
+
+        <p id="displayUsername">
+            @trippler
+        </p>
+
+    </div>
+
+
+    <div class="profile-stats">
+
+        <div class="stat">
+            <strong>325</strong>
+            <span>Following</span>
+        </div>
+
+        <div class="stat">
+            <strong>12.4K</strong>
+            <span>Followers</span>
+        </div>
+
+        <div class="stat">
+            <strong>85.7K</strong>
+            <span>Likes</span>
+        </div>
+
+    </div>
+
+
+    <div
+        class="bio"
+        id="displayBio">
+
+        V-Tik creator 🎬<br>
+        Music • Entertainment • Lifestyle
+
+    </div>
+
+
+    <a
+        href="#"
+        class="website"
+        onclick="return false">
+
+        🔗 vtik.com/@trippler
+
+    </a>
+
+
+    <div class="profile-actions">
+
+        <button
+            class="profile-btn"
+            onclick="openCustomize()">
+
+            Edit profile
+
+        </button>
+
+        <button
+            class="profile-btn upload-btn"
+            onclick="openUpload()">
+
+            + Upload
+
+        </button>
+
+        <button
+            class="profile-btn share-btn"
+            onclick="shareProfile()">
+
+            ↗
+
+        </button>
+
+    </div>
+
+
+    <!-- TABS -->
+
+    <div class="tabs">
+
+        <button
+            class="tab active"
+            onclick="showTab('videos', this)">
+
+            ▦ Videos
+
+        </button>
+
+        <button
+            class="tab"
+            onclick="showTab('liked', this)">
+
+            ♡ Liked
+
+        </button>
+
+        <button
+            class="tab"
+            onclick="showTab('private', this)">
+
+            🔒 Private
+
+        </button>
+
+    </div>
+
+
+    <!-- VIDEOS -->
+
+    <section class="video-section">
+
+        <div
+            class="video-grid"
+            id="videoGrid">
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =========================
+     FULL SCREEN VIDEO VIEWER
+========================= -->
+
+<div
+    class="video-viewer"
+    id="videoViewer">
+
+    <button
+        class="close-video"
+        onclick="closeVideo()">
+
+        ×
+
+    </button>
+
+
+    <video
+        id="fullVideo"
+        class="full-video"
+        controls
+        playsinline>
+    </video>
+
+
+    <div class="video-actions">
+
+        <div
+            class="video-action"
+            onclick="likeVideo()">
+
+            <div
+                class="video-action-icon"
+                id="likeButton">
+
+                ♡
+
+            </div>
+
+            <small id="likeCount">
+                12.5K
+            </small>
+
+        </div>
+
+
+        <div
+            class="video-action"
+            onclick="commentVideo()">
+
+            <div class="video-action-icon">
+                💬
+            </div>
+
+            <small>
+                Comment
+            </small>
+
+        </div>
+
+
+        <div
+            class="video-action"
+            onclick="shareVideo()">
+
+            <div class="video-action-icon">
+                ↗
+            </div>
+
+            <small>
+                Share
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <div class="viewer-details">
+
+        <strong id="viewerUsername">
+            @trippler
+        </strong>
+
+        <p id="viewerCaption">
+            My first V-Tik video 🔥
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     VIDEO OPTIONS
+========================= -->
+
+<div
+    class="video-options-modal"
+    id="videoOptionsModal">
+
+    <div class="video-options-box">
+
+        <div class="video-options-title">
+
+            <strong>
+                Video options
+            </strong>
+
+            <button
+                onclick="closeVideoOptions()">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <button
+            class="video-option-btn"
+            onclick="editVideo()">
+
+            ✏️ Edit video
+
+        </button>
+
+
+        <button
+            class="video-option-btn"
+            onclick="downloadVideo()">
+
+            ⬇️ Save video
+
+        </button>
+
+
+        <button
+            class="video-option-btn"
+            onclick="shareSelectedVideo()">
+
+            ↗️ Share
+
+        </button>
+
+
+        <button
+            class="video-option-btn"
+            onclick="changePrivacy()">
+
+            🔒 Privacy settings
+
+        </button>
+
+
+        <button
+            class="video-option-btn delete-option"
+            onclick="deleteSelectedVideo()">
+
+            🗑️ Delete
+
+        </button>
+
+
+        <button
+            class="video-option-btn cancel-option"
+            onclick="closeVideoOptions()">
+
+            Cancel
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     CUSTOMIZE ACCOUNT MODAL
+========================= -->
+
+<div
+    class="modal"
+    id="customizeModal">
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+
+            <h2>
+                Customize account
+            </h2>
+
+            <button
+                class="modal-close"
+                onclick="closeCustomize()">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <img
+            id="photoPreview"
+            class="photo-preview"
+            src="https://i.pravatar.cc/200?img=12">
+
+
+        <div class="form-group">
+
+            <label>
+                Profile picture
+            </label>
+
+            <input
+                type="file"
+                id="profileImageInput"
+                accept="image/*"
+                onchange="previewPhoto(event)">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Display name
+            </label>
+
+            <input
+                type="text"
+                id="nameInput"
+                placeholder="Your display name">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Username
+            </label>
+
+            <input
+                type="text"
+                id="usernameInput"
+                placeholder="@username">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Bio
+            </label>
+
+            <textarea
+                id="bioInput"
+                placeholder="Tell people about yourself">
+            </textarea>
+
+        </div>
+
+
+        <button
+            class="modal-submit"
+            onclick="saveProfile()">
+
+            Save changes
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     UPLOAD MODAL
+========================= -->
+
+<div
+    class="modal"
+    id="uploadModal">
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+
+            <h2>
+                Upload video
+            </h2>
+
+            <button
+                class="modal-close"
+                onclick="closeUpload()">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Select video
+            </label>
+
+            <input
+                type="file"
+                id="videoInput"
+                accept="video/*">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Caption
+            </label>
+
+            <textarea
+                id="captionInput"
+                placeholder="Write a caption...">
+            </textarea>
+
+        </div>
+
+
+        <button
+            class="modal-submit"
+            onclick="uploadVideo()">
+
+            Post video
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================
+   VIDEO DATA
+========================================= */
+
+let videos = [
+
+    {
+        src: "https://cdn.coverr.co/videos/coverr-a-man-riding-a-skateboard-1572/1080p.mp4",
+        caption: "My first V-Tik video 🔥",
+        likes: "12.5K"
+    },
+
+    {
+        src: "",
+        cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80",
+        caption: "Music event 🎵",
+        likes: "8.7K"
+    },
+
+    {
+        src: "",
+        cover: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600&q=80",
+        caption: "Great night 🔥",
+        likes: "21K"
+    },
+
+    {
+        src: "",
+        cover: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=600&q=80",
+        caption: "Behind the scenes",
+        likes: "4.3K"
+    },
+
+    {
+        src: "",
+        cover: "https://images.unsplash.com/photo-1521337581100-8ca9a73a5f79?auto=format&fit=crop&w=600&q=80",
+        caption: "V-Tik vibes 🎬",
+        likes: "15K"
+    },
+
+    {
+        src: "",
+        cover: "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&fit=crop&w=600&q=80",
+        caption: "New content 🚀",
+        likes: "32K"
+    }
+
+];
+
+
+/* =========================================
+   GLOBAL VARIABLES
+========================================= */
+
+let currentVideo = null;
+let selectedVideoIndex = null;
+let liked = false;
+
+
+/* =========================================
+   RENDER VIDEOS
+========================================= */
+
+function renderVideos() {
+
+    const grid = document.getElementById("videoGrid");
+
+    grid.innerHTML = "";
+
+    if (videos.length === 0) {
+
+        grid.innerHTML = `
+            <div style="
+                grid-column:1/-1;
+                padding:60px 20px;
+                color:#777;
+                text-align:center;
+            ">
+                <div style="font-size:45px;">🎬</div>
+
+                <h3>No videos yet</h3>
+
+                <p>Upload your first V-Tik video.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    videos.forEach((video, index) => {
+
+        const card = document.createElement("div");
+
+        card.className = "video-card";
+
+
+        card.onclick = function () {
+
+            openVideo(index);
+
+        };
+
+
+        let media = "";
+
+
+        if (video.src) {
+
+            media = `
+                <video
+                    src="${video.src}"
+                    muted
+                    playsinline
+                    preload="metadata">
+                </video>
+            `;
+
+        } else {
+
+            media = `
+                <div
+                    class="video-cover"
+                    style="
+                    background-image:url('${video.cover}');
+                    ">
+                </div>
+            `;
+
+        }
+
+
+        card.innerHTML = `
+
+            ${media}
+
+            <div class="video-overlay">
+
+                <span>
+                    ▶
+                </span>
+
+                <span>
+                    ♥ ${video.likes}
+                </span>
+
+            </div>
+
+
+            <button
+                class="video-options"
+                onclick="openVideoOptions(event, ${index})">
+
+                ⋯
+
+            </button>
+
+        `;
+
+
+        grid.appendChild(card);
+
+    });
+
+}
+
+
+/* =========================================
+   VIDEO OPTIONS
+========================================= */
+
+function openVideoOptions(event, index) {
+
+    event.stopPropagation();
+
+    selectedVideoIndex = index;
+
+    document
+        .getElementById("videoOptionsModal")
+        .classList.add("active");
+
+}
+
+
+function closeVideoOptions() {
+
+    selectedVideoIndex = null;
+
+    document
+        .getElementById("videoOptionsModal")
+        .classList.remove("active");
+
+}
+
+
+/* =========================================
+   DELETE VIDEO
+========================================= */
+
+function deleteSelectedVideo() {
+
+    if (selectedVideoIndex === null) {
+
+        return;
+
+    }
+
+
+    const video = videos[selectedVideoIndex];
+
+
+    if (!video) {
+
+        closeVideoOptions();
+
+        alert("Video not found.");
+
+        return;
+
+    }
+
+
+    const confirmed = confirm(
+        "Are you sure you want to delete this video?\n\nThis action cannot be undone."
+    );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    /*
+       Release temporary uploaded video URL
+    */
+
+    if (
+        video.src &&
+        video.src.startsWith("blob:")
+    ) {
+
+        URL.revokeObjectURL(video.src);
+
+    }
+
+
+    videos.splice(selectedVideoIndex, 1);
+
+
+    selectedVideoIndex = null;
+
+
+    closeVideoOptions();
+
+
+    renderVideos();
+
+
+    alert("Video deleted successfully.");
+
+}
+
+
+/* =========================================
+   EDIT VIDEO
+========================================= */
+
+function editVideo() {
+
+    if (selectedVideoIndex === null) return;
+
+    const video = videos[selectedVideoIndex];
+
+    closeVideoOptions();
+
+    const newCaption = prompt(
+        "Edit your video caption:",
+        video.caption
+    );
+
+
+    if (newCaption === null) {
+
+        return;
+
+    }
+
+
+    video.caption = newCaption.trim() || video.caption;
+
+
+    renderVideos();
+
+}
+
+
+/* =========================================
+   DOWNLOAD VIDEO
+========================================= */
+
+function downloadVideo() {
+
+    if (selectedVideoIndex === null) return;
+
+    const video = videos[selectedVideoIndex];
+
+
+    if (!video || !video.src) {
+
+        closeVideoOptions();
+
+        alert(
+            "This demo video does not have a downloadable video file."
+        );
+
+        return;
+
+    }
+
+
+    const link = document.createElement("a");
+
+    link.href = video.src;
+
+    link.download = "vtik-video.mp4";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+
+    closeVideoOptions();
+
+}
+
+
+/* =========================================
+   SHARE SELECTED VIDEO
+========================================= */
+
+function shareSelectedVideo() {
+
+    if (selectedVideoIndex === null) return;
+
+    const video = videos[selectedVideoIndex];
+
+
+    if (navigator.share) {
+
+        navigator.share({
+
+            title: "V-Tik Video",
+
+            text: video.caption || "Check out my V-Tik video!"
+
+        }).catch(function () {});
+
+    } else {
+
+        navigator.clipboard.writeText(
+            video.caption || "Check out my V-Tik video!"
+        );
+
+        alert("Video information copied.");
+
+    }
+
+
+    closeVideoOptions();
+
+}
+
+
+/* =========================================
+   PRIVACY
+========================================= */
+
+function changePrivacy() {
+
+    closeVideoOptions();
+
+    alert(
+        "Privacy settings will allow you to choose Public, Friends or Private."
+    );
+
+}
+
+
+/* =========================================
+   OPEN VIDEO
+========================================= */
+
+function openVideo(index) {
+
+    const data = videos[index];
+
+
+    if (!data) {
+
+        return;
+
+    }
+
+
+    if (!data.src) {
+
+        alert(
+            "This demo card does not have a video file yet."
+        );
+
+        return;
+
+    }
+
+
+    currentVideo = index;
+
+
+    const viewer =
+        document.getElementById("videoViewer");
+
+    const video =
+        document.getElementById("fullVideo");
+
+
+    video.src = data.src;
+
+
+    document.getElementById(
+        "viewerCaption"
+    ).textContent = data.caption;
+
+
+    document.getElementById(
+        "likeCount"
+    ).textContent = data.likes;
+
+
+    document.getElementById(
+        "viewerUsername"
+    ).textContent =
+        document.getElementById("displayUsername").textContent;
+
+
+    document.getElementById(
+        "likeButton"
+    ).textContent = "♡";
+
+
+    liked = false;
+
+
+    viewer.classList.add("active");
+
+
+    document.body.style.overflow = "hidden";
+
+
+    video.play().catch(function () {});
+
+}
+
+
+/* =========================================
+   CLOSE VIDEO
+========================================= */
+
+function closeVideo() {
+
+    const viewer =
+        document.getElementById("videoViewer");
+
+    const video =
+        document.getElementById("fullVideo");
+
+
+    video.pause();
+
+    video.removeAttribute("src");
+
+    video.load();
+
+
+    viewer.classList.remove("active");
+
+
+    document.body.style.overflow = "";
+
+}
+
+
+/* =========================================
+   LIKE VIDEO
+========================================= */
+
+function likeVideo() {
+
+    if (currentVideo === null) return;
+
+
+    const button =
+        document.getElementById("likeButton");
+
+
+    if (!liked) {
+
+        button.textContent = "♥";
+
+        liked = true;
+
+    } else {
+
+        button.textContent = "♡";
+
+        liked = false;
+
+    }
+
+}
+
+
+/* =========================================
+   COMMENT
+========================================= */
+
+function commentVideo() {
+
+    const comment = prompt(
+        "Write your comment:"
+    );
+
+
+    if (comment && comment.trim()) {
+
+        alert(
+            "Comment posted:\n\n" +
+            comment
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   SHARE FULL VIDEO
+========================================= */
+
+function shareVideo() {
+
+    if (currentVideo === null) return;
+
+
+    const video = videos[currentVideo];
+
+
+    if (navigator.share) {
+
+        navigator.share({
+
+            title: "V-Tik",
+
+            text: video.caption
+
+        }).catch(function () {});
+
+    } else {
+
+        alert(
+            "Share this V-Tik video with your friends."
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   UPLOAD VIDEO
+========================================= */
+
+function openUpload() {
+
+    document
+        .getElementById("profileMenu")
+        .classList.remove("active");
+
+
+    document
+        .getElementById("uploadModal")
+        .classList.add("active");
+
+}
+
+
+function closeUpload() {
+
+    document
+        .getElementById("uploadModal")
+        .classList.remove("active");
+
+}
+
+
+function uploadVideo() {
+
+    const input =
+        document.getElementById("videoInput");
+
+
+    const captionInput =
+        document.getElementById("captionInput");
+
+
+    const file = input.files[0];
+
+
+    if (!file) {
+
+        alert("Please select a video.");
+
+        return;
+
+    }
+
+
+    if (!file.type.startsWith("video/")) {
+
+        alert("Please select a valid video file.");
+
+        return;
+
+    }
+
+
+    const videoURL =
+        URL.createObjectURL(file);
+
+
+    videos.unshift({
+
+        src: videoURL,
+
+        caption:
+            captionInput.value.trim() ||
+            "My new V-Tik video 🎬",
+
+        likes: "0"
+
+    });
+
+
+    renderVideos();
+
+
+    input.value = "";
+
+    captionInput.value = "";
+
+
+    closeUpload();
+
+
+    alert(
+        "Your video has been posted on your profile!"
+    );
+
+}
+
+
+/* =========================================
+   CUSTOMIZE ACCOUNT
+========================================= */
+
+function openCustomize() {
+
+    document
+        .getElementById("profileMenu")
+        .classList.remove("active");
+
+
+    document.getElementById("nameInput").value =
+        localStorage.getItem("vtik_name") ||
+        "TRIPPLE R";
+
+
+    document.getElementById("usernameInput").value =
+        localStorage.getItem("vtik_username") ||
+        "trippler";
+
+
+    document.getElementById("bioInput").value =
+        localStorage.getItem("vtik_bio") ||
+        "V-Tik creator 🎬\nMusic • Entertainment • Lifestyle";
+
+
+    const savedPhoto =
+        localStorage.getItem("vtik_photo");
+
+
+    if (savedPhoto) {
+
+        document.getElementById(
+            "photoPreview"
+        ).src = savedPhoto;
+
+    } else {
+
+        document.getElementById(
+            "photoPreview"
+        ).src =
+            document.getElementById("profilePhoto").src;
+
+    }
+
+
+    document
+        .getElementById("customizeModal")
+        .classList.add("active");
+
+}
+
+
+function closeCustomize() {
+
+    document
+        .getElementById("customizeModal")
+        .classList.remove("active");
+
+}
+
+
+/* =========================================
+   PHOTO PREVIEW
+========================================= */
+
+function previewPhoto(event) {
+
+    const file = event.target.files[0];
+
+
+    if (!file) return;
+
+
+    const reader = new FileReader();
+
+
+    reader.onload = function (e) {
+
+        document.getElementById(
+            "photoPreview"
+        ).src = e.target.result;
+
+    };
+
+
+    reader.readAsDataURL(file);
+
+}
+
+
+/* =========================================
+   SAVE PROFILE
+========================================= */
+
+function saveProfile() {
+
+    let name =
+        document.getElementById("nameInput")
+        .value
+        .trim();
+
+
+    let username =
+        document.getElementById("usernameInput")
+        .value
+        .trim();
+
+
+    let bio =
+        document.getElementById("bioInput")
+        .value
+        .trim();
+
+
+    if (!name) {
+
+        name = "TRIPPLE R";
+
+    }
+
+
+    if (!username) {
+
+        username = "trippler";
+
+    }
+
+
+    username =
+        username.replace("@", "");
+
+
+    if (!bio) {
+
+        bio =
+            "V-Tik creator 🎬";
+
+    }
+
+
+    localStorage.setItem(
+        "vtik_name",
+        name
+    );
+
+
+    localStorage.setItem(
+        "vtik_username",
+        username
+    );
+
+
+    localStorage.setItem(
+        "vtik_bio",
+        bio
+    );
+
+
+    const imageInput =
+        document.getElementById(
+            "profileImageInput"
+        );
+
+
+    if (imageInput.files[0]) {
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload = function (e) {
+
+            localStorage.setItem(
+                "vtik_photo",
+                e.target.result
+            );
+
+
+            updateProfile(
+                name,
+                username,
+                bio,
+                e.target.result
+            );
+
+        };
+
+
+        reader.readAsDataURL(
+            imageInput.files[0]
+        );
+
+    } else {
+
+        updateProfile(
+            name,
+            username,
+            bio,
+            document.getElementById("profilePhoto").src
+        );
+
+    }
+
+}
+
+
+function updateProfile(
+    name,
+    username,
+    bio,
+    photo
+) {
+
+    document.getElementById(
+        "displayName"
+    ).textContent = name;
+
+
+    document.getElementById(
+        "displayUsername"
+    ).textContent =
+        "@" + username;
+
+
+    document.getElementById(
+        "displayBio"
+    ).innerHTML =
+        bio.replace(/\n/g, "<br>");
+
+
+    document.getElementById(
+        "profilePhoto"
+    ).src = photo;
+
+
+    document.getElementById(
+        "photoPreview"
+    ).src = photo;
+
+
+    closeCustomize();
+
+
+    alert(
+        "Profile updated successfully!"
+    );
+
+}
+
+
+/* =========================================
+   LOAD PROFILE
+========================================= */
+
+function loadProfile() {
+
+    const name =
+        localStorage.getItem("vtik_name");
+
+
+    const username =
+        localStorage.getItem("vtik_username");
+
+
+    const bio =
+        localStorage.getItem("vtik_bio");
+
+
+    const photo =
+        localStorage.getItem("vtik_photo");
+
+
+    if (name) {
+
+        document.getElementById(
+            "displayName"
+        ).textContent = name;
+
+    }
+
+
+    if (username) {
+
+        document.getElementById(
+            "displayUsername"
+        ).textContent =
+            "@" + username;
+
+    }
+
+
+    if (bio) {
+
+        document.getElementById(
+            "displayBio"
+        ).innerHTML =
+            bio.replace(/\n/g, "<br>");
+
+    }
+
+
+    if (photo) {
+
+        document.getElementById(
+            "profilePhoto"
+        ).src = photo;
+
+    }
+
+}
+
+
+/* =========================================
+   PROFILE SHARE
+========================================= */
+
+function shareProfile() {
+
+    const username =
+        document.getElementById(
+            "displayUsername"
+        ).textContent;
+
+
+    if (navigator.share) {
+
+        navigator.share({
+
+            title: "V-Tik Profile",
+
+            text:
+                "Check out " +
+                username +
+                " on V-Tik!"
+
+        }).catch(function () {});
+
+    } else {
+
+        navigator.clipboard.writeText(
+            "Check out " +
+            username +
+            " on V-Tik!"
+        );
+
+        alert(
+            "Profile information copied!"
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   MENU
+========================================= */
+
+function toggleMenu() {
+
+    document
+        .getElementById("profileMenu")
+        .classList.toggle("active");
+
+}
+
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+function logout() {
+
+    const confirmed = confirm(
+        "Are you sure you want to log out?"
+    );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    localStorage.removeItem(
+        "vtik_logged_in"
+    );
+
+
+    localStorage.removeItem(
+        "vtik_current_user"
+    );
+
+
+    alert(
+        "You have been logged out."
+    );
+
+
+    window.location.href =
+        "index.html";
+
+}
+
+
+/* =========================================
+   BACK
+========================================= */
+
+function goBack() {
+
+    if (history.length > 1) {
+
+        history.back();
+
+    } else {
+
+        window.location.href =
+            "index.html";
+
+    }
+
+}
+
+
+/* =========================================
+   TABS
+========================================= */
+
+function showTab(type, button) {
+
+    document
+        .querySelectorAll(".tab")
+        .forEach(function(tab) {
+
+            tab.classList.remove("active");
+
+        });
+
+
+    button.classList.add("active");
+
+
+    if (type === "videos") {
+
+        renderVideos();
+
+        return;
+
+    }
+
+
+    if (type === "liked") {
+
+        document.getElementById(
+            "videoGrid"
+        ).innerHTML = `
+
+            <div style="
+                grid-column:1/-1;
+                padding:60px 20px;
+                color:#777;
+                text-align:center;
+            ">
+
+                <div style="font-size:45px;">
+                    ❤️
+                </div>
+
+                <h3>
+                    Liked videos
+                </h3>
+
+                <p>
+                    Your liked videos will appear here.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    if (type === "private") {
+
+        document.getElementById(
+            "videoGrid"
+        ).innerHTML = `
+
+            <div style="
+                grid-column:1/-1;
+                padding:60px 20px;
+                color:#777;
+                text-align:center;
+            ">
+
+                <div style="font-size:45px;">
+                    🔒
+                </div>
+
+                <h3>
+                    Private videos
+                </h3>
+
+                <p>
+                    Only you can see your private videos.
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+/* =========================================
+   CLICK OUTSIDE MENU
+========================================= */
+
+window.addEventListener(
+    "click",
+    function(event) {
+
+        const menu =
+            document.getElementById(
+                "profileMenu"
+            );
+
+
+        const wrapper =
+            document.querySelector(
+                ".menu-wrapper"
+            );
+
+
+        if (
+            menu.classList.contains("active") &&
+            !wrapper.contains(event.target)
+        ) {
+
+            menu.classList.remove("active");
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   CLICK OUTSIDE MODALS
+========================================= */
+
+window.addEventListener(
+    "click",
+    function(event) {
+
+        const customize =
+            document.getElementById(
+                "customizeModal"
+            );
+
+
+        const upload =
+            document.getElementById(
+                "uploadModal"
+            );
+
+
+        const options =
+            document.getElementById(
+                "videoOptionsModal"
+            );
+
+
+        if (
+            event.target === customize
+        ) {
+
+            closeCustomize();
+
+        }
+
+
+        if (
+            event.target === upload
+        ) {
+
+            closeUpload();
+
+        }
+
+
+        if (
+            event.target === options
+        ) {
+
+            closeVideoOptions();
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   ESC KEY
+========================================= */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key !== "Escape") {
+
+            return;
+
+        }
+
+
+        closeVideo();
+
+
+        closeCustomize();
+
+
+        closeUpload();
+
+
+        closeVideoOptions();
+
+    }
+);
+
+
+/* =========================================
+   INITIALIZE
+========================================= */
+
+loadProfile();
+
+renderVideos();
+
+</script>
+
+</body>
+</html>
+```
