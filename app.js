@@ -105,7 +105,7 @@
             avatar: "✨",
             caption: "Welcome to V-Tik! Your next favorite video is here. 💖",
             music: "Original sound",
-            src: "videos/vtik-demo-1.mp4",
+            src: "vtik-demo-1.mp4",
             likes: 128,
             comments: [
                 {
