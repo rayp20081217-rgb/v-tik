@@ -2,1400 +2,1477 @@
 "use strict";
 
 /* =========================================================
-   V-TIK — COMPLETE FRONT-END APPLICATION
-   Requires: index.html + style.css + app.js
-
-   Features:
-   - Video feed and automatic playback
-   - Search and navigation
-   - Likes, comments, saves and follows
-   - Video upload with IndexedDB storage
-   - Restoring uploaded videos after refresh
-   - Fullscreen video viewer
-   - Share, sound and notifications
+   V-TIK — COMPLETE FRONT-END APP
+   Feed • Videos • Likes • Saves • Comments • Follows
+   Search • Uploads • Fullscreen viewer • Mobile navigation
 ========================================================= */
 
+(() => {
+    /* -----------------------------------------------------
+       1. SAFE DOM HELPERS
+    ----------------------------------------------------- */
 
-/* =========================================================
-   1. APP STATE
-========================================================= */
-
-let videos = [];
-let currentVideoId = null;
-let selectedVideoFile = null;
-let selectedVideoURL = null;
-let soundEnabled = false;
-let toastTimeout = null;
-let feedObserver = null;
-let currentSection = "home";
-let feedGeneration = 0;
-
-const DATABASE_NAME = "VTikDatabase";
-const DATABASE_VERSION = 1;
-const VIDEO_STORE = "videos";
-const FEED_STORAGE_KEY = "vtik_feed";
-
-
-/* =========================================================
-   2. DEFAULT VIDEOS
-
-   Place your actual MP4 files inside the videos folder.
-========================================================= */
-
-const DEFAULT_VIDEOS = [
-    {
-        id: "vtik-001",
-        src: "videos/vtik-demo-1.mp4",
-        username: "@vtik_creator",
-        avatar: "VT",
-        caption: "Welcome to V-Tik! Build, share and discover amazing videos.",
-        tags: "#VTik #Trending #Creators",
-        music: "♫ Original sound — V-Tik",
-        badge: "FOR YOU",
-        likes: 1200,
-        commentsCount: 184,
-        liked: false,
-        saved: false,
-        following: false,
-        comments: [
-            { username: "@john", text: "Welcome to V-Tik! 🔥" },
-            { username: "@mary", text: "This is amazing!" }
-        ]
-    },
-    {
-        id: "vtik-002",
-        src: "videos/vtik-demo-2.mp4",
-        username: "@tripple_r",
-        avatar: "RR",
-        caption: "Good vibes only! What are you posting today?",
-        tags: "#Music #Dance #Viral #VTik",
-        music: "♫ Trending sound — V-Tik",
-        badge: "TRENDING",
-        likes: 8700,
-        commentsCount: 492,
-        liked: false,
-        saved: false,
-        following: false,
-        comments: [
-            { username: "@dancer", text: "This is fire 🔥🔥" }
-        ]
-    },
-    {
-        id: "vtik-003",
-        src: "videos/vtik-demo-3.mp4",
-        username: "@discover_uganda",
-        avatar: "UG",
-        caption: "Discover beautiful places and everyday moments. 🇺🇬",
-        tags: "#Uganda #Travel #Lifestyle",
-        music: "♫ Original sound — Discover",
-        badge: "DISCOVER",
-        likes: 3400,
-        commentsCount: 211,
-        liked: false,
-        saved: false,
-        following: false,
-        comments: [
-            { username: "@uganda", text: "Beautiful Uganda 🇺🇬" }
-        ]
-    }
-];
-
-
-/* =========================================================
-   3. DOM ELEMENTS
-========================================================= */
-
-const $ = (selector, parent = document) =>
-    parent.querySelector(selector);
-
-const $$ = (selector, parent = document) =>
-    [...parent.querySelectorAll(selector)];
-
-const feed = $("#feed");
-const searchInput = $("#searchInput");
-const clearSearch = $("#clearSearch");
-
-const createTop = $("#createTop");
-const mobileCreate = $("#mobileCreate");
-const notificationBtn = $("#notificationBtn");
-const profileButton = $("#profileButton");
-const mobileProfile = $("#mobileProfile");
-
-const commentsModal = $("#commentsModal");
-const closeCommentsButton = $("#closeComments");
-const commentsContainer = $("#comments");
-const commentForm = $("#commentForm");
-const commentInput = $("#commentInput");
-const postCommentButton = $("#postCommentBtn");
-
-const createModal = $("#createModal");
-const closeCreateButton = $("#closeCreate");
-const videoPicker = $("#videoPicker");
-const uploadZone = $("#uploadZone");
-const previewContainer = $("#previewContainer");
-const preview = $("#preview");
-const videoCaption = $("#videoCaption");
-const postVideoButton = $("#postVideo");
-const uploadName = $("#uploadName");
-
-const videoViewer = $("#videoViewer");
-const viewerClose = $("#viewerClose");
-const viewerVideo = $("#viewerVideo");
-
-const toast = $("#toast");
-
-
-/* =========================================================
-   4. START APPLICATION
-========================================================= */
-
-function initializeApp() {
-    setupSearch();
-    setupCreateButtons();
-    setupComments();
-    setupViewer();
-    setupNavigation();
-    setupProfileButtons();
-    setupNotifications();
-    setupKeyboardControls();
-    setupFeedActions();
-    setupCommentInput();
-
-    updateProfileButton();
-
-    loadFeed();
-}
-
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initializeApp, {
-        once: true
-    });
-} else {
-    initializeApp();
-}
-
-
-/* =========================================================
-   5. DEFAULT DATA AND FEED STORAGE
-========================================================= */
-
-function cloneDefaults() {
-    return JSON.parse(JSON.stringify(DEFAULT_VIDEOS));
-}
-
-function normalizeVideo(video) {
-    return {
-        id: String(video.id || createId("video")),
-        src: typeof video.src === "string" ? video.src : "",
-        localFileId: video.localFileId || null,
-        localURL: null,
-        username: video.username || "@vtik_user",
-        avatar: video.avatar || "VT",
-        caption: video.caption || "",
-        tags: video.tags || "",
-        music: video.music || "♫ Original sound",
-        badge: video.badge || "FOR YOU",
-        likes: Math.max(0, Number(video.likes) || 0),
-        commentsCount: Math.max(0, Number(video.commentsCount) || 0),
-        liked: Boolean(video.liked),
-        saved: Boolean(video.saved),
-        following: Boolean(video.following),
-        comments: Array.isArray(video.comments)
-            ? video.comments
-                .filter(item => item && typeof item === "object")
-                .map(item => ({
-                    username: String(item.username || "@user"),
-                    text: String(item.text || "")
-                }))
-            : []
-    };
-}
-
-function loadFeed() {
-    let storedVideos = null;
-
-    try {
-        const raw = localStorage.getItem(FEED_STORAGE_KEY);
-
-        if (raw) {
-            const parsed = JSON.parse(raw);
-
-            if (Array.isArray(parsed)) {
-                storedVideos = parsed;
-            }
+    const $ = (selector, parent = document) => {
+        if (!parent || typeof parent.querySelector !== "function") {
+            return null;
         }
-    } catch (error) {
-        console.warn("Could not read saved V-Tik feed:", error);
+
+        return parent.querySelector(selector);
+    };
+
+    const $$ = (selector, parent = document) => {
+        if (!parent || typeof parent.querySelectorAll !== "function") {
+            return [];
+        }
+
+        return Array.from(parent.querySelectorAll(selector));
+    };
+
+    const byId = (id) => document.getElementById(id);
+
+    const escapeHTML = (value = "") =>
+        String(value).replace(/[&<>"']/g, (char) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[char]);
+
+    const makeId = () =>
+        `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+    const formatCount = (number = 0) => {
+        const value = Number(number) || 0;
+
+        if (value >= 1_000_000) {
+            return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+        }
+
+        if (value >= 1_000) {
+            return `${(value / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+        }
+
+        return String(value);
+    };
+
+    const safeText = (value, fallback = "") =>
+        typeof value === "string" && value.trim()
+            ? value.trim()
+            : fallback;
+
+    const $on = (element, event, callback, options) => {
+        if (element && typeof element.addEventListener === "function") {
+            element.addEventListener(event, callback, options);
+        }
+    };
+
+    /* -----------------------------------------------------
+       2. APP ELEMENTS
+
+       Missing optional elements won't crash the app.
+    ----------------------------------------------------- */
+
+    const feed = byId("feed") || $(".feed");
+    const searchInput = $(".search input, #searchInput, #search");
+    const profileButton = byId("profileButton") || $(".profile-button");
+    const mobileProfile = byId("mobileProfile");
+
+    const createModal = byId("createModal") || byId("uploadModal");
+    const commentsModal = byId("commentsModal");
+    const viewer = byId("videoViewer") || byId("fullscreenViewer");
+
+    const currentUser = {
+        id: "vtik-current-user",
+        username: "you",
+        displayName: "V-Tik User",
+        avatar: "😎"
+    };
+
+    /* -----------------------------------------------------
+       3. STORAGE
+    ----------------------------------------------------- */
+
+    const STORAGE_KEY = "vtik_app_state_v1";
+    const VIDEO_DB_NAME = "vtik_video_storage";
+    const VIDEO_STORE_NAME = "videos";
+
+    const defaultVideos = [
+        {
+            id: "demo-1",
+            username: "vtik_creator",
+            displayName: "V-Tik Creator",
+            avatar: "✨",
+            caption: "Welcome to V-Tik! Your next favorite video is here. 💖",
+            music: "Original sound",
+            src: "videos/vtik-demo-1.mp4",
+            likes: 128,
+            comments: [
+                {
+                    id: makeId(),
+                    username: "happyviewer",
+                    avatar: "😊",
+                    text: "Welcome to V-Tik! 🔥",
+                    createdAt: Date.now()
+                }
+            ],
+            liked: false,
+            saved: false,
+            following: false,
+            createdAt: Date.now() - 3000
+        },
+        {
+            id: "demo-2",
+            username: "daily_vibes",
+            displayName: "Daily Vibes",
+            avatar: "🌈",
+            caption: "A little positivity can change your whole day. 🌟",
+            music: "Good vibes",
+            src: "videos/vtik-demo-2.mp4",
+            likes: 245,
+            comments: [],
+            liked: false,
+            saved: false,
+            following: false,
+            createdAt: Date.now() - 2000
+        },
+        {
+            id: "demo-3",
+            username: "creative_minds",
+            displayName: "Creative Minds",
+            avatar: "🎨",
+            caption: "Keep creating. Keep learning. Keep shining. 🚀",
+            music: "Creative energy",
+            src: "videos/vtik-demo-3.mp4",
+            likes: 89,
+            comments: [],
+            liked: false,
+            saved: false,
+            following: false,
+            createdAt: Date.now() - 1000
+        }
+    ];
+
+    function loadState() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+
+            if (!saved) {
+                return {
+                    videos: defaultVideos.map((video) => ({ ...video })),
+                    activeTab: "For You",
+                    username: currentUser.username,
+                    avatar: currentUser.avatar
+                };
+            }
+
+            const parsed = JSON.parse(saved);
+
+            return {
+                videos: Array.isArray(parsed.videos)
+                    ? parsed.videos
+                    : defaultVideos.map((video) => ({ ...video })),
+                activeTab: parsed.activeTab || "For You",
+                username: parsed.username || currentUser.username,
+                avatar: parsed.avatar || currentUser.avatar
+            };
+        } catch (error) {
+            console.warn("V-Tik: could not load saved state.", error);
+
+            return {
+                videos: defaultVideos.map((video) => ({ ...video })),
+                activeTab: "For You",
+                username: currentUser.username,
+                avatar: currentUser.avatar
+            };
+        }
     }
 
-    videos = (storedVideos && storedVideos.length
-        ? storedVideos
-        : cloneDefaults()
-    ).map(normalizeVideo);
+    const state = loadState();
 
-    saveFeed();
+    state.videos = state.videos.map((video) => ({
+        comments: [],
+        likes: 0,
+        liked: false,
+        saved: false,
+        following: false,
+        music: "Original sound",
+        ...video,
+        comments: Array.isArray(video.comments) ? video.comments : []
+    }));
 
-    // Restore stored upload files before rendering the feed.
-    restoreUploadedVideos();
-}
+    let activeVideoId = null;
+    let searchTerm = "";
+    let currentObjectUrl = null;
+    let dbPromise = null;
+    let toastTimer = null;
 
-function saveFeed() {
-    try {
-        const data = videos.map(video => {
-            const copy = { ...video };
+    function saveState() {
+        try {
+            // Video files themselves are stored separately in IndexedDB.
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (error) {
+            console.warn("V-Tik: state could not be saved.", error);
+            showToast("Some changes could not be saved on this device.");
+        }
+    }
 
-            // Blob URLs are temporary and cannot be restored
-            // after a browser refresh. Save the IndexedDB ID instead.
-            delete copy.localURL;
+    function getVideo(videoId) {
+        return state.videos.find((video) => video.id === videoId);
+    }
 
-            return copy;
+    function getCurrentAvatar() {
+        return safeText(state.avatar, currentUser.avatar);
+    }
+
+    /* -----------------------------------------------------
+       4. VIDEO FILE DATABASE
+
+       Uploaded videos can remain on this device after reload.
+    ----------------------------------------------------- */
+
+    function openVideoDB() {
+        if (!("indexedDB" in window)) {
+            return Promise.reject(
+                new Error("IndexedDB is not supported in this browser.")
+            );
+        }
+
+        if (dbPromise) return dbPromise;
+
+        dbPromise = new Promise((resolve, reject) => {
+            const request = indexedDB.open(VIDEO_DB_NAME, 1);
+
+            request.onupgradeneeded = () => {
+                const db = request.result;
+
+                if (!db.objectStoreNames.contains(VIDEO_STORE_NAME)) {
+                    db.createObjectStore(VIDEO_STORE_NAME, {
+                        keyPath: "id"
+                    });
+                }
+            };
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
         });
 
-        localStorage.setItem(
-            FEED_STORAGE_KEY,
-            JSON.stringify(data)
-        );
-
-        return true;
-    } catch (error) {
-        console.error("Could not save V-Tik feed:", error);
-        showToast("Browser storage is full or unavailable.");
-        return false;
-    }
-}
-
-
-/* =========================================================
-   6. VIDEO FEED RENDERING
-========================================================= */
-
-function renderFeed(list = videos) {
-    if (!feed) {
-        console.error("V-Tik needs an element with id='feed'.");
-        return;
+        return dbPromise;
     }
 
-    feedGeneration++;
+    async function saveVideoFile(id, file) {
+        const db = await openVideoDB();
 
-    if (feedObserver) {
-        feedObserver.disconnect();
-        feedObserver = null;
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(
+                VIDEO_STORE_NAME,
+                "readwrite"
+            );
+
+            transaction.objectStore(VIDEO_STORE_NAME).put({
+                id,
+                file,
+                name: file.name,
+                type: file.type
+            });
+
+            transaction.oncomplete = () => resolve(true);
+            transaction.onerror = () => reject(transaction.error);
+        });
     }
 
-    feed.replaceChildren();
+    async function getVideoFile(id) {
+        const db = await openVideoDB();
 
-    if (!list.length) {
-        const empty = document.createElement("div");
-        empty.className = "empty-feed";
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(
+                VIDEO_STORE_NAME,
+                "readonly"
+            );
 
-        empty.innerHTML = `
-            <div class="empty-icon">🔎</div>
-            <h2>No videos found</h2>
-            <p>Try another search or explore more videos.</p>
-            <button class="create-empty" id="emptyCreateButton"
-                    type="button">＋ Create Video</button>
-        `;
+            const request = transaction
+                .objectStore(VIDEO_STORE_NAME)
+                .get(id);
 
-        feed.appendChild(empty);
+            request.onsuccess = () => {
+                resolve(request.result ? request.result.file : null);
+            };
 
-        $("#emptyCreateButton", empty)?.addEventListener(
-            "click",
-            openCreateModal
-        );
-
-        return;
+            request.onerror = () => reject(request.error);
+        });
     }
 
-    const fragment = document.createDocumentFragment();
+    async function deleteVideoFile(id) {
+        try {
+            const db = await openVideoDB();
 
-    list.forEach(video => {
-        fragment.appendChild(createVideoCard(video));
-    });
+            await new Promise((resolve, reject) => {
+                const transaction = db.transaction(
+                    VIDEO_STORE_NAME,
+                    "readwrite"
+                );
 
-    feed.appendChild(fragment);
+                transaction.objectStore(VIDEO_STORE_NAME).delete(id);
+                transaction.oncomplete = resolve;
+                transaction.onerror = () => reject(transaction.error);
+            });
+        } catch (error) {
+            console.warn("V-Tik: video file could not be deleted.", error);
+        }
+    }
 
-    setupVideoPlayback();
-}
+    async function resolveVideoSource(video) {
+        if (!video) return "";
 
-function createVideoCard(video) {
-    const article = document.createElement("article");
-    article.className = "video-card";
-    article.dataset.id = video.id;
+        if (video.uploaded && video.id) {
+            try {
+                const file = await getVideoFile(video.id);
 
-    const source = video.localURL || video.src || "";
+                if (file) {
+                    return URL.createObjectURL(file);
+                }
+            } catch (error) {
+                console.warn("V-Tik: uploaded video unavailable.", error);
+            }
 
-    article.innerHTML = `
-        <div class="video-wrapper">
+            return "";
+        }
 
-            <video
-                class="feed-video"
-                src="${escapeHTML(source)}"
-                loop
-                muted
-                playsinline
-                preload="metadata"
-                aria-label="${escapeHTML(video.caption)}"
-            ></video>
+        return video.src || "";
+    }
 
-            <div class="video-gradient"></div>
+    /* -----------------------------------------------------
+       5. TOAST NOTIFICATIONS
+    ----------------------------------------------------- */
 
-            <div class="video-badge">
-                ${escapeHTML(video.badge)}
-            </div>
+    function showToast(message) {
+        let toast = byId("vtikToast");
 
-            <button class="video-sound"
-                    data-action="sound"
-                    type="button"
-                    aria-label="Toggle sound">
-                ${soundEnabled ? "🔊" : "🔇"}
-            </button>
+        if (!toast) {
+            toast = document.createElement("div");
+            toast.id = "vtikToast";
+            toast.className = "vtik-toast";
+            toast.setAttribute("role", "status");
+            toast.setAttribute("aria-live", "polite");
+            document.body.appendChild(toast);
+        }
 
-            <button class="video-expand"
-                    data-action="fullscreen"
-                    type="button"
-                    aria-label="Open fullscreen video">
-                ⛶
-            </button>
+        toast.textContent = message;
+        toast.classList.add("show");
 
-            <div class="video-info">
+        if (toastTimer) clearTimeout(toastTimer);
 
-                <div class="creator-row">
-                    <div class="creator-avatar">
-                        ${escapeHTML(video.avatar)}
+        toastTimer = setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2600);
+    }
+
+    /* -----------------------------------------------------
+       6. VIDEO CARD HTML
+    ----------------------------------------------------- */
+
+    function videoCardHTML(video) {
+        const username = safeText(video.username, "creator");
+        const displayName = safeText(video.displayName, username);
+        const avatar = safeText(video.avatar, "🙂");
+        const caption = safeText(video.caption, "");
+        const music = safeText(video.music, "Original sound");
+
+        return `
+            <article class="video-card"
+                     data-video-id="${escapeHTML(video.id)}">
+
+                <div class="video-user">
+                    <div class="avatar">${escapeHTML(avatar)}</div>
+
+                    <div class="video-user-info">
+                        <strong>@${escapeHTML(username)}</strong>
+                        <span>${escapeHTML(displayName)}</span>
                     </div>
 
-                    <div class="creator-details">
-                        <strong>${escapeHTML(video.username)}</strong>
-                        <span>${escapeHTML(video.music)}</span>
-                    </div>
-
-                    <button
-                        class="follow-btn ${video.following ? "following" : ""}"
-                        data-action="follow"
-                        type="button"
-                        aria-pressed="${video.following}"
-                    >
+                    <button class="follow-btn ${video.following ? "following" : ""}"
+                            data-action="follow"
+                            data-video-id="${escapeHTML(video.id)}"
+                            type="button">
                         ${video.following ? "Following" : "Follow"}
                     </button>
                 </div>
 
-                <p class="caption">${escapeHTML(video.caption)}</p>
-                <p class="tags">${escapeHTML(video.tags)}</p>
-            </div>
+                <div class="video-stage">
+                    <video class="feed-video"
+                           data-video-id="${escapeHTML(video.id)}"
+                           src=""
+                           preload="metadata"
+                           playsinline
+                           loop
+                           controls
+                           aria-label="Video by ${escapeHTML(username)}">
+                    </video>
 
-            <div class="video-actions">
+                    <div class="video-loading" aria-hidden="true">
+                        <span></span>
+                    </div>
 
-                <button class="action-btn ${video.liked ? "active" : ""}"
-                        data-action="like"
-                        type="button"
-                        aria-label="${video.liked ? "Unlike" : "Like"} video"
-                        aria-pressed="${video.liked}">
-                    <span>${video.liked ? "♥" : "♡"}</span>
-                    <small>${formatNumber(video.likes)}</small>
-                </button>
+                    <button class="sound-toggle"
+                            data-action="sound"
+                            type="button"
+                            aria-label="Toggle video sound">
+                        🔊
+                    </button>
+                </div>
 
-                <button class="action-btn"
-                        data-action="comment"
-                        type="button"
-                        aria-label="View comments">
-                    <span>💬</span>
-                    <small>${formatNumber(video.commentsCount)}</small>
-                </button>
+                <div class="video-details">
+                    <div class="video-caption">
+                        <strong>@${escapeHTML(username)}</strong>
+                        ${escapeHTML(caption)}
+                    </div>
 
-                <button class="action-btn ${video.saved ? "active" : ""}"
-                        data-action="save"
-                        type="button"
-                        aria-label="${video.saved ? "Unsave" : "Save"} video"
-                        aria-pressed="${video.saved}">
-                    <span>🔖</span>
-                    <small>${video.saved ? "Saved" : "Save"}</small>
-                </button>
+                    <div class="video-music">
+                        <span aria-hidden="true">♫</span>
+                        ${escapeHTML(music)}
+                    </div>
 
-                <button class="action-btn"
-                        data-action="share"
-                        type="button"
-                        aria-label="Share video">
-                    <span>↗</span>
-                    <small>Share</small>
-                </button>
+                    <div class="video-actions">
+                        <button class="action-btn ${video.liked ? "active liked" : ""}"
+                                data-action="like"
+                                data-video-id="${escapeHTML(video.id)}"
+                                type="button"
+                                aria-label="Like video">
+                            <span class="action-icon">${video.liked ? "♥" : "♡"}</span>
+                            <span class="like-count">${formatCount(video.likes)}</span>
+                        </button>
 
-            </div>
-        </div>
-    `;
+                        <button class="action-btn"
+                                data-action="comment"
+                                data-video-id="${escapeHTML(video.id)}"
+                                type="button"
+                                aria-label="Open comments">
+                            <span class="action-icon">▢</span>
+                            <span>${formatCount(video.comments.length)}</span>
+                        </button>
 
-    const player = $(".feed-video", article);
+                        <button class="action-btn ${video.saved ? "active saved" : ""}"
+                                data-action="save"
+                                data-video-id="${escapeHTML(video.id)}"
+                                type="button"
+                                aria-label="Save video">
+                            <span class="action-icon">${video.saved ? "★" : "☆"}</span>
+                            <span>${video.saved ? "Saved" : "Save"}</span>
+                        </button>
 
-    player.addEventListener("error", () => {
-        if (player.dataset.errorShown) return;
-        player.dataset.errorShown = "true";
-        showToast("A video could not load. Check its file path.");
-    });
+                        <button class="action-btn"
+                                data-action="share"
+                                data-video-id="${escapeHTML(video.id)}"
+                                type="button"
+                                aria-label="Share video">
+                            <span class="action-icon">↗</span>
+                            <span>Share</span>
+                        </button>
 
-    return article;
-}
+                        <button class="action-btn"
+                                data-action="expand"
+                                data-video-id="${escapeHTML(video.id)}"
+                                type="button"
+                                aria-label="Open fullscreen viewer">
+                            <span class="action-icon">⛶</span>
+                        </button>
+                    </div>
+                </div>
+            </article>
+        `;
+    }
 
+    /* -----------------------------------------------------
+       7. FEED FILTERING AND RENDERING
+    ----------------------------------------------------- */
 
-/* =========================================================
-   7. VIDEO AUTOPLAY AND PAUSE
-========================================================= */
+    function getVisibleVideos() {
+        let videos = [...state.videos];
 
-function setupVideoPlayback() {
-    const players = $$(".feed-video", feed);
+        if (state.activeTab === "Following") {
+            videos = videos.filter((video) => video.following);
+        } else if (state.activeTab === "Saved") {
+            videos = videos.filter((video) => video.saved);
+        }
 
-    if (!players.length) return;
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
 
-    const generation = feedGeneration;
+            videos = videos.filter((video) => {
+                const searchable = [
+                    video.username,
+                    video.displayName,
+                    video.caption,
+                    video.music
+                ].join(" ").toLowerCase();
 
-    if ("IntersectionObserver" in window) {
-        feedObserver = new IntersectionObserver(entries => {
-            if (generation !== feedGeneration) return;
-
-            entries.forEach(entry => {
-                const player = entry.target;
-
-                if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-                    players.forEach(other => {
-                        if (other !== player) other.pause();
-                    });
-
-                    player.muted = !soundEnabled;
-
-                    player.play().catch(() => {
-                        // Browsers may block autoplay until user interaction.
-                    });
-                } else {
-                    player.pause();
-                }
+                return searchable.includes(term);
             });
-        }, { threshold: [0, 0.6, 1] });
-
-        players.forEach(player => feedObserver.observe(player));
-    } else {
-        players.forEach(player => {
-            player.muted = true;
-        });
-    }
-}
-
-
-/* =========================================================
-   8. FEED ACTIONS
-========================================================= */
-
-function setupFeedActions() {
-    feed?.addEventListener("click", event => {
-        const button = event.target.closest("[data-action]");
-
-        if (!button || !feed.contains(button)) return;
-
-        const card = button.closest(".video-card");
-        if (!card) return;
-
-        const video = videos.find(item => item.id === card.dataset.id);
-        if (!video) return;
-
-        // Prevent the video click handler from opening fullscreen
-        // when the user clicks an action button.
-        event.preventDefault();
-
-        switch (button.dataset.action) {
-            case "like":
-                toggleLike(video);
-                break;
-
-            case "comment":
-                openComments(video);
-                break;
-
-            case "save":
-                toggleSaved(video);
-                break;
-
-            case "share":
-                shareVideo(video);
-                break;
-
-            case "follow":
-                toggleFollow(video);
-                break;
-
-            case "sound":
-                toggleSound();
-                break;
-
-            case "fullscreen":
-                openViewer(video.localURL || video.src);
-                break;
         }
-    });
 
-    feed?.addEventListener("click", event => {
-        const player = event.target.closest("video.feed-video");
-
-        if (!player) return;
-
-        // Open the fullscreen viewer when the video itself is clicked.
-        // Native controls are intentionally not shown on feed videos.
-        const card = player.closest(".video-card");
-        const video = videos.find(item => item.id === card?.dataset.id);
-
-        if (video) {
-            openViewer(video.localURL || video.src);
-        }
-    });
-}
-
-function toggleLike(video) {
-    video.liked = !video.liked;
-    video.likes = Math.max(0, video.likes + (video.liked ? 1 : -1));
-
-    saveFeed();
-    refreshCurrentFeed();
-
-    showToast(video.liked ? "You liked this video ❤️" : "Like removed");
-}
-
-function toggleSaved(video) {
-    video.saved = !video.saved;
-
-    saveFeed();
-    refreshCurrentFeed();
-
-    showToast(video.saved ? "Video saved 🔖" : "Video removed from saved");
-}
-
-function toggleFollow(video) {
-    video.following = !video.following;
-
-    saveFeed();
-    refreshCurrentFeed();
-
-    showToast(
-        video.following
-            ? `Following ${video.username}`
-            : `Unfollowed ${video.username}`
-    );
-}
-
-function toggleSound() {
-    soundEnabled = !soundEnabled;
-
-    $$(".feed-video", feed).forEach(player => {
-        player.muted = !soundEnabled;
-    });
-
-    $$(".video-sound", feed).forEach(button => {
-        button.textContent = soundEnabled ? "🔊" : "🔇";
-    });
-
-    showToast(soundEnabled ? "Sound turned on 🔊" : "Sound turned off 🔇");
-}
-
-function refreshCurrentFeed() {
-    if (searchInput?.value.trim()) {
-        performSearch();
-    } else {
-        changeSection(currentSection, false);
-    }
-}
-
-
-/* =========================================================
-   9. SEARCH
-========================================================= */
-
-function setupSearch() {
-    searchInput?.addEventListener("input", performSearch);
-
-    clearSearch?.addEventListener("click", () => {
-        if (searchInput) searchInput.value = "";
-        if (clearSearch) clearSearch.hidden = true;
-
-        changeSection(currentSection, false);
-        searchInput?.focus();
-    });
-}
-
-function performSearch() {
-    const query = searchInput?.value.trim().toLowerCase() || "";
-
-    if (clearSearch) {
-        clearSearch.hidden = query.length === 0;
+        return videos.sort(
+            (a, b) => (b.createdAt || 0) - (a.createdAt || 0)
+        );
     }
 
-    if (!query) {
-        changeSection(currentSection, false);
-        return;
-    }
+    function renderEmptyFeed(message) {
+        if (!feed) return;
 
-    const results = videos.filter(video => {
-        const searchableText = [
-            video.username,
-            video.caption,
-            video.tags,
-            video.music,
-            video.badge
-        ].filter(Boolean).join(" ").toLowerCase();
-
-        return searchableText.includes(query);
-    });
-
-    renderFeed(results);
-}
-
-
-/* =========================================================
-   10. COMMENTS
-========================================================= */
-
-function setupComments() {
-    closeCommentsButton?.addEventListener("click", closeCommentsWindow);
-
-    commentsModal?.addEventListener("click", event => {
-        if (event.target === commentsModal) {
-            closeCommentsWindow();
-        }
-    });
-
-    commentForm?.addEventListener("submit", postComment);
-}
-
-function setupCommentInput() {
-    commentInput?.addEventListener("input", () => {
-        if (postCommentButton) {
-            postCommentButton.disabled = !commentInput.value.trim();
-        }
-    });
-}
-
-function openComments(video) {
-    currentVideoId = video.id;
-
-    renderComments(video);
-
-    commentsModal?.classList.add("show");
-    commentsModal?.setAttribute("aria-hidden", "false");
-
-    setTimeout(() => commentInput?.focus(), 100);
-}
-
-function renderComments(video) {
-    if (!commentsContainer) return;
-
-    commentsContainer.replaceChildren();
-
-    if (!video.comments.length) {
-        commentsContainer.innerHTML = `
-            <div class="no-comments">
-                <div>💬</div>
-                <p>No comments yet.</p>
-                <span>Be the first to comment.</span>
+        feed.innerHTML = `
+            <div class="empty-feed">
+                <div class="empty-feed-icon">🎬</div>
+                <h3>Nothing to show yet</h3>
+                <p>${escapeHTML(message)}</p>
+                <button class="btn btn-primary"
+                        type="button"
+                        data-action="open-create">
+                    Create a video
+                </button>
             </div>
         `;
-        return;
     }
 
-    const fragment = document.createDocumentFragment();
+    function renderFeed() {
+        if (!feed) {
+            console.error(
+                'V-Tik: Could not find the feed element. Add <main id="feed" class="feed"></main> to index.html.'
+            );
+            showToast("Feed element is missing. Check index.html.");
+            return;
+        }
 
-    video.comments.forEach(comment => {
-        const row = document.createElement("div");
-        row.className = "comment";
+        const videos = getVisibleVideos();
 
-        const avatar = document.createElement("div");
-        avatar.className = "comment-avatar";
-        avatar.textContent = comment.username
-            .replace("@", "")
-            .slice(0, 2)
-            .toUpperCase();
+        if (videos.length === 0) {
+            let message = "Try another search or upload the first video.";
 
-        const body = document.createElement("div");
-        body.className = "comment-body";
+            if (state.activeTab === "Following") {
+                message = "Follow creators to see their videos here.";
+            } else if (state.activeTab === "Saved") {
+                message = "Videos you save will appear here.";
+            }
 
-        const username = document.createElement("strong");
-        username.textContent = comment.username;
+            renderEmptyFeed(message);
+            updateProfileButton();
+            return;
+        }
 
-        const message = document.createElement("p");
-        message.textContent = comment.text;
+        feed.innerHTML = videos.map(videoCardHTML).join("");
 
-        body.append(username, message);
-        row.append(avatar, body);
-        fragment.appendChild(row);
-    });
+        updateProfileButton();
+        loadFeedVideoSources();
+        setupVideoPlayback();
+    }
 
-    commentsContainer.appendChild(fragment);
-    commentsContainer.scrollTop = commentsContainer.scrollHeight;
-}
+    async function loadFeedVideoSources() {
+        const videoElements = $$(".feed-video", feed);
 
-function postComment(event) {
-    event.preventDefault();
+        for (const element of videoElements) {
+            const videoId = element.dataset.videoId;
+            const video = getVideo(videoId);
 
-    const text = commentInput?.value.trim();
-    if (!text || !currentVideoId) return;
+            if (!video) continue;
 
-    const video = videos.find(item => item.id === currentVideoId);
-    if (!video) return;
+            const source = await resolveVideoSource(video);
 
-    video.comments.push({
-        username: getCurrentUsername(),
-        text
-    });
+            // The card may have been removed while the file was loading.
+            if (!element.isConnected) {
+                if (source.startsWith("blob:")) URL.revokeObjectURL(source);
+                continue;
+            }
 
-    video.commentsCount += 1;
+            if (!source) {
+                element.poster = "";
+                element.removeAttribute("src");
+                element.load();
 
-    if (commentInput) commentInput.value = "";
-    if (postCommentButton) postCommentButton.disabled = true;
+                const stage = element.closest(".video-stage");
 
-    saveFeed();
-    renderComments(video);
-    refreshCurrentFeed();
+                if (stage) {
+                    stage.classList.add("video-unavailable");
+                    let notice = $(".video-unavailable-message", stage);
 
-    // The comments dialog stays open after posting.
-    currentVideoId = video.id;
-    showToast("Comment posted 💬");
-}
+                    if (!notice) {
+                        notice = document.createElement("div");
+                        notice.className = "video-unavailable-message";
+                        notice.textContent = "Video file not found";
+                        stage.appendChild(notice);
+                    }
+                }
 
-function closeCommentsWindow() {
-    commentsModal?.classList.remove("show");
-    commentsModal?.setAttribute("aria-hidden", "true");
-    currentVideoId = null;
-}
+                continue;
+            }
 
+            element.src = source;
+            element.dataset.loaded = "true";
+            element.load();
 
-/* =========================================================
-   11. SHARE VIDEO
-========================================================= */
+            if (source.startsWith("blob:")) {
+                element.dataset.objectUrl = source;
+            }
+        }
+    }
 
-async function shareVideo(video) {
-    const text = `${video.caption}\n${video.tags}`;
+    function setupVideoPlayback() {
+        const videos = $$(".feed-video", feed);
 
-    try {
-        if (navigator.share) {
-            await navigator.share({
-                title: "V-Tik",
-                text,
-                url: window.location.href
+        if (!("IntersectionObserver" in window)) {
+            videos.forEach((video) => {
+                video.muted = true;
             });
             return;
         }
 
-        if (navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(
-                `${text}\n${window.location.href}`
+        if (window.vtikVideoObserver) {
+            window.vtikVideoObserver.disconnect();
+        }
+
+        window.vtikVideoObserver = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    const video = entry.target;
+
+                    if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+                        videos.forEach((otherVideo) => {
+                            if (otherVideo !== video) otherVideo.pause();
+                        });
+
+                        const playPromise = video.play();
+
+                        if (playPromise && typeof playPromise.catch === "function") {
+                            playPromise.catch(() => {
+                                // Autoplay may be blocked until the user presses play.
+                            });
+                        }
+                    } else {
+                        video.pause();
+                    }
+                });
+            },
+            { threshold: [0, 0.6, 1] }
+        );
+
+        videos.forEach((video) => {
+            video.muted = true;
+            window.vtikVideoObserver.observe(video);
+        });
+    }
+
+    /* -----------------------------------------------------
+       8. PROFILE AVATAR — NULL-SAFE
+    ----------------------------------------------------- */
+
+    function updateProfileButton() {
+        const avatar = getCurrentAvatar();
+
+        if (profileButton) {
+            profileButton.innerHTML = `
+                <span class="avatar small">${escapeHTML(avatar)}</span>
+            `;
+        }
+
+        if (mobileProfile) {
+            const mobileAvatar = $(".avatar", mobileProfile);
+
+            if (mobileAvatar) {
+                mobileAvatar.textContent = avatar;
+            } else {
+                mobileProfile.textContent = avatar;
+            }
+        }
+    }
+
+    /* -----------------------------------------------------
+       9. LIKES, SAVES AND FOLLOWING
+    ----------------------------------------------------- */
+
+    function toggleLike(videoId) {
+        const video = getVideo(videoId);
+        if (!video) return;
+
+        video.liked = !video.liked;
+        video.likes = Math.max(
+            0,
+            (Number(video.likes) || 0) + (video.liked ? 1 : -1)
+        );
+
+        saveState();
+        renderFeed();
+    }
+
+    function toggleSave(videoId) {
+        const video = getVideo(videoId);
+        if (!video) return;
+
+        video.saved = !video.saved;
+
+        saveState();
+        renderFeed();
+
+        showToast(video.saved ? "Video saved ⭐" : "Removed from saved videos");
+    }
+
+    function toggleFollow(videoId) {
+        const video = getVideo(videoId);
+        if (!video) return;
+
+        video.following = !video.following;
+
+        saveState();
+        renderFeed();
+
+        showToast(video.following
+            ? `Following @${video.username}`
+            : `Unfollowed @${video.username}`);
+    }
+
+    /* -----------------------------------------------------
+       10. COMMENTS
+    ----------------------------------------------------- */
+
+    function openComments(videoId) {
+        const video = getVideo(videoId);
+        if (!video) return;
+
+        activeVideoId = videoId;
+
+        if (!commentsModal) {
+            const commentText = window.prompt(
+                `Add a comment to @${video.username}'s video:`
             );
 
-            showToast("Link copied 🔗");
+            if (commentText && commentText.trim()) {
+                addComment(videoId, commentText.trim());
+            }
+
             return;
         }
 
-        window.prompt("Copy this link:", window.location.href);
-    } catch (error) {
-        if (error.name !== "AbortError") {
-            console.error("Sharing failed:", error);
-            showToast("Could not share this video.");
+        const title = $("[data-comments-title]", commentsModal)
+            || byId("commentsTitle");
+
+        const list = $("[data-comments-list]", commentsModal)
+            || byId("commentsList")
+            || $(".comments-list", commentsModal);
+
+        const form = $("form", commentsModal);
+        const input = $("textarea, input[name='comment'], input[type='text']", commentsModal);
+
+        if (title) {
+            title.textContent = `Comments · @${video.username}`;
+        }
+
+        if (list) {
+            if (!video.comments.length) {
+                list.innerHTML = `
+                    <div class="no-comments">
+                        Be the first to comment 💬
+                    </div>
+                `;
+            } else {
+                list.innerHTML = video.comments.map((comment) => `
+                    <div class="comment-item">
+                        <div class="avatar small">${escapeHTML(comment.avatar || "🙂")}</div>
+                        <div class="comment-content">
+                            <strong>@${escapeHTML(comment.username || "user")}</strong>
+                            <p>${escapeHTML(comment.text || "")}</p>
+                        </div>
+                    </div>
+                `).join("");
+            }
+        }
+
+        if (input) input.value = "";
+
+        commentsModal.dataset.videoId = videoId;
+        showModal(commentsModal);
+
+        if (form && !form.dataset.vtikBound) {
+            form.dataset.vtikBound = "true";
+
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                const targetId = commentsModal.dataset.videoId;
+                const commentInput = $("textarea, input[name='comment'], input[type='text']", form);
+                const text = commentInput ? commentInput.value.trim() : "";
+
+                if (!text) return;
+
+                addComment(targetId, text);
+                commentInput.value = "";
+                openComments(targetId);
+            });
         }
     }
-}
 
+    function addComment(videoId, text) {
+        const video = getVideo(videoId);
+        if (!video || !text.trim()) return;
 
-/* =========================================================
-   12. CREATE AND UPLOAD VIDEO
-========================================================= */
-
-function setupCreateButtons() {
-    createTop?.addEventListener("click", openCreateModal);
-    mobileCreate?.addEventListener("click", openCreateModal);
-    closeCreateButton?.addEventListener("click", closeCreateModal);
-
-    createModal?.addEventListener("click", event => {
-        if (event.target === createModal) closeCreateModal();
-    });
-
-    uploadZone?.addEventListener("click", event => {
-        if (event.target.closest("label")) return;
-        videoPicker?.click();
-    });
-
-    videoPicker?.addEventListener("change", selectVideoFile);
-    postVideoButton?.addEventListener("click", uploadVideo);
-}
-
-function openCreateModal() {
-    createModal?.classList.add("show");
-    createModal?.setAttribute("aria-hidden", "false");
-}
-
-function closeCreateModal() {
-    createModal?.classList.remove("show");
-    createModal?.setAttribute("aria-hidden", "true");
-
-    // Only revoke a URL if it belongs to a selected file that
-    // has not been successfully posted.
-    if (selectedVideoURL) {
-        URL.revokeObjectURL(selectedVideoURL);
-    }
-
-    selectedVideoURL = null;
-    selectedVideoFile = null;
-
-    if (videoPicker) videoPicker.value = "";
-    if (videoCaption) videoCaption.value = "";
-    if (uploadName) uploadName.textContent = "";
-
-    if (preview) {
-        preview.pause();
-        preview.removeAttribute("src");
-        preview.load();
-        preview.hidden = true;
-    }
-
-    if (previewContainer) previewContainer.hidden = true;
-    if (uploadZone) uploadZone.hidden = false;
-    if (postVideoButton) postVideoButton.disabled = true;
-}
-
-function selectVideoFile(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("video/")) {
-        showToast("Please choose a video file.");
-        event.target.value = "";
-        return;
-    }
-
-    // Optional client-side size limit: 100 MB.
-    const maxSize = 100 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-        showToast("Choose a video smaller than 100 MB.");
-        event.target.value = "";
-        return;
-    }
-
-    if (selectedVideoURL) {
-        URL.revokeObjectURL(selectedVideoURL);
-    }
-
-    selectedVideoFile = file;
-    selectedVideoURL = URL.createObjectURL(file);
-
-    if (preview) {
-        preview.src = selectedVideoURL;
-        preview.hidden = false;
-        preview.load();
-    }
-
-    if (previewContainer) previewContainer.hidden = false;
-    if (uploadZone) uploadZone.hidden = true;
-
-    if (uploadName) {
-        uploadName.textContent = `${file.name} • ${formatFileSize(file.size)}`;
-    }
-
-    if (postVideoButton) postVideoButton.disabled = false;
-}
-
-async function uploadVideo() {
-    if (!selectedVideoFile || !selectedVideoURL) {
-        showToast("Select a video first.");
-        return;
-    }
-
-    if (postVideoButton) {
-        postVideoButton.disabled = true;
-        postVideoButton.textContent = "Posting...";
-    }
-
-    try {
-        const fileId = await saveVideoToDatabase(selectedVideoFile);
-
-        const newVideo = normalizeVideo({
-            id: createId("user"),
-            src: "",
-            localFileId: fileId,
-            username: getCurrentUsername(),
+        video.comments.push({
+            id: makeId(),
+            username: state.username || currentUser.username,
             avatar: getCurrentAvatar(),
-            caption: videoCaption?.value.trim() || "My new V-Tik video 🎬",
-            tags: "#VTik #NewVideo",
-            music: "♫ Original sound",
-            badge: "NEW",
+            text: text.trim(),
+            createdAt: Date.now()
+        });
+
+        saveState();
+        renderFeed();
+        showToast("Comment added 💬");
+    }
+
+    /* -----------------------------------------------------
+       11. SHARE
+    ----------------------------------------------------- */
+
+    async function shareVideo(videoId) {
+        const video = getVideo(videoId);
+        if (!video) return;
+
+        const shareData = {
+            title: `V-Tik video by @${video.username}`,
+            text: video.caption || "Watch this video on V-Tik!",
+            url: window.location.href.split("#")[0] + `#video-${video.id}`
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(
+                    `${shareData.text}\n${shareData.url}`
+                );
+                showToast("Video link copied!");
+            } else {
+                window.prompt("Copy this video link:", shareData.url);
+            }
+        } catch (error) {
+            if (error && error.name !== "AbortError") {
+                console.warn("V-Tik: share failed.", error);
+                showToast("Could not share this video.");
+            }
+        }
+    }
+
+    /* -----------------------------------------------------
+       12. MODALS
+    ----------------------------------------------------- */
+
+    function showModal(modal) {
+        if (!modal) return;
+
+        modal.hidden = false;
+        modal.classList.add("open", "active");
+        modal.setAttribute("aria-hidden", "false");
+
+        document.body.classList.add("modal-open");
+    }
+
+    function hideModal(modal) {
+        if (!modal) return;
+
+        modal.classList.remove("open", "active");
+        modal.hidden = true;
+        modal.setAttribute("aria-hidden", "true");
+
+        const anyOpen = $$(".open, .active").some((element) =>
+            element.matches(".modal, [role='dialog']")
+        );
+
+        if (!anyOpen) {
+            document.body.classList.remove("modal-open");
+        }
+    }
+
+    function openCreateModal() {
+        if (!createModal) {
+            const fileInput = byId("videoUpload") || byId("videoFile");
+
+            if (fileInput) {
+                fileInput.click();
+            } else {
+                showToast("Add a create modal or video upload input to index.html.");
+            }
+
+            return;
+        }
+
+        showModal(createModal);
+    }
+
+    /* -----------------------------------------------------
+       13. VIDEO UPLOAD
+    ----------------------------------------------------- */
+
+    function getUploadElements() {
+        return {
+            input: byId("videoUpload")
+                || byId("videoFile")
+                || $("input[type='file'][accept*='video']"),
+
+            caption: byId("videoCaption")
+                || byId("captionInput")
+                || $("textarea[name='caption']"),
+
+            username: byId("creatorName")
+                || byId("uploadUsername"),
+
+            submit: byId("publishVideo")
+                || byId("uploadSubmit")
+                || $("[data-action='publish-video']")
+        };
+    }
+
+    function bindUploadPreview() {
+        const { input } = getUploadElements();
+        if (!input || input.dataset.vtikPreviewBound) return;
+
+        input.dataset.vtikPreviewBound = "true";
+
+        $on(input, "change", () => {
+            const file = input.files && input.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith("video/")) {
+                showToast("Please choose a video file.");
+                input.value = "";
+                return;
+            }
+
+            const preview = byId("uploadPreview") || $(".upload-preview");
+            if (!preview) return;
+
+            const url = URL.createObjectURL(file);
+
+            preview.innerHTML = `
+                <video src="${url}" controls playsinline
+                       style="width:100%;max-height:320px;object-fit:contain;">
+                </video>
+            `;
+        });
+    }
+
+    async function uploadVideo(file, caption = "", username = "") {
+        if (!file || !file.type.startsWith("video/")) {
+            showToast("Choose a valid video file first.");
+            return;
+        }
+
+        if (file.size > 250 * 1024 * 1024) {
+            showToast("Please choose a video smaller than 250 MB.");
+            return;
+        }
+
+        const video = {
+            id: makeId(),
+            username: safeText(username, state.username || currentUser.username)
+                .replace(/^@/, ""),
+            displayName: safeText(username, "V-Tik Creator"),
+            avatar: getCurrentAvatar(),
+            caption: caption.trim(),
+            music: "Original sound",
+            src: "",
+            uploaded: true,
             likes: 0,
-            commentsCount: 0,
             comments: [],
             liked: false,
             saved: false,
-            following: false
-        });
+            following: false,
+            createdAt: Date.now()
+        };
 
-        // Keep the temporary URL for the feed. Do not revoke it
-        // when closing the upload modal.
-        newVideo.localURL = selectedVideoURL;
-        selectedVideoURL = null;
-        selectedVideoFile = null;
-
-        videos.unshift(newVideo);
-        saveFeed();
-
-        currentSection = "home";
-
-        if (searchInput) searchInput.value = "";
-        if (clearSearch) clearSearch.hidden = true;
-
-        updateActiveNavigation("home");
-        renderFeed(videos);
-
-        closeCreateModal();
-        showToast("Video posted on this device 🎉");
-    } catch (error) {
-        console.error("Video upload failed:", error);
-        showToast("Could not save your video. Check browser storage.");
-    } finally {
-        if (postVideoButton) {
-            postVideoButton.disabled = !selectedVideoFile;
-            postVideoButton.textContent = "Post Video";
-        }
-    }
-}
-
-
-/* =========================================================
-   13. INDEXEDDB — SAVE UPLOADED VIDEO FILES
-========================================================= */
-
-function openDatabase() {
-    return new Promise((resolve, reject) => {
-        if (!window.indexedDB) {
-            reject(new Error("IndexedDB is not supported."));
+        try {
+            await saveVideoFile(video.id, file);
+        } catch (error) {
+            console.error("V-Tik: upload storage failed.", error);
+            showToast("Could not store this video in your browser.");
             return;
         }
 
-        const request = indexedDB.open(
-            DATABASE_NAME,
-            DATABASE_VERSION
-        );
+        state.videos.unshift(video);
+        state.activeTab = "For You";
+        searchTerm = "";
 
-        request.onupgradeneeded = event => {
-            const database = event.target.result;
+        if (searchInput) searchInput.value = "";
 
-            if (!database.objectStoreNames.contains(VIDEO_STORE)) {
-                database.createObjectStore(VIDEO_STORE, {
-                    keyPath: "id"
+        saveState();
+        renderFeed();
+
+        if (createModal) hideModal(createModal);
+
+        showToast("Video published successfully! 🎉");
+    }
+
+    function bindUploadForm() {
+        const { input, caption, username, submit } = getUploadElements();
+
+        bindUploadPreview();
+
+        const form = byId("createForm")
+            || byId("uploadForm")
+            || (input ? input.closest("form") : null);
+
+        if (form && !form.dataset.vtikUploadBound) {
+            form.dataset.vtikUploadBound = "true";
+
+            $on(form, "submit", async (event) => {
+                event.preventDefault();
+
+                const file = input && input.files && input.files[0];
+
+                if (!file) {
+                    showToast("Choose a video to upload.");
+                    return;
+                }
+
+                if (submit) {
+                    submit.disabled = true;
+                    submit.textContent = "Publishing...";
+                }
+
+                try {
+                    await uploadVideo(
+                        file,
+                        caption ? caption.value : "",
+                        username ? username.value : ""
+                    );
+
+                    form.reset();
+
+                    const preview = byId("uploadPreview") || $(".upload-preview");
+                    if (preview) preview.innerHTML = "";
+                } finally {
+                    if (submit) {
+                        submit.disabled = false;
+                        submit.textContent = "Publish";
+                    }
+                }
+            });
+        }
+
+        if (submit && !form && !submit.dataset.vtikUploadBound) {
+            submit.dataset.vtikUploadBound = "true";
+
+            $on(submit, "click", async () => {
+                const file = input && input.files && input.files[0];
+
+                await uploadVideo(
+                    file,
+                    caption ? caption.value : "",
+                    username ? username.value : ""
+                );
+            });
+        }
+    }
+
+    /* -----------------------------------------------------
+       14. FULLSCREEN VIDEO VIEWER
+    ----------------------------------------------------- */
+
+    async function openViewer(videoId) {
+        const video = getVideo(videoId);
+        if (!video) return;
+
+        activeVideoId = videoId;
+
+        if (!viewer) {
+            const element = $(
+                `.feed-video[data-video-id="${CSS.escape(videoId)}"]`,
+                feed
+            );
+
+            if (element && element.requestFullscreen) {
+                try {
+                    await element.requestFullscreen();
+                } catch (error) {
+                    console.warn("V-Tik: fullscreen unavailable.", error);
+                }
+            } else {
+                showToast("Fullscreen viewer is not set up in index.html.");
+            }
+
+            return;
+        }
+
+        const viewerVideo = $("video", viewer)
+            || byId("viewerVideo");
+
+        const caption = $("[data-viewer-caption]", viewer)
+            || byId("viewerCaption");
+
+        const username = $("[data-viewer-username]", viewer)
+            || byId("viewerUsername");
+
+        if (caption) caption.textContent = video.caption || "";
+        if (username) username.textContent = `@${video.username}`;
+
+        if (viewerVideo) {
+            viewerVideo.pause();
+
+            const source = await resolveVideoSource(video);
+            viewerVideo.src = source;
+            viewerVideo.loop = true;
+            viewerVideo.playsInline = true;
+            viewerVideo.muted = false;
+            viewerVideo.load();
+
+            const playPromise = viewerVideo.play();
+
+            if (playPromise && playPromise.catch) {
+                playPromise.catch(() => {});
+            }
+        }
+
+        viewer.dataset.videoId = videoId;
+        showModal(viewer);
+    }
+
+    function closeViewer() {
+        if (!viewer) return;
+
+        const video = $("video", viewer) || byId("viewerVideo");
+
+        if (video) {
+            video.pause();
+            video.removeAttribute("src");
+            video.load();
+        }
+
+        hideModal(viewer);
+        activeVideoId = null;
+    }
+
+    /* -----------------------------------------------------
+       15. NAVIGATION AND TABS
+    ----------------------------------------------------- */
+
+    function setActiveTab(tabName) {
+        const allowedTabs = ["For You", "Following", "Saved", "Explore"];
+
+        state.activeTab = allowedTabs.includes(tabName)
+            ? tabName
+            : "For You";
+
+        $$(".nav-link, .sidebar-link, .mobile-nav button, [data-tab]")
+            .forEach((element) => {
+                const label = safeText(
+                    element.dataset.tab
+                        || element.dataset.nav
+                        || element.textContent,
+                    ""
+                );
+
+                element.classList.toggle(
+                    "active",
+                    label.trim().toLowerCase() === state.activeTab.toLowerCase()
+                );
+            });
+
+        saveState();
+        renderFeed();
+    }
+
+    function bindNavigation() {
+        $$("[data-tab], [data-nav], .nav-link, .sidebar-link, .mobile-nav button")
+            .forEach((element) => {
+                if (element.dataset.vtikNavBound) return;
+
+                element.dataset.vtikNavBound = "true";
+
+                $on(element, "click", () => {
+                    const label = safeText(
+                        element.dataset.tab || element.dataset.nav || element.textContent,
+                        ""
+                    ).trim().toLowerCase();
+
+                    if (label.includes("following")) {
+                        setActiveTab("Following");
+                    } else if (label.includes("saved") || label.includes("bookmark")) {
+                        setActiveTab("Saved");
+                    } else if (label.includes("explore") || label.includes("discover")) {
+                        setActiveTab("Explore");
+                    } else if (
+                        label.includes("for you")
+                        || label.includes("home")
+                        || label.includes("feed")
+                    ) {
+                        setActiveTab("For You");
+                    } else if (label.includes("create") || label.includes("upload")) {
+                        openCreateModal();
+                    } else if (label.includes("profile")) {
+                        showToast(`Your profile: @${state.username}`);
+                    }
+                });
+            });
+    }
+
+    function bindSearch() {
+        if (!searchInput || searchInput.dataset.vtikSearchBound) return;
+
+        searchInput.dataset.vtikSearchBound = "true";
+
+        $on(searchInput, "input", () => {
+            searchTerm = searchInput.value.trim();
+            renderFeed();
+        });
+
+        $on(searchInput, "keydown", (event) => {
+            if (event.key === "Escape") {
+                searchInput.value = "";
+                searchTerm = "";
+                renderFeed();
+                searchInput.blur();
+            }
+        });
+    }
+
+    /* -----------------------------------------------------
+       16. CLICK HANDLING
+    ----------------------------------------------------- */
+
+    function bindGlobalClicks() {
+        $on(document, "click", async (event) => {
+            const target = event.target;
+            if (!(target instanceof Element)) return;
+
+            const actionElement = target.closest("[data-action]");
+            if (!actionElement) return;
+
+            const action = actionElement.dataset.action;
+            const videoId = actionElement.dataset.videoId
+                || actionElement.closest("[data-video-id]")?.dataset.videoId;
+
+            switch (action) {
+                case "like":
+                    event.preventDefault();
+                    toggleLike(videoId);
+                    break;
+
+                case "save":
+                    event.preventDefault();
+                    toggleSave(videoId);
+                    break;
+
+                case "follow":
+                    event.preventDefault();
+                    toggleFollow(videoId);
+                    break;
+
+                case "comment":
+                    event.preventDefault();
+                    openComments(videoId);
+                    break;
+
+                case "share":
+                    event.preventDefault();
+                    await shareVideo(videoId);
+                    break;
+
+                case "expand":
+                case "fullscreen":
+                    event.preventDefault();
+                    await openViewer(videoId);
+                    break;
+
+                case "sound": {
+                    const card = actionElement.closest(".video-card");
+                    const video = $("video", card);
+
+                    if (video) {
+                        video.muted = !video.muted;
+                        actionElement.textContent = video.muted ? "🔇" : "🔊";
+                    }
+                    break;
+                }
+
+                case "open-create":
+                case "create":
+                case "upload":
+                    event.preventDefault();
+                    openCreateModal();
+                    break;
+
+                case "close-modal":
+                case "close-create":
+                    event.preventDefault();
+                    hideModal(actionElement.closest(".modal") || createModal);
+                    break;
+
+                case "close-comments":
+                    event.preventDefault();
+                    hideModal(commentsModal);
+                    break;
+
+                case "close-viewer":
+                    event.preventDefault();
+                    closeViewer();
+                    break;
+
+                case "profile":
+                    event.preventDefault();
+                    showToast(`Signed in locally as @${state.username}`);
+                    break;
+
+                case "clear-search":
+                    if (searchInput) {
+                        searchInput.value = "";
+                        searchTerm = "";
+                        renderFeed();
+                    }
+                    break;
+            }
+        });
+
+        // Clicking a modal backdrop closes it.
+        [createModal, commentsModal, viewer].filter(Boolean).forEach((modal) => {
+            $on(modal, "click", (event) => {
+                if (event.target === modal) {
+                    if (modal === viewer) {
+                        closeViewer();
+                    } else {
+                        hideModal(modal);
+                    }
+                }
+            });
+        });
+
+        $on(document, "keydown", (event) => {
+            if (event.key === "Escape") {
+                if (viewer && !viewer.hidden) closeViewer();
+
+                [createModal, commentsModal].filter(Boolean).forEach((modal) => {
+                    if (!modal.hidden) hideModal(modal);
                 });
             }
-        };
+        });
+    }
 
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
-}
+    /* -----------------------------------------------------
+       17. PROFILE EDITING
+    ----------------------------------------------------- */
 
-async function saveVideoToDatabase(file) {
-    const database = await openDatabase();
-    const id = createId("file");
+    function bindProfileEditing() {
+        const usernameInput = byId("profileUsername");
+        const avatarInput = byId("profileAvatar");
+        const saveProfile = byId("saveProfile");
 
-    return new Promise((resolve, reject) => {
-        const transaction = database.transaction(VIDEO_STORE, "readwrite");
-        const store = transaction.objectStore(VIDEO_STORE);
+        if (!saveProfile || saveProfile.dataset.vtikProfileBound) return;
 
-        store.put({
-            id,
-            file,
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            savedAt: Date.now()
+        saveProfile.dataset.vtikProfileBound = "true";
+
+        $on(saveProfile, "click", () => {
+            if (usernameInput && usernameInput.value.trim()) {
+                state.username = usernameInput.value.trim().replace(/^@/, "");
+            }
+
+            if (avatarInput && avatarInput.value.trim()) {
+                state.avatar = avatarInput.value.trim();
+            }
+
+            saveState();
+            updateProfileButton();
+            showToast("Profile updated!");
+        });
+    }
+
+    /* -----------------------------------------------------
+       18. BASIC ACCESSIBILITY AND ERROR HANDLING
+    ----------------------------------------------------- */
+
+    function bindVideoErrors() {
+        $on(feed, "error", (event) => {
+            const video = event.target;
+
+            if (!(video instanceof HTMLVideoElement)) return;
+
+            const stage = video.closest(".video-stage");
+            if (!stage) return;
+
+            stage.classList.add("video-unavailable");
+
+            let notice = $(".video-unavailable-message", stage);
+
+            if (!notice) {
+                notice = document.createElement("div");
+                notice.className = "video-unavailable-message";
+                stage.appendChild(notice);
+            }
+
+            notice.textContent = "Unable to play this video. Check the video file path.";
+        }, true);
+    }
+
+    function cleanupObjectURLs() {
+        $$(".feed-video[data-object-url]", feed).forEach((video) => {
+            const url = video.dataset.objectUrl;
+
+            if (url) {
+                try {
+                    URL.revokeObjectURL(url);
+                } catch (_) {
+                    // Ignore invalid or already-revoked URLs.
+                }
+            }
         });
 
-        transaction.oncomplete = () => {
-            database.close();
-            resolve(id);
-        };
-
-        transaction.onerror = () => {
-            const error = transaction.error;
-            database.close();
-            reject(error);
-        };
-
-        transaction.onabort = () => {
-            const error = transaction.error || new Error("Storage transaction aborted.");
-            database.close();
-            reject(error);
-        };
-    });
-}
-
-async function getStoredVideo(id) {
-    const database = await openDatabase();
-
-    return new Promise((resolve, reject) => {
-        const transaction = database.transaction(VIDEO_STORE, "readonly");
-        const request = transaction.objectStore(VIDEO_STORE).get(id);
-
-        request.onsuccess = () => {
-            const result = request.result;
-            database.close();
-            resolve(result?.file || null);
-        };
-
-        request.onerror = () => {
-            const error = request.error;
-            database.close();
-            reject(error);
-        };
-    });
-}
-
-async function restoreUploadedVideos() {
-    for (const video of videos) {
-        if (!video.localFileId) continue;
-
-        try {
-            const file = await getStoredVideo(video.localFileId);
-
-            if (file) {
-                video.localURL = URL.createObjectURL(file);
-            }
-        } catch (error) {
-            console.warn("Could not restore uploaded video:", error);
+        if (currentObjectUrl) {
+            URL.revokeObjectURL(currentObjectUrl);
+            currentObjectUrl = null;
         }
     }
 
-    renderFeed();
-}
+    /* -----------------------------------------------------
+       19. INITIALIZE
+    ----------------------------------------------------- */
 
+    function initializeApp() {
+        updateProfileButton();
+        bindNavigation();
+        bindSearch();
+        bindGlobalClicks();
+        bindUploadForm();
+        bindProfileEditing();
+        bindVideoErrors();
 
-/* =========================================================
-   14. FULLSCREEN VIEWER
-========================================================= */
-
-function setupViewer() {
-    viewerClose?.addEventListener("click", closeViewer);
-
-    videoViewer?.addEventListener("click", event => {
-        if (event.target === videoViewer) closeViewer();
-    });
-}
-
-function openViewer(source) {
-    if (!videoViewer || !viewerVideo || !source) {
-        showToast("This video has no playable source.");
-        return;
-    }
-
-    // Pause feed videos while the viewer is open.
-    $$(".feed-video", feed).forEach(player => player.pause());
-
-    viewerVideo.src = source;
-    viewerVideo.muted = !soundEnabled;
-
-    videoViewer.classList.add("show");
-    videoViewer.setAttribute("aria-hidden", "false");
-
-    viewerVideo.play().catch(() => {
-        // The user can press play if autoplay is blocked.
-    });
-}
-
-function closeViewer() {
-    if (!videoViewer || !viewerVideo) return;
-
-    viewerVideo.pause();
-    viewerVideo.removeAttribute("src");
-    viewerVideo.load();
-
-    videoViewer.classList.remove("show");
-    videoViewer.setAttribute("aria-hidden", "true");
-}
-
-
-/* =========================================================
-   15. NAVIGATION
-========================================================= */
-
-function setupNavigation() {
-    $$("[data-section]").forEach(button => {
-        button.addEventListener("click", () => {
-            const section = button.dataset.section;
-
-            currentSection = section;
-
-            if (searchInput) searchInput.value = "";
-            if (clearSearch) clearSearch.hidden = true;
-
-            updateActiveNavigation(section);
-            changeSection(section);
+        // Ensure optional modals start hidden when present.
+        [createModal, commentsModal, viewer].filter(Boolean).forEach((modal) => {
+            if (!modal.hasAttribute("data-start-open")) {
+                modal.hidden = true;
+                modal.setAttribute("aria-hidden", "true");
+            }
         });
-    });
-}
 
-function updateActiveNavigation(section) {
-    $$("[data-section]").forEach(button => {
-        button.classList.toggle(
-            "active",
-            button.dataset.section === section
+        renderFeed();
+
+        console.info(
+            `V-Tik initialized successfully. Videos in feed: ${state.videos.length}`
         );
-    });
-}
-
-function changeSection(section, notify = true) {
-    currentSection = section;
-
-    if (section === "home") {
-        renderFeed(videos);
-        return;
     }
 
-    if (section === "liked") {
-        renderFeed(videos.filter(video => video.liked));
-        if (notify) showToast("Your liked videos ❤️");
-        return;
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initializeApp, { once: true });
+    } else {
+        initializeApp();
     }
 
-    if (section === "saved") {
-        renderFeed(videos.filter(video => video.saved));
-        if (notify) showToast("Your saved videos 🔖");
-        return;
-    }
+    window.addEventListener("beforeunload", cleanupObjectURLs);
 
-    if (section === "following") {
-        renderFeed(videos.filter(video => video.following));
-        if (notify) showToast("Videos from followed creators");
-        return;
-    }
+    /* -----------------------------------------------------
+       20. OPTIONAL PUBLIC FUNCTIONS
+    ----------------------------------------------------- */
 
-    if (section === "trending") {
-        const trending = [...videos].sort(
-            (a, b) => b.likes - a.likes
-        );
-
-        renderFeed(trending);
-        if (notify) showToast("Trending videos 🔥");
-        return;
-    }
-
-    if (section === "discover") {
-        renderFeed(videos);
-        if (notify) showToast("Discover videos 🔎");
-        return;
-    }
-
-    if (section === "music") {
-        renderFeed(videos.filter(video =>
-            `${video.tags} ${video.music}`.toLowerCase()
-                .match(/music|sound|song|dance/)
-        ));
-
-        if (notify) showToast("Music videos 🎵");
-        return;
-    }
-
-    if (section === "gaming") {
-        renderFeed(videos.filter(video =>
-            `${video.tags} ${video.caption}`.toLowerCase()
-                .includes("gaming")
-        ));
-
-        if (notify) showToast("Gaming videos 🎮");
-        return;
-    }
-
-    if (section === "challenges") {
-        renderFeed(videos.filter(video =>
-            `${video.tags} ${video.caption}`.toLowerCase()
-                .includes("challenge")
-        ));
-
-        if (notify) showToast("Challenge videos 🏆");
-        return;
-    }
-
-    if (section === "messages") {
-        showToast("Messaging is not connected yet 💬");
-        return;
-    }
-
-    renderFeed(videos);
-}
-
-
-/* =========================================================
-   16. PROFILE
-========================================================= */
-
-function setupProfileButtons() {
-    profileButton?.addEventListener("click", openProfile);
-    mobileProfile?.addEventListener("click", openProfile);
-}
-
-function openProfile(event) {
-    // Update this destination if your profile page has a different name.
-    // Example: account.html, profile.html, or log.html.
-    window.location.href = "account.html";
-}
-
-function getCurrentUsername() {
-    const stored =
-        localStorage.getItem("vtik_username") ||
-        localStorage.getItem("vtik_current_user") ||
-        "vtik_user";
-
-    return stored.startsWith("@") ? stored : `@${stored}`;
-}
-
-function getCurrentAvatar() {
-    const name = localStorage.getItem("vtik_name") || "V T";
-
-    const initials = name.trim()
-        .split(/\s+/)
-        .map(word => word[0] || "")
-        .join("")
-        .toUpperCase();
-
-    return initials.slice(0, 2) || "VT";
-}
-
-function updateProfileButton() {
-    const avatar = getCurrentAvatar();
-
-    if (profileButton) {
-        profileButton.innerHTML = `<span class="avatar small">${escapeHTML(avatar)}</span>`;
-    }
-
-    const mobileAvatar = $(".avatar", mobileProfile);
-
-    if (mobileAvatar) {
-        mobileAvatar.textContent = avatar;
-    }
-}
-
-
-/* =========================================================
-   17. NOTIFICATIONS
-========================================================= */
-
-function setupNotifications() {
-    notificationBtn?.addEventListener("click", () => {
-        showToast("You're all caught up! 🔔");
-    });
-}
-
-
-/* =========================================================
-   18. KEYBOARD CONTROLS
-========================================================= */
-
-function setupKeyboardControls() {
-    document.addEventListener("keydown", event => {
-        if (event.key === "Escape") {
-            closeViewer();
-            closeCommentsWindow();
-
-            if (createModal?.classList.contains("show")) {
-                closeCreateModal();
-            }
+    window.VTik = {
+        renderFeed,
+        uploadVideo,
+        openComments,
+        openViewer,
+        closeViewer,
+        setActiveTab,
+        showToast,
+        get videos() {
+            return [...state.videos];
         }
-
-        if (
-            event.key === "/" &&
-            !["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName) &&
-            !document.activeElement?.isContentEditable
-        ) {
-            event.preventDefault();
-            searchInput?.focus();
-        }
-    });
-}
-
-
-/* =========================================================
-   19. TOAST NOTIFICATIONS
-========================================================= */
-
-function showToast(message) {
-    if (!toast) {
-        console.info(message);
-        return;
-    }
-
-    toast.textContent = message;
-    toast.classList.add("show");
-    toast.setAttribute("aria-hidden", "false");
-
-    clearTimeout(toastTimeout);
-
-    toastTimeout = setTimeout(() => {
-        toast.classList.remove("show");
-        toast.setAttribute("aria-hidden", "true");
-    }, 2600);
-}
-
-
-/* =========================================================
-   20. HELPERS
-========================================================= */
-
-function formatNumber(value) {
-    const number = Number(value) || 0;
-
-    if (number >= 1_000_000) {
-        return `${(number / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-    }
-
-    if (number >= 1_000) {
-        return `${(number / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
-    }
-
-    return String(number);
-}
-
-function formatFileSize(bytes) {
-    if (!bytes) return "0 KB";
-
-    if (bytes >= 1024 * 1024) {
-        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    }
-
-    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-}
-
-function escapeHTML(value) {
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-function createId(prefix = "vtik") {
-    if (window.crypto?.randomUUID) {
-        return `${prefix}-${crypto.randomUUID()}`;
-    }
-
-    return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-
-/* =========================================================
-   21. CLEANUP
-========================================================= */
-
-window.addEventListener("pagehide", () => {
-    if (feedObserver) {
-        feedObserver.disconnect();
-        feedObserver = null;
-    }
-
-    videos.forEach(video => {
-        if (video.localURL) {
-            URL.revokeObjectURL(video.localURL);
-            video.localURL = null;
-        }
-    });
-
-    if (selectedVideoURL) {
-        URL.revokeObjectURL(selectedVideoURL);
-        selectedVideoURL = null;
-    }
-});
+    };
+})();
