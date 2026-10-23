@@ -1507,95 +1507,44 @@
 })();
 
 
+
 /* =========================================
-   V-TIK — PLAY ONLY THE VIEWED VIDEO
+   V-TIK — PLAY VIEWED VIDEO, REWIND PREVIOUS
 ========================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-    const videoSelector = "#videoList .feed-video";
-    let activeVideo = null;
+async function playViewedVideo(video) {
+    if (activeVideo === video) return;
 
-    function setupVideo(video) {
-        video.muted = true;
-        video.loop = true;
-        video.playsInline = true;
-        video.preload = "metadata";
-
-        // Pause videos that are not currently visible.
-        video.pause();
-    }
-
-    function getVideos() {
-        return document.querySelectorAll(videoSelector);
-    }
-
-    async function playViewedVideo(video) {
-        if (activeVideo === video) return;
-
-        // Pause every other video first.
-        getVideos().forEach((otherVideo) => {
-            if (otherVideo !== video) {
-                otherVideo.pause();
-            }
-        });
-
-        activeVideo = video;
+    // Pause and rewind the previously viewed video.
+    if (activeVideo) {
+        activeVideo.pause();
 
         try {
-            await video.play();
-        } catch {
-            // Autoplay may be blocked by the browser.
+            activeVideo.currentTime = 0;
+        } catch (error) {
+            // Rewind when the media is ready if necessary.
+            activeVideo.addEventListener("loadedmetadata", () => {
+                activeVideo.currentTime = 0;
+            }, { once: true });
         }
     }
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            const video = entry.target;
+    // Pause all other videos and rewind them.
+    document.querySelectorAll("#videoList .feed-video").forEach((otherVideo) => {
+        if (otherVideo !== video) {
+            otherVideo.pause();
 
-            if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-                playViewedVideo(video);
-            } else {
-                video.pause();
-
-                if (activeVideo === video) {
-                    activeVideo = null;
-                }
+            if (otherVideo.readyState > 0) {
+                otherVideo.currentTime = 0;
             }
-        });
-    }, {
-        threshold: [0, 0.6, 1]
-    });
-
-    function observeVideos() {
-        getVideos().forEach((video) => {
-            if (video.dataset.autoplayObserved === "true") return;
-
-            setupVideo(video);
-            video.dataset.autoplayObserved = "true";
-            observer.observe(video);
-        });
-    }
-
-    observeVideos();
-
-    // Support videos added later through uploads.
-    const feed = document.querySelector("#videoList");
-
-    if (feed) {
-        const mutationObserver = new MutationObserver(observeVideos);
-        mutationObserver.observe(feed, {
-            childList: true,
-            subtree: true
-        });
-    }
-
-    // Pause playback when the browser tab is hidden.
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-            getVideos().forEach((video) => video.pause());
-        } else {
-            activeVideo = null;
-            observeVideos();
         }
     });
-});
+
+    activeVideo = video;
+
+    try {
+        await video.play();
+    } catch (error) {
+        // The browser may block autoplay.
+    }
+}
