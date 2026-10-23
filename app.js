@@ -3,22 +3,38 @@
 
 /* ============================================================
    V-TIK — COMPLETE VIDEO SHARING APPLICATION
-   File structure:
+   ------------------------------------------------------------
+   Files:
    index.html
    style.css
    app.js
-   vtik-demo-1.mp4
+   Ranking Best F1 Donut's!.mp4
    vtik-demo-2.mp4
    vtik-demo-3.mp4
+
+   FEATURES
+   - Scroll-based autoplay
+   - Pause and rewind previous video
+   - Muted autoplay with sound controls
+   - Likes, comments, saves and follows
+   - Video upload with IndexedDB persistence
+   - Upload preview and drag-and-drop
+   - Search and feed filters
+   - Share video links
+   - Fullscreen video viewer
+   - Responsive navigation
+   - Feed scroll buttons
 ============================================================ */
 
 (() => {
+    "use strict";
+
     /* ========================================================
-       1. HELP
+       1. HELPERS
     ======================================================== */
 
     const $ = (selector, root = document) =>
-        root ? root.querySelector(selector) : null;
+        root?.querySelector(selector) || null;
 
     const $$ = (selector, root = document) =>
         root ? [...root.querySelectorAll(selector)] : [];
@@ -37,27 +53,34 @@
             "'": "&#39;"
         })[character]);
 
-    const formatCount = number => {
-        number = Number(number) || 0;
-
-        if (number >= 1_000_000) {
-            return `${(number / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-        }
-
-        if (number >= 1_000) {
-            return `${(number / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
-        }
-
-        return String(number);
-    };
-
     const textOr = (value, fallback) =>
         typeof value === "string" && value.trim()
             ? value.trim()
             : fallback;
 
+    const formatCount = number => {
+        number = Math.max(0, Number(number) || 0);
+
+        if (number >= 1_000_000) {
+            return `${(number / 1_000_000)
+                .toFixed(1).replace(/\.0$/, "")}M`;
+        }
+
+        if (number >= 1_000) {
+            return `${(number / 1_000)
+                .toFixed(1).replace(/\.0$/, "")}K`;
+        }
+
+        return String(number);
+    };
+
+    const isVideoFile = file =>
+        Boolean(file && file.type.startsWith("video/"));
+
+    const MAX_VIDEO_SIZE = 250 * 1024 * 1024;
+
     /* ========================================================
-       2. ELEMENTS
+       2. ELEMENTS AND CONFIGURATION
     ======================================================== */
 
     const feed = byId("feed");
@@ -88,13 +111,7 @@
     };
 
     /* ========================================================
-       3. LOCAL DEMO VIDEOS
-
-       IMPORTANT:
-       These files must be in the same public directory
-       as index.html.
-
-       Use exact filenames, including capitalization.
+       3. DEMO VIDEOS
     ======================================================== */
 
     const DEMO_VIDEOS = [
@@ -148,12 +165,11 @@
         }
     ];
 
-    function getDemoVideos() {
-        return DEMO_VIDEOS.map(video => ({
+    const getDemoVideos = () =>
+        DEMO_VIDEOS.map(video => ({
             ...video,
             comments: []
         }));
-    }
 
     function normalizeVideo(video) {
         return {
@@ -167,7 +183,9 @@
             uploaded: Boolean(video.uploaded),
             likes: Math.max(0, Number(video.likes) || 0),
             comments: Array.isArray(video.comments)
-                ? video.comments
+                ? video.comments.filter(comment =>
+                    comment && typeof comment === "object"
+                )
                 : [],
             liked: Boolean(video.liked),
             saved: Boolean(video.saved),
@@ -175,6 +193,10 @@
             createdAt: Number(video.createdAt) || Date.now()
         };
     }
+
+    /* ========================================================
+       4. STATE AND LOCAL STORAGE
+    ======================================================== */
 
     function loadState() {
         const defaults = {
@@ -198,27 +220,22 @@
                     .map(normalizeVideo)
                 : [];
 
-            /*
-             * Keep locally hosted demo paths current.
-             * This fixes previously saved online demo URLs.
-             */
+            // Keep demo video paths synchronized with this version.
             videos = videos.map(video => {
                 const demo = DEMO_VIDEOS.find(
                     item => item.id === video.id
                 );
 
-                if (demo) {
-                    return {
+                return demo
+                    ? {
                         ...video,
                         src: demo.src,
                         uploaded: false
-                    };
-                }
-
-                return video;
+                    }
+                    : video;
             });
 
-            if (videos.length === 0) {
+            if (!videos.length) {
                 videos = getDemoVideos();
             }
 
@@ -238,15 +255,24 @@
     const state = loadState();
 
     let activeVideoId = null;
+    let activeVideo = null;
     let searchTerm = "";
+
     let databasePromise = null;
     let toastTimer = null;
     let previewObjectURL = null;
     let viewerObjectURL = null;
+    let vtikObserver = null;
+
+    // Keep object URLs for uploaded feed videos.
+    const feedObjectURLs = new Map();
 
     function saveState() {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(state)
+            );
             return true;
         } catch (error) {
             console.error("V-Tik state saving failed:", error);
@@ -262,13 +288,13 @@
     }
 
     /* ========================================================
-       4. INDEXEDDB FOR UPLOADED VIDEO FILES
+       5. INDEXEDDB VIDEO STORAGE
     ======================================================== */
 
     function openDatabase() {
         if (!window.indexedDB) {
             return Promise.reject(
-                new Error("IndexedDB is not supported by this browser.")
+                new Error("IndexedDB is not supported.")
             );
         }
 
@@ -287,7 +313,16 @@
                 }
             };
 
-            request.onsuccess = () => resolve(request.result);
+            request.onsuccess = () => {
+                const db = request.result;
+
+                db.onversionchange = () => {
+                    db.close();
+                    databasePromise = null;
+                };
+
+                resolve(db);
+            };
 
             request.onerror = () => {
                 databasePromise = null;
@@ -302,7 +337,10 @@
         const db = await openDatabase();
 
         return new Promise((resolve, reject) => {
-            const transaction = db.transaction(DB_STORE, "readwrite");
+            const transaction = db.transaction(
+                DB_STORE,
+                "readwrite"
+            );
 
             transaction.objectStore(DB_STORE).put({
                 id,
@@ -311,7 +349,7 @@
                 type: file.type
             });
 
-            transaction.oncomplete = () => resolve();
+            transaction.oncomplete = resolve;
             transaction.onerror = () => reject(transaction.error);
             transaction.onabort = () => reject(transaction.error);
         });
@@ -321,8 +359,14 @@
         const db = await openDatabase();
 
         return new Promise((resolve, reject) => {
-            const transaction = db.transaction(DB_STORE, "readonly");
-            const request = transaction.objectStore(DB_STORE).get(id);
+            const transaction = db.transaction(
+                DB_STORE,
+                "readonly"
+            );
+
+            const request = transaction
+                .objectStore(DB_STORE)
+                .get(id);
 
             request.onsuccess = () =>
                 resolve(request.result?.file || null);
@@ -336,12 +380,16 @@
             const db = await openDatabase();
 
             await new Promise((resolve, reject) => {
-                const transaction = db.transaction(DB_STORE, "readwrite");
+                const transaction = db.transaction(
+                    DB_STORE,
+                    "readwrite"
+                );
 
                 transaction.objectStore(DB_STORE).delete(id);
 
                 transaction.oncomplete = resolve;
-                transaction.onerror = () => reject(transaction.error);
+                transaction.onerror = () =>
+                    reject(transaction.error);
             });
         } catch (error) {
             console.warn("Could not remove stored video:", error);
@@ -357,13 +405,19 @@
 
         const file = await retrieveVideoFile(video.id);
 
-        if (!file) return "";
+        return file ? URL.createObjectURL(file) : "";
+    }
 
-        return URL.createObjectURL(file);
+    function releaseFeedObjectURLs() {
+        feedObjectURLs.forEach(url => {
+            URL.revokeObjectURL(url);
+        });
+
+        feedObjectURLs.clear();
     }
 
     /* ========================================================
-       5. TOAST NOTIFICATIONS
+       6. TOAST NOTIFICATIONS
     ======================================================== */
 
     function showToast(message) {
@@ -385,7 +439,7 @@
     }
 
     /* ========================================================
-       6. VIDEO CARD
+       7. VIDEO CARD
     ======================================================== */
 
     function createVideoCard(video) {
@@ -418,12 +472,11 @@
                     <video
                         class="feed-video"
                         data-video-id="${id}"
-                        src="${escapeHTML(video.src)}"
+                        ${video.uploaded ? "" : `src="${escapeHTML(video.src)}"`}
                         preload="metadata"
                         playsinline
                         muted
-                        loop
-                        controls>
+                        loop>
                     </video>
 
                     <div class="video-loading">
@@ -499,7 +552,8 @@
                             type="button"
                             class="action-btn"
                             data-action="expand"
-                            data-video-id="${id}">
+                            data-video-id="${id}"
+                            aria-label="Open fullscreen video">
                             <span class="action-icon">⛶</span>
                         </button>
 
@@ -510,22 +564,24 @@
     }
 
     /* ========================================================
-       7. FEED FILTERS
+       8. FEED FILTERING
     ======================================================== */
 
     function getVisibleVideos() {
         let videos = [...state.videos];
 
-        if (state.activeTab === "Following") {
-            videos = videos.filter(video => video.following);
-        }
+        switch (state.activeTab) {
+            case "Following":
+                videos = videos.filter(video => video.following);
+                break;
 
-        if (state.activeTab === "Liked") {
-            videos = videos.filter(video => video.liked);
-        }
+            case "Liked":
+                videos = videos.filter(video => video.liked);
+                break;
 
-        if (state.activeTab === "Saved") {
-            videos = videos.filter(video => video.saved);
+            case "Saved":
+                videos = videos.filter(video => video.saved);
+                break;
         }
 
         if (searchTerm) {
@@ -549,74 +605,98 @@
     }
 
     /* ========================================================
-       8. RENDER FEED
+       9. VIDEO PLAYBACK — PAUSE AND REWIND
     ======================================================== */
 
-    function renderEmptyFeed() {
-        if (!feed) return;
+    function rewindVideo(video) {
+        if (!video) return;
 
-        feed.innerHTML = `
-            <div class="empty-feed">
-                <div class="empty-feed-icon">🎬</div>
-                <h2>No videos found</h2>
-                <p>Try another section or search for something else.</p>
-                <button
-                    type="button"
-                    data-action="open-create"
-                    class="empty-create-btn">
-                    Create a video
-                </button>
-            </div>
-        `;
+        video.pause();
+
+        if (video.readyState > 0) {
+            try {
+                video.currentTime = 0;
+            } catch (error) {
+                console.warn("Could not rewind video:", error);
+            }
+        } else if (!video.dataset.rewindPending) {
+            video.dataset.rewindPending = "true";
+
+            video.addEventListener("loadedmetadata", () => {
+                delete video.dataset.rewindPending;
+
+                if (!video.isConnected) return;
+
+                try {
+                    video.currentTime = 0;
+                } catch (error) {
+                    // Media may no longer be available.
+                }
+            }, { once: true });
+        }
     }
 
-    function renderFeed() {
-        if (!feed) {
-            console.error("V-Tik: Add <main id=\"feed\"></main> to index.html.");
-            return;
+    async function playViewedVideo(video) {
+        if (!video || !video.isConnected) return;
+
+        // Do not restart an already playing active video.
+        if (activeVideo === video && !video.paused) return;
+
+        // Pause and rewind the previous video.
+        if (activeVideo && activeVideo !== video) {
+            rewindVideo(activeVideo);
         }
 
-        const videos = getVisibleVideos();
+        // Enforce single-video playback throughout the feed.
+        $$(".feed-video", feed).forEach(otherVideo => {
+            if (otherVideo !== video) {
+                rewindVideo(otherVideo);
+            }
+        });
 
-        if (window.vtikObserver) {
-            window.vtikObserver.disconnect();
+        activeVideo = video;
+        activeVideoId = video.dataset.videoId || null;
+
+        // Muted playback is more compatible with autoplay policies.
+        video.muted = true;
+
+        const card = video.closest(".video-card");
+        const soundButton = $(".sound-toggle", card);
+
+        if (soundButton) {
+            soundButton.textContent = "🔇";
         }
 
-        if (videos.length === 0) {
-            renderEmptyFeed();
-            updateSearchButton();
-            return;
+        try {
+            await video.play();
+        } catch (error) {
+            // The browser may require user interaction.
         }
-
-        feed.innerHTML = videos.map(createVideoCard).join("");
-
-        updateSearchButton();
-        bindVideoPlayback();
-        bindVideoErrors();
-        bindVideoSoundButtons();
-        observeVideos();
     }
-
-    /* ========================================================
-       9. VIDEO PLAYBACK
-
-       The video src attribute uses local relative paths.
-       Example: ./vtik-demo-1.mp4
-    ======================================================== */
 
     function bindVideoPlayback() {
         $$(".feed-video", feed).forEach(video => {
             video.muted = true;
-
-            video.addEventListener("loadeddata", () => {
-                video.closest(".video-stage")
-                    ?.classList.remove("is-loading", "video-unavailable");
-            }, { once: true });
+            video.playsInline = true;
+            video.loop = true;
 
             video.addEventListener("loadstart", () => {
                 video.closest(".video-stage")
                     ?.classList.add("is-loading");
-            }, { once: true });
+            });
+
+            video.addEventListener("loadeddata", () => {
+                video.closest(".video-stage")
+                    ?.classList.remove(
+                        "is-loading",
+                        "video-unavailable"
+                    );
+            });
+
+            video.addEventListener("playing", () => {
+                video.closest(".video-stage")
+                    ?.classList.remove("is-loading");
+            });
         });
     }
 
@@ -639,52 +719,193 @@
 
                 notice.textContent =
                     "Video could not load. Check the file path.";
+
+                if (activeVideo === video) {
+                    activeVideo = null;
+                    activeVideoId = null;
+                }
             });
         });
+    }
+
+    /*
+     * Load locally uploaded video files from IndexedDB.
+     * Object URLs remain valid until the feed is rebuilt.
+     */
+    async function loadUploadedVideoSources() {
+        const uploadedElements = $$(".feed-video", feed)
+            .filter(video => {
+                const item = getVideo(video.dataset.videoId);
+                return item?.uploaded;
+            });
+
+        await Promise.all(uploadedElements.map(async video => {
+            const id = video.dataset.videoId;
+
+            try {
+                const file = await retrieveVideoFile(id);
+
+                // Ignore results for cards that have been removed.
+                if (!video.isConnected) return;
+
+                if (!file) {
+                    video.closest(".video-stage")
+                        ?.classList.add("video-unavailable");
+                    return;
+                }
+
+                const objectURL = URL.createObjectURL(file);
+                feedObjectURLs.set(id, objectURL);
+
+                video.src = objectURL;
+                video.load();
+            } catch (error) {
+                console.error("Uploaded video could not load:", error);
+            }
+        }));
     }
 
     function observeVideos() {
         const videos = $$(".feed-video", feed);
 
-        if (!("IntersectionObserver" in window)) return;
+        if (vtikObserver) {
+            vtikObserver.disconnect();
+            vtikObserver = null;
+        }
 
-        window.vtikObserver = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                const video = entry.target;
+        // Clean up an active element removed during rerendering.
+        if (activeVideo && !activeVideo.isConnected) {
+            rewindVideo(activeVideo);
+            activeVideo = null;
+            activeVideoId = null;
+        }
 
-                if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-                    videos.forEach(other => {
-                        if (other !== video) other.pause();
-                    });
+        if (!videos.length) {
+            if (activeVideo) {
+                rewindVideo(activeVideo);
+                activeVideo = null;
+                activeVideoId = null;
+            }
+            return;
+        }
 
-                    video.play().catch(() => {});
-                } else {
-                    video.pause();
-                }
-            });
+        if (!("IntersectionObserver" in window)) {
+            // Basic fallback for older browsers.
+            playViewedVideo(videos[0]);
+            return;
+        }
+
+        vtikObserver = new IntersectionObserver(() => {
+            // Calculate current visibility for all feed videos.
+            const visibleVideos = videos
+                .map(video => {
+                    const rect = video.getBoundingClientRect();
+                    const height = rect.height;
+
+                    const visibleHeight = Math.max(
+                        0,
+                        Math.min(rect.bottom, window.innerHeight) -
+                        Math.max(rect.top, 0)
+                    );
+
+                    return {
+                        video,
+                        ratio: height > 0
+                            ? visibleHeight / height
+                            : 0
+                    };
+                })
+                .filter(item =>
+                    item.ratio >= 0.6 &&
+                    item.video.isConnected
+                )
+                .sort((a, b) => b.ratio - a.ratio);
+
+            const nextVideo = visibleVideos[0]?.video || null;
+
+            if (nextVideo) {
+                playViewedVideo(nextVideo);
+            } else if (activeVideo) {
+                // Nothing is visible enough to continue playback.
+                rewindVideo(activeVideo);
+                activeVideo = null;
+                activeVideoId = null;
+            }
         }, {
-            threshold: [0, 0.6, 1]
+            threshold: [0, 0.25, 0.6, 0.8, 1]
         });
 
-        videos.forEach(video => window.vtikObserver.observe(video));
-    }
-
-    function bindVideoSoundButtons() {
-        $$(".sound-toggle", feed).forEach(button => {
-            button.addEventListener("click", () => {
-                const card = button.closest(".video-card");
-                const video = $(".feed-video", card);
-
-                if (!video) return;
-
-                video.muted = !video.muted;
-                button.textContent = video.muted ? "🔇" : "🔊";
-            });
+        videos.forEach(video => {
+            vtikObserver.observe(video);
         });
     }
 
     /* ========================================================
-       10. LIKES, SAVES AND FOLLOWS
+       10. RENDER FEED
+    ======================================================== */
+
+    function renderEmptyFeed() {
+        if (!feed) return;
+
+        feed.innerHTML = `
+            <div class="empty-feed">
+                <div class="empty-feed-icon">🎬</div>
+                <h2>No videos found</h2>
+                <p>Try another section or search for something else.</p>
+                <button
+                    type="button"
+                    data-action="open-create"
+                    class="empty-create-btn">
+                    Create a video
+                </button>
+            </div>
+        `;
+    }
+
+    function renderFeed() {
+        if (!feed) {
+            console.error(
+                'V-Tik: Add <main id="feed"></main> to index.html.'
+            );
+            return;
+        }
+
+        // Stop old playback before replacing the cards.
+        if (vtikObserver) {
+            vtikObserver.disconnect();
+            vtikObserver = null;
+        }
+
+        if (activeVideo) {
+            rewindVideo(activeVideo);
+            activeVideo = null;
+            activeVideoId = null;
+        }
+
+        releaseFeedObjectURLs();
+
+        const videos = getVisibleVideos();
+
+        if (!videos.length) {
+            renderEmptyFeed();
+            updateSearchButton();
+            return;
+        }
+
+        feed.innerHTML = videos.map(createVideoCard).join("");
+
+        updateSearchButton();
+
+        bindVideoPlayback();
+        bindVideoErrors();
+
+        // Upload sources and autoplay observation work together.
+        loadUploadedVideoSources();
+        observeVideos();
+    }
+
+    /* ========================================================
+       11. LIKES, SAVES AND FOLLOWS
     ======================================================== */
 
     function toggleLike(id) {
@@ -692,6 +913,7 @@
         if (!video) return;
 
         video.liked = !video.liked;
+
         video.likes = Math.max(
             0,
             video.likes + (video.liked ? 1 : -1)
@@ -710,7 +932,10 @@
         saveState();
         renderFeed();
 
-        showToast(video.saved ? "Video saved!" : "Video unsaved.");
+        showToast(video.saved
+            ? "Video saved!"
+            : "Video unsaved."
+        );
     }
 
     function toggleFollow(id) {
@@ -730,7 +955,7 @@
     }
 
     /* ========================================================
-       11. COMMENTS
+       12. COMMENTS
     ======================================================== */
 
     function renderComments(video) {
@@ -773,7 +998,10 @@
         commentsModal.dataset.videoId = id;
 
         const title = byId("commentsTitle");
-        if (title) title.textContent = `Comments · @${video.username}`;
+
+        if (title) {
+            title.textContent = `Comments · @${video.username}`;
+        }
 
         renderComments(video);
         showModal(commentsModal);
@@ -783,7 +1011,7 @@
 
     function addComment(id, text) {
         const video = getVideo(id);
-        text = text.trim();
+        text = String(text || "").trim();
 
         if (!video || !text) return;
 
@@ -796,8 +1024,11 @@
         });
 
         saveState();
+
+        // Rebuild the feed but preserve the comments target.
         renderFeed();
         openComments(id);
+
         showToast("Comment added!");
     }
 
@@ -812,31 +1043,38 @@
         form.addEventListener("submit", event => {
             event.preventDefault();
 
-            if (!activeVideoId || !input) return;
+            const id = commentsModal?.dataset.videoId
+                || activeVideoId;
 
-            addComment(activeVideoId, input.value);
+            if (!id || !input) return;
 
+            addComment(id, input.value);
             input.value = "";
 
             const button = byId("postCommentBtn");
+
             if (button) button.disabled = true;
         });
 
         input?.addEventListener("input", () => {
             const button = byId("postCommentBtn");
-            if (button) button.disabled = !input.value.trim();
+
+            if (button) {
+                button.disabled = !input.value.trim();
+            }
         });
     }
 
     /* ========================================================
-       12. SHARE VIDEO
+       13. SHARE VIDEO
     ======================================================== */
 
     async function shareVideo(id) {
         const video = getVideo(id);
         if (!video) return;
 
-        const url = `${location.href.split("#")[0]}#video-${encodeURIComponent(id)}`;
+        const url =
+            `${location.href.split("#")[0]}#video-${encodeURIComponent(id)}`;
 
         try {
             if (navigator.share) {
@@ -859,7 +1097,7 @@
     }
 
     /* ========================================================
-       13. MODAL MANAGEMENT
+       14. MODAL MANAGEMENT
     ======================================================== */
 
     function showModal(modal) {
@@ -881,8 +1119,10 @@
 
         const visibleModal = $$(".modal, .viewer").some(item =>
             !item.hidden &&
-            (item.classList.contains("active") ||
-             item.classList.contains("open"))
+            (
+                item.classList.contains("active") ||
+                item.classList.contains("open")
+            )
         );
 
         if (!visibleModal) {
@@ -900,7 +1140,7 @@
     }
 
     /* ========================================================
-       14. UPLOAD PREVIEW
+       15. UPLOAD PREVIEW
     ======================================================== */
 
     function clearPreview() {
@@ -925,8 +1165,13 @@
             uploadZone.classList.remove("dragging");
         }
 
-        if (uploadName) uploadName.textContent = "";
-        if (postVideo) postVideo.disabled = true;
+        if (uploadName) {
+            uploadName.textContent = "";
+        }
+
+        if (postVideo) {
+            postVideo.disabled = true;
+        }
     }
 
     function previewSelectedVideo(file) {
@@ -934,15 +1179,19 @@
 
         if (!file) return;
 
-        if (!file.type.startsWith("video/")) {
+        if (!isVideoFile(file)) {
             showToast("Select a video file.");
+
             if (videoPicker) videoPicker.value = "";
+
             return;
         }
 
-        if (file.size > 250 * 1024 * 1024) {
+        if (file.size > MAX_VIDEO_SIZE) {
             showToast("Maximum upload size is 250 MB.");
+
             if (videoPicker) videoPicker.value = "";
+
             return;
         }
 
@@ -972,7 +1221,7 @@
     }
 
     /* ========================================================
-       15. PUBLISH UPLOADED VIDEO
+       16. PUBLISH VIDEO
     ======================================================== */
 
     async function uploadVideo() {
@@ -983,12 +1232,12 @@
             return;
         }
 
-        if (!file.type.startsWith("video/")) {
+        if (!isVideoFile(file)) {
             showToast("The selected file is not a video.");
             return;
         }
 
-        if (file.size > 250 * 1024 * 1024) {
+        if (file.size > MAX_VIDEO_SIZE) {
             showToast("Video must be smaller than 250 MB.");
             return;
         }
@@ -1000,12 +1249,16 @@
             button.textContent = "Publishing...";
         }
 
-        const username = state.username || currentUser.username;
+        const displayName =
+            state.username || currentUser.displayName;
 
         const video = {
             id: makeId(),
-            username: username.replace(/^@/, "").replace(/\s+/g, "_"),
-            displayName: username,
+            username: displayName
+                .replace(/^@/, "")
+                .trim()
+                .replace(/\s+/g, "_") || "you",
+            displayName,
             avatar: state.avatar || currentUser.avatar,
             caption: videoCaption?.value.trim() || "",
             music: "Original sound",
@@ -1020,6 +1273,7 @@
         };
 
         try {
+            // Store the actual file, not a temporary blob URL.
             await storeVideoFile(video.id, file);
 
             state.videos.unshift(video);
@@ -1028,15 +1282,21 @@
 
             searchTerm = "";
 
-            if (searchInput) searchInput.value = "";
+            if (searchInput) {
+                searchInput.value = "";
+            }
 
             saveState();
             updateNavigation("home");
             renderFeed();
 
-            videoPicker.value = "";
+            if (videoPicker) {
+                videoPicker.value = "";
+            }
 
-            if (videoCaption) videoCaption.value = "";
+            if (videoCaption) {
+                videoCaption.value = "";
+            }
 
             clearPreview();
             hideModal(createModal);
@@ -1044,7 +1304,10 @@
             showToast("Your video has been published! 🎉");
         } catch (error) {
             console.error("Video upload failed:", error);
-            showToast("Upload failed. Please check browser storage.");
+
+            showToast(
+                "Upload failed. Check browser storage permissions."
+            );
         } finally {
             if (button) {
                 button.textContent = "Post Video";
@@ -1063,55 +1326,66 @@
             uploadVideo();
         });
 
-        if (uploadZone) {
-            uploadZone.addEventListener("dragover", event => {
-                event.preventDefault();
-                uploadZone.classList.add("dragging");
-            });
+        if (!uploadZone) return;
 
-            uploadZone.addEventListener("dragleave", () => {
-                uploadZone.classList.remove("dragging");
-            });
+        uploadZone.addEventListener("dragover", event => {
+            event.preventDefault();
+            uploadZone.classList.add("dragging");
+        });
 
-            uploadZone.addEventListener("drop", event => {
-                event.preventDefault();
-                uploadZone.classList.remove("dragging");
+        uploadZone.addEventListener("dragleave", () => {
+            uploadZone.classList.remove("dragging");
+        });
 
-                const file = event.dataTransfer?.files?.[0];
-                if (!file) return;
+        uploadZone.addEventListener("drop", event => {
+            event.preventDefault();
+            uploadZone.classList.remove("dragging");
 
-                if (!file.type.startsWith("video/")) {
-                    showToast("Drop a valid video file.");
-                    return;
-                }
+            const file = event.dataTransfer?.files?.[0];
 
-                try {
-                    const transfer = new DataTransfer();
-                    transfer.items.add(file);
+            if (!file) return;
+
+            if (!isVideoFile(file)) {
+                showToast("Drop a valid video file.");
+                return;
+            }
+
+            if (file.size > MAX_VIDEO_SIZE) {
+                showToast("Maximum upload size is 250 MB.");
+                return;
+            }
+
+            try {
+                const transfer = new DataTransfer();
+                transfer.items.add(file);
+
+                if (videoPicker) {
                     videoPicker.files = transfer.files;
-                } catch (error) {
-                    console.warn("Unable to assign dropped file to input.", error);
                 }
+            } catch (error) {
+                console.warn(
+                    "Could not assign dropped file to input:",
+                    error
+                );
+            }
 
-                previewSelectedVideo(file);
-            });
-        }
+            previewSelectedVideo(file);
+        });
     }
 
     /* ========================================================
-       16. FULLSCREEN VIDEO VIEWER
+       17. FULLSCREEN VIDEO VIEWER
     ======================================================== */
 
     async function openViewer(id) {
         const video = getVideo(id);
-
         if (!video || !viewer) return;
 
         const viewerVideo =
             byId("viewerVideo") || $("video", viewer);
 
         if (!viewerVideo) {
-            showToast("Add a video element to the viewer in index.html.");
+            showToast("Add a video element to the viewer.");
             return;
         }
 
@@ -1133,8 +1407,16 @@
             return;
         }
 
+        // Protect uploaded-video URLs until the viewer closes.
         if (source.startsWith("blob:")) {
             viewerObjectURL = source;
+        }
+
+        // Stop the feed video before playing the viewer.
+        if (activeVideo) {
+            rewindVideo(activeVideo);
+            activeVideo = null;
+            activeVideoId = null;
         }
 
         viewerVideo.src = source;
@@ -1168,7 +1450,7 @@
     }
 
     /* ========================================================
-       17. NAVIGATION
+       18. NAVIGATION
     ======================================================== */
 
     const sectionTabs = {
@@ -1223,6 +1505,7 @@
     function bindNavigation() {
         document.addEventListener("click", event => {
             const button = event.target.closest("[data-section]");
+
             if (!button) return;
 
             event.preventDefault();
@@ -1231,7 +1514,7 @@
     }
 
     /* ========================================================
-       18. SEARCH
+       19. SEARCH
     ======================================================== */
 
     function updateSearchButton() {
@@ -1246,6 +1529,7 @@
 
         searchInput.addEventListener("input", () => {
             searchTerm = searchInput.value.trim();
+
             updateSearchButton();
             renderFeed();
         });
@@ -1253,35 +1537,42 @@
         clearSearchButton?.addEventListener("click", () => {
             searchInput.value = "";
             searchTerm = "";
+
             updateSearchButton();
             renderFeed();
+
             searchInput.focus();
         });
 
         searchInput.addEventListener("keydown", event => {
-            if (event.key === "Escape") {
-                searchInput.value = "";
-                searchTerm = "";
-                updateSearchButton();
-                renderFeed();
-            }
+            if (event.key !== "Escape") return;
+
+            searchInput.value = "";
+            searchTerm = "";
+
+            updateSearchButton();
+            renderFeed();
         });
 
         updateSearchButton();
     }
 
     /* ========================================================
-       19. FEED BUTTON EVENTS
+       20. FEED ACTIONS
     ======================================================== */
 
     function bindFeedActions() {
         if (!feed) return;
 
+        // One delegated listener handles all feed actions,
+        // including sound, to avoid duplicate click handlers.
         feed.addEventListener("click", event => {
             const button = event.target.closest("[data-action]");
-            if (!button) return;
+
+            if (!button || !feed.contains(button)) return;
 
             const action = button.dataset.action;
+
             const id = button.dataset.videoId ||
                 button.closest("[data-video-id]")?.dataset.videoId;
 
@@ -1294,10 +1585,11 @@
                 const card = button.closest(".video-card");
                 const video = $(".feed-video", card);
 
-                if (video) {
-                    video.muted = !video.muted;
-                    button.textContent = video.muted ? "🔇" : "🔊";
-                }
+                if (!video) return;
+
+                video.muted = !video.muted;
+
+                button.textContent = video.muted ? "🔇" : "🔊";
 
                 return;
             }
@@ -1333,16 +1625,12 @@
     }
 
     /* ========================================================
-       20. CREATE BUTTON AND MODAL CONTROLS
+       21. MODAL CONTROLS
     ======================================================== */
 
     function bindModalControls() {
         ["createTop", "mobileCreate"].forEach(id => {
-            const button = byId(id);
-
-            if (!button) return;
-
-            button.addEventListener("click", event => {
+            byId(id)?.addEventListener("click", event => {
                 event.preventDefault();
                 openCreateModal();
             });
@@ -1378,7 +1666,84 @@
     }
 
     /* ========================================================
-       21. STARTUP
+       22. FEED SCROLL CONTROLS
+    ======================================================== */
+
+    function bindScrollControls() {
+        const upButton = byId("scrollUp");
+        const downButton = byId("scrollDown");
+
+        function getFeedCards() {
+            return $$(".video-card, .video-item, .feed-card", feed)
+                .filter(card => card.getClientRects().length > 0);
+        }
+
+        function scrollToCard(direction) {
+            const cards = getFeedCards();
+
+            if (!cards.length) {
+                window.scrollBy({
+                    top: direction * window.innerHeight * 0.75,
+                    behavior: "smooth"
+                });
+                return;
+            }
+
+            const currentPosition = window.scrollY + 100;
+
+            if (direction > 0) {
+                const nextCard = cards.find(card =>
+                    card.getBoundingClientRect().top +
+                    window.scrollY > currentPosition + 20
+                );
+
+                if (nextCard) {
+                    nextCard.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+                } else {
+                    window.scrollTo({
+                        top: document.documentElement.scrollHeight,
+                        behavior: "smooth"
+                    });
+                }
+
+                return;
+            }
+
+            const previousCards = cards.filter(card =>
+                card.getBoundingClientRect().top +
+                window.scrollY < currentPosition - 20
+            );
+
+            const previousCard =
+                previousCards[previousCards.length - 1];
+
+            if (previousCard) {
+                previousCard.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            } else {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            }
+        }
+
+        upButton?.addEventListener("click", () => {
+            scrollToCard(-1);
+        });
+
+        downButton?.addEventListener("click", () => {
+            scrollToCard(1);
+        });
+    }
+
+    /* ========================================================
+       23. STARTUP
     ======================================================== */
 
     function initializeVtik() {
@@ -1388,11 +1753,9 @@
         bindModalControls();
         bindUploadControls();
         bindCommentForm();
+        bindScrollControls();
 
-        /*
-         * Do not show upload, comments or viewer windows
-         * automatically when the page loads.
-         */
+        // Never open dialogs automatically at startup.
         [createModal, commentsModal, viewer].forEach(modal => {
             if (!modal) return;
 
@@ -1406,8 +1769,35 @@
         updateNavigation(state.currentSection || "home");
         updateSearchButton();
 
-        // Render sample cards immediately.
         renderFeed();
+
+        // Support direct links such as #video-sample-vtik-2.
+        const match = location.hash.match(/^#video-(.+)$/);
+
+        if (match) {
+            const targetId = decodeURIComponent(match[1]);
+            const targetVideo = getVideo(targetId);
+
+            if (targetVideo) {
+                state.activeTab = "For You";
+                state.currentSection = "home";
+
+                updateNavigation("home");
+                renderFeed();
+
+                requestAnimationFrame(() => {
+                    const card = $(
+                        `[data-video-id="${CSS.escape(targetId)}"]`,
+                        feed
+                    );
+
+                    card?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+                });
+            }
+        }
 
         console.info("V-Tik initialized successfully.");
     }
@@ -1422,129 +1812,3 @@
         initializeVtik();
     }
 })();
-
-/* =========================================================
-   V-TIK — VIDEO FEED SCROLL CONTROLS
-========================================================= */
-
-(() => {
-    const upButton = document.getElementById("scrollUp");
-    const downButton = document.getElementById("scrollDown");
-
-    if (!upButton || !downButton) return;
-
-    function getFeedCards() {
-        const feed = document.getElementById("feed");
-        if (!feed) return [];
-
-        return Array.from(
-            feed.querySelectorAll(
-                ".video-card, .video-item, .feed-card"
-            )
-        ).filter(card => card.getClientRects().length > 0);
-    }
-
-    function scrollToNextCard(direction) {
-        const cards = getFeedCards();
-
-        if (cards.length === 0) {
-            window.scrollBy({
-                top: direction * window.innerHeight * 0.75,
-                behavior: "smooth"
-            });
-            return;
-        }
-
-        const threshold = 20;
-        const currentPosition = window.scrollY + 100;
-
-        if (direction > 0) {
-            const nextCard = cards.find(card => {
-                return card.getBoundingClientRect().top + window.scrollY
-                    > currentPosition + threshold;
-            });
-
-            if (nextCard) {
-                nextCard.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-            } else {
-                window.scrollTo({
-                    top: document.documentElement.scrollHeight,
-                    behavior: "smooth"
-                });
-            }
-        } else {
-            const previousCards = cards.filter(card => {
-                return card.getBoundingClientRect().top + window.scrollY
-                    < currentPosition - threshold;
-            });
-
-            const previousCard = previousCards[previousCards.length - 1];
-
-            if (previousCard) {
-                previousCard.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-            } else {
-                window.scrollTo({
-                    top: 0,
-                    behavior: "smooth"
-                });
-            }
-        }
-    }
-
-    upButton.addEventListener("click", () => {
-        scrollToNextCard(-1);
-    });
-
-    downButton.addEventListener("click", () => {
-        scrollToNextCard(1);
-    });
-})();
-
-
-
-/* =========================================
-   V-TIK — PLAY VIEWED VIDEO, REWIND PREVIOUS
-========================================= */
-
-async function playViewedVideo(video) {
-    if (activeVideo === video) return;
-
-    // Pause and rewind the previously viewed video.
-    if (activeVideo) {
-        activeVideo.pause();
-
-        try {
-            activeVideo.currentTime = 0;
-        } catch (error) {
-            // Rewind when the media is ready if necessary.
-            activeVideo.addEventListener("loadedmetadata", () => {
-                activeVideo.currentTime = 0;
-            }, { once: true });
-        }
-    }
-
-    // Pause all other videos and rewind them.
-    document.querySelectorAll("#videoList .feed-video").forEach((otherVideo) => {
-        if (otherVideo !== video) {
-            otherVideo.pause();
-
-            if (otherVideo.readyState > 0) {
-                otherVideo.currentTime = 0;
-            }
-        }
-    });
-
-    activeVideo = video;
-
-    try {
-        await video.play();
-    } catch (error) {
-        // The browser may block autoplay.
-    }
-}
