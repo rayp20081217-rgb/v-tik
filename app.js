@@ -14,7 +14,7 @@
 
 (() => {
     /* ========================================================
-       1. HELPERS
+       1. HELP
     ======================================================== */
 
     const $ = (selector, root = document) =>
@@ -1421,4 +1421,87 @@
     } else {
         initializeVtik();
     }
+})();
+
+/* =========================================================
+   V-TIK — VIDEO FEED SCROLL CONTROLS
+========================================================= */
+
+(() => {
+    const upButton = document.getElementById("scrollUp");
+    const downButton = document.getElementById("scrollDown");
+
+    if (!upButton || !downButton) return;
+
+    function getFeedCards() {
+        const feed = document.getElementById("feed");
+        if (!feed) return [];
+
+        return Array.from(
+            feed.querySelectorAll(
+                ".video-card, .video-item, .feed-card"
+            )
+        ).filter(card => card.getClientRects().length > 0);
+    }
+
+    function scrollToNextCard(direction) {
+        const cards = getFeedCards();
+
+        if (cards.length === 0) {
+            window.scrollBy({
+                top: direction * window.innerHeight * 0.75,
+                behavior: "smooth"
+            });
+            return;
+        }
+
+        const threshold = 20;
+        const currentPosition = window.scrollY + 100;
+
+        if (direction > 0) {
+            const nextCard = cards.find(card => {
+                return card.getBoundingClientRect().top + window.scrollY
+                    > currentPosition + threshold;
+            });
+
+            if (nextCard) {
+                nextCard.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            } else {
+                window.scrollTo({
+                    top: document.documentElement.scrollHeight,
+                    behavior: "smooth"
+                });
+            }
+        } else {
+            const previousCards = cards.filter(card => {
+                return card.getBoundingClientRect().top + window.scrollY
+                    < currentPosition - threshold;
+            });
+
+            const previousCard = previousCards[previousCards.length - 1];
+
+            if (previousCard) {
+                previousCard.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            } else {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            }
+        }
+    }
+
+    upButton.addEventListener("click", () => {
+        scrollToNextCard(-1);
+    });
+
+    downButton.addEventListener("click", () => {
+        scrollToNextCard(1);
+    });
 })();
