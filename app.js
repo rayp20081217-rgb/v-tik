@@ -1506,46 +1506,96 @@
     });
 })();
 
+
 /* =========================================
-   V-TIK — AUTOMATIC VIDEO PLAYBACK
+   V-TIK — PLAY ONLY THE VIEWED VIDEO
 ========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-    const videos = document.querySelectorAll("#videoList .feed-video");
+    const videoSelector = "#videoList .feed-video";
+    let activeVideo = null;
 
-    if (!videos.length) return;
-
-    // Configure videos for autoplay
-    videos.forEach((video) => {
-        video.muted = true; // Muted autoplay is more likely to be allowed
+    function setupVideo(video) {
+        video.muted = true;
         video.loop = true;
         video.playsInline = true;
         video.preload = "metadata";
-    });
 
-    // Play videos when visible; pause when out of view
+        // Pause videos that are not currently visible.
+        video.pause();
+    }
+
+    function getVideos() {
+        return document.querySelectorAll(videoSelector);
+    }
+
+    async function playViewedVideo(video) {
+        if (activeVideo === video) return;
+
+        // Pause every other video first.
+        getVideos().forEach((otherVideo) => {
+            if (otherVideo !== video) {
+                otherVideo.pause();
+            }
+        });
+
+        activeVideo = video;
+
+        try {
+            await video.play();
+        } catch {
+            // Autoplay may be blocked by the browser.
+        }
+    }
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
             const video = entry.target;
 
             if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-                // Pause other videos before playing this one
-                videos.forEach((otherVideo) => {
-                    if (otherVideo !== video) {
-                        otherVideo.pause();
-                    }
-                });
-
-                video.play().catch(() => {
-                    // Browser may block playback; user can tap Play
-                });
+                playViewedVideo(video);
             } else {
                 video.pause();
+
+                if (activeVideo === video) {
+                    activeVideo = null;
+                }
             }
         });
     }, {
         threshold: [0, 0.6, 1]
     });
 
-    videos.forEach((video) => observer.observe(video));
+    function observeVideos() {
+        getVideos().forEach((video) => {
+            if (video.dataset.autoplayObserved === "true") return;
+
+            setupVideo(video);
+            video.dataset.autoplayObserved = "true";
+            observer.observe(video);
+        });
+    }
+
+    observeVideos();
+
+    // Support videos added later through uploads.
+    const feed = document.querySelector("#videoList");
+
+    if (feed) {
+        const mutationObserver = new MutationObserver(observeVideos);
+        mutationObserver.observe(feed, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    // Pause playback when the browser tab is hidden.
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            getVideos().forEach((video) => video.pause());
+        } else {
+            activeVideo = null;
+            observeVideos();
+        }
+    });
 });
