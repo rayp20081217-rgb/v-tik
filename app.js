@@ -1505,3 +1505,47 @@
         scrollToNextCard(1);
     });
 })();
+
+/* =========================================
+   V-TIK — AUTOMATIC VIDEO PLAYBACK
+========================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+    const videos = document.querySelectorAll("#videoList .feed-video");
+
+    if (!videos.length) return;
+
+    // Configure videos for autoplay
+    videos.forEach((video) => {
+        video.muted = true; // Muted autoplay is more likely to be allowed
+        video.loop = true;
+        video.playsInline = true;
+        video.preload = "metadata";
+    });
+
+    // Play videos when visible; pause when out of view
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            const video = entry.target;
+
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+                // Pause other videos before playing this one
+                videos.forEach((otherVideo) => {
+                    if (otherVideo !== video) {
+                        otherVideo.pause();
+                    }
+                });
+
+                video.play().catch(() => {
+                    // Browser may block playback; user can tap Play
+                });
+            } else {
+                video.pause();
+            }
+        });
+    }, {
+        threshold: [0, 0.6, 1]
+    });
+
+    videos.forEach((video) => observer.observe(video));
+});
