@@ -105,7 +105,7 @@
             avatar: "🔥",
             caption: "Welcome to V-Tik! Discover amazing videos.",
             music: "Original sound",
-            src: "./vtik-demo-1.mp4",
+            src: "./Ranking Best F1 Donut's!.mp4",
             uploaded: false,
             likes: 1240,
             comments: [],
