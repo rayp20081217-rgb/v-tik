@@ -66,7 +66,7 @@ const videos = [
         saved: false,
         following: false,
         category: "trending"
-    }
+    },
    {
   id: 4,
   src: "./video2 (1).mp4",
