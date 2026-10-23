@@ -2868,3 +2868,17 @@ video {
     }
 }
 
+/* =========================================
+   HIDE SCROLL BUTTONS ON MOBILE
+========================================= */
+
+@media screen and (max-width: 700px) {
+    .scroll-controls,
+    #scrollUp,
+    #scrollDown {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+}
+
