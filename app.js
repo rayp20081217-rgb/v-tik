@@ -627,748 +627,246 @@
             window.vtikVideoObserver.observe(video);
         });
     }
-
-    /* Continue with Part 2 below this line. */
-
-    /* 8. PROFILE */
-
-    function updateProfileButton() {
-        const username = safeText(state.username, currentUser.username);
-        const avatar = getCurrentAvatar();
-
-        [profileButton, mobileProfile].forEach((button) => {
-            if (!button) return;
-
-            const avatarElement = $(".avatar, .profile-avatar", button);
-            const nameElement = $(".username, .profile-name", button);
-
-            if (avatarElement) avatarElement.textContent = avatar;
-            if (nameElement) nameElement.textContent = `@${username}`;
-
-            button.setAttribute("aria-label", `Profile: ${username}`);
-        });
-    }
-
-    function openProfile() {
-        const username = window.prompt(
-            "Enter your username:",
-            state.username || currentUser.username
-        );
-
-        if (username === null) return;
-
-        const cleanUsername = username.trim().replace(/^@/, "");
-
-        if (!cleanUsername) {
-            showToast("Please enter a username.");
-            return;
-        }
-
-        state.username = cleanUsername.slice(0, 30);
-        saveState();
-        updateProfileButton();
-        showToast(`Welcome, @${state.username}!`);
-    }
-
-    /* 9. LIKES, SAVES AND FOLLOWS */
-
-    function toggleLike(videoId) {
-        const video = getVideo(videoId);
-        if (!video) return;
-
-        video.liked = !video.liked;
-        video.likes = Math.max(
-            0,
-            (Number(video.likes) || 0) + (video.liked ? 1 : -1)
-        );
-
-        saveState();
-        renderFeed();
-
-        if (video.liked) showToast("You liked this video ❤️");
-    }
-
-    function toggleSave(videoId) {
-        const video = getVideo(videoId);
-        if (!video) return;
-
-        video.saved = !video.saved;
-
-        saveState();
-        renderFeed();
-
-        showToast(video.saved ? "Video saved! ⭐" : "Video removed from Saved.");
-    }
-
-    function toggleFollow(videoId) {
-        const video = getVideo(videoId);
-        if (!video) return;
-
-        video.following = !video.following;
-
-        // Apply the follow choice to videos from the same creator.
-        state.videos.forEach((item) => {
-            if (item.username === video.username) {
-                item.following = video.following;
-            }
-        });
-
-        saveState();
-        renderFeed();
-
-        showToast(
-            video.following
-                ? `Following @${video.username}`
-                : `Unfollowed @${video.username}`
-        );
-    }
-
-    /* 10. COMMENTS */
-
-    function openComments(videoId) {
-        const video = getVideo(videoId);
-
-        if (!video) return;
-
-        if (!commentsModal) {
-            showToast("Add an element with id='commentsModal' to index.html.");
-            return;
-        }
-
-        const title = $("[data-comments-title]", commentsModal)
-            || byId("commentsTitle");
-
-        const list = $("[data-comments-list]", commentsModal)
-            || byId("commentsList");
-
-        const input = $("[data-comment-input]", commentsModal)
-            || byId("commentInput");
-
-        if (title) {
-            title.textContent = `Comments (${video.comments.length})`;
-        }
-
-        if (list) {
-            if (video.comments.length === 0) {
-                list.innerHTML = `
-                    <p class="no-comments">
-                        No comments yet. Be the first to comment!
-                    </p>
-                `;
-            } else {
-                list.innerHTML = video.comments.map((comment) => `
-                    <div class="comment-item">
-                        <div class="comment-avatar">
-                            ${escapeHTML(comment.avatar || "🙂")}
-                        </div>
-
-                        <div class="comment-content">
-                            <strong>@${escapeHTML(comment.username || "user")}</strong>
-                            <p>${escapeHTML(comment.text || "")}</p>
-                        </div>
-                    </div>
-                `).join("");
-            }
-        }
-
-        if (input) input.value = "";
-
-        commentsModal.dataset.videoId = videoId;
-        showModal(commentsModal);
-
-        const form = byId("commentForm")
-            || $("form", commentsModal);
-
-        if (form && !form.dataset.vtikBound) {
-            form.dataset.vtikBound = "true";
-
-            form.addEventListener("submit", (event) => {
-                event.preventDefault();
-
-                const targetId = commentsModal.dataset.videoId;
-
-                const commentInput = $(
-                    "textarea, input[name='comment'], input[type='text']",
-                    form
-                );
-
-                const text = commentInput
-                    ? commentInput.value.trim()
-                    : "";
-
-                if (!text) return;
-
-                addComment(targetId, text);
-                commentInput.value = "";
-                openComments(targetId);
-            });
-        }
-    }
-
-    function addComment(videoId, text) {
-        const video = getVideo(videoId);
-
-        if (!video || !text.trim()) return;
-
-        video.comments.push({
-            id: makeId(),
-            username: state.username || currentUser.username,
-            avatar: getCurrentAvatar(),
-            text: text.trim().slice(0, 1000),
-            createdAt: Date.now()
-        });
-
-        saveState();
-        renderFeed();
-        showToast("Comment added 💬");
-    }
-
-    /* 11. SHARE */
-
-    async function shareVideo(videoId) {
-        const video = getVideo(videoId);
-
-        if (!video) return;
-
-        const shareData = {
-            title: `V-Tik video by @${video.username}`,
-            text: video.caption || "Watch this video on V-Tik!",
-            url: window.location.href.split("#")[0] + `#video-${video.id}`
-        };
-
-        try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else if (
-                navigator.clipboard &&
-                navigator.clipboard.writeText
-            ) {
-                await navigator.clipboard.writeText(
-                    `${shareData.text}\n${shareData.url}`
-                );
-
-                showToast("Video link copied!");
-            } else {
-                window.prompt("Copy this video link:", shareData.url);
-            }
-        } catch (error) {
-            if (error && error.name !== "AbortError") {
-                console.warn("V-Tik: share failed.", error);
-                showToast("Could not share this video.");
-            }
-        }
-    }
-
-    /* 12. MODALS */
-
-    function showModal(modal) {
-        if (!modal) return;
-
-        modal.hidden = false;
-        modal.classList.add("open", "active");
-        modal.setAttribute("aria-hidden", "false");
-
-        document.body.classList.add("modal-open");
-    }
-
-    function hideModal(modal) {
-        if (!modal) return;
-
-        modal.classList.remove("open", "active");
-        modal.hidden = true;
-        modal.setAttribute("aria-hidden", "true");
-
-        const anyOpen = $$(".open, .active").some((element) =>
-            element.matches(".modal, [role='dialog']")
-        );
-
-        if (!anyOpen) {
-            document.body.classList.remove("modal-open");
-        }
-    }
-
-    function openCreateModal() {
-        if (!createModal) {
-            const fileInput = byId("videoUpload")
-                || byId("videoFile");
-
-            if (fileInput) {
-                fileInput.click();
-            } else {
-                showToast(
-                    "Add a create modal or video upload input to index.html."
-                );
-            }
-
-            return;
-        }
-
-        showModal(createModal);
-    }
-
-    /* 13. VIDEO UPLOAD */
-
-    function getUploadElements() {
-        return {
-            input: byId("videoUpload")
-                || byId("videoFile")
-                || $("input[type='file'][accept*='video']"),
-
-            caption: byId("videoCaption")
-                || byId("captionInput")
-                || $("textarea[name='caption']"),
-
-            username: byId("creatorName")
-                || byId("uploadUsername"),
-
-            submit: byId("publishVideo")
-                || byId("uploadSubmit")
-                || $("[data-action='publish-video']")
-        };
-    }
-
-    function bindUploadPreview() {
-        const { input } = getUploadElements();
-
-        if (!input || input.dataset.vtikPreviewBound) return;
-
-        input.dataset.vtikPreviewBound = "true";
-
-        $on(input, "change", () => {
-            const file = input.files && input.files[0];
-
-            if (!file) return;
-
-            if (!file.type.startsWith("video/")) {
-                showToast("Please choose a video file.");
-                input.value = "";
-                return;
-            }
-
-            const preview = byId("uploadPreview")
-                || $(".upload-preview");
-
-            if (!preview) return;
-
-            const oldVideo = $("video", preview);
-
-            if (oldVideo && oldVideo.dataset.objectUrl) {
-                URL.revokeObjectURL(oldVideo.dataset.objectUrl);
-            }
-
-            preview.innerHTML = "";
-
-            const previewVideo = document.createElement("video");
-            const objectUrl = URL.createObjectURL(file);
-
-            previewVideo.src = objectUrl;
-            previewVideo.dataset.objectUrl = objectUrl;
-            previewVideo.controls = true;
-            previewVideo.playsInline = true;
-            previewVideo.style.width = "100%";
-            previewVideo.style.maxHeight = "320px";
-            previewVideo.style.objectFit = "contain";
-
-            preview.appendChild(previewVideo);
-        });
-    }
-
-    async function uploadVideo(file, caption = "", username = "") {
-        if (!file || !file.type.startsWith("video/")) {
-            showToast("Choose a valid video file first.");
-            return;
-        }
-
-        if (file.size > 250 * 1024 * 1024) {
-            showToast("Please choose a video smaller than 250 MB.");
-            return;
-        }
-
-        const cleanUsername = safeText(
-            username,
-            state.username || currentUser.username
-        ).replace(/^@/, "").slice(0, 30);
-
-        const video = {
-            id: makeId(),
-            username: cleanUsername,
-            displayName: safeText(username, "V-Tik Creator").slice(0, 60),
-            avatar: getCurrentAvatar(),
-            caption: caption.trim().slice(0, 2000),
-            music: "Original sound",
-            src: "",
-            uploaded: true,
-            likes: 0,
-            comments: [],
-            liked: false,
-            saved: false,
-            following: false,
-            createdAt: Date.now()
-        };
-
-        try {
-            await saveVideoFile(video.id, file);
-        } catch (error) {
-            console.error("V-Tik: upload storage failed.", error);
-            showToast("Could not store this video in your browser.");
-            return;
-        }
-
-        state.videos.unshift(video);
-        state.activeTab = "For You";
-
-        searchTerm = "";
-
-        if (searchInput) searchInput.value = "";
-
-        saveState();
-        renderFeed();
-
-        if (createModal) hideModal(createModal);
-
-        showToast("Video published successfully! 🎉");
-    }
-
-    function bindUploadForm() {
-        const { input, caption, username, submit } = getUploadElements();
-
-        bindUploadPreview();
-
-        const form = byId("createForm")
-            || byId("uploadForm")
-            || (input ? input.closest("form") : null);
-
-        if (form && !form.dataset.vtikUploadBound) {
-            form.dataset.vtikUploadBound = "true";
-
-            $on(form, "submit", async (event) => {
-                event.preventDefault();
-
-                const file = input && input.files && input.files[0];
-
-                if (!file) {
-                    showToast("Choose a video to upload.");
-                    return;
-                }
-
-                if (submit) {
-                    submit.disabled = true;
-                    submit.textContent = "Publishing...";
-                }
-
-                try {
-                    await uploadVideo(
-                        file,
-                        caption ? caption.value : "",
-                        username ? username.value : ""
-                    );
-
-                    form.reset();
-
-                    const preview = byId("uploadPreview")
-                        || $(".upload-preview");
-
-                    if (preview) {
-                        const previewVideo = $("video", preview);
-
-                        if (previewVideo && previewVideo.dataset.objectUrl) {
-                            URL.revokeObjectURL(
-                                previewVideo.dataset.objectUrl
-                            );
-                        }
-
-                        preview.innerHTML = "";
-                    }
-                } finally {
-                    if (submit) {
-                        submit.disabled = false;
-                        submit.textContent = "Publish";
-                    }
-                }
-            });
-        }
-
-        if (submit && !form && !submit.dataset.vtikUploadBound) {
-            submit.dataset.vtikUploadBound = "true";
-
-            $on(submit, "click", async () => {
-                const file = input && input.files && input.files[0];
-
-                await uploadVideo(
-                    file,
-                    caption ? caption.value : "",
-                    username ? username.value : ""
-                );
-            });
-        }
-    }
-
-    /* Continue with Part 3 below this line. */
+   
+    /* ================================================
+       PART 3 — HTML-COMPATIBLE CONTROLS AND INITIALIZATION
+    ================================================= */
 
     /* 14. FULLSCREEN VIDEO VIEWER */
 
     async function openViewer(videoId) {
         const video = getVideo(videoId);
-        if (!video) return;
+        const viewerElement = byId("videoViewer");
+        const viewerVideo = byId("viewerVideo");
+
+        if (!video) {
+            showToast("Video not found.");
+            return;
+        }
 
         activeVideoId = videoId;
 
-        if (!viewer) {
-            const element = $(
-                `.feed-video[data-video-id="${CSS.escape(videoId)}"]`,
-                feed
+        if (!viewerElement || !viewerVideo) {
+            const cardVideo = $(
+                `.feed-video[data-video-id="${CSS.escape(String(videoId))}"]`
             );
 
-            if (element && element.requestFullscreen) {
+            if (cardVideo?.requestFullscreen) {
                 try {
-                    await element.requestFullscreen();
-                } catch (error) {
-                    console.warn("V-Tik: fullscreen unavailable.", error);
+                    await cardVideo.requestFullscreen();
+                } catch {
                     showToast("Could not open fullscreen.");
                 }
             } else {
-                showToast("Add a fullscreen viewer to index.html.");
+                showToast("Fullscreen viewer is missing from the page.");
             }
 
             return;
         }
 
-        const viewerVideo = $("video", viewer) || byId("viewerVideo");
+        viewerElement.dataset.videoId = videoId;
 
-        const caption = $("[data-viewer-caption]", viewer)
-            || byId("viewerCaption");
+        const captionElement = byId("viewerCaption");
+        const usernameElement = byId("viewerUsername");
 
-        const username = $("[data-viewer-username]", viewer)
-            || byId("viewerUsername");
-
-        if (caption) caption.textContent = video.caption || "";
-
-        if (username) username.textContent = `@${video.username}`;
-
-        if (viewerVideo) {
-            viewerVideo.pause();
-
-            const source = await resolveVideoSource(video);
-
-            viewerVideo.muted = false;
-            viewerVideo.loop = true;
-            viewerVideo.playsInline = true;
-
-            if (source) {
-                viewerVideo.src = source;
-
-                if (source.startsWith("blob:")) {
-                    if (currentObjectUrl) {
-                        URL.revokeObjectURL(currentObjectUrl);
-                    }
-
-                    currentObjectUrl = source;
-                }
-
-                viewerVideo.load();
-
-                const playPromise = viewerVideo.play();
-
-                if (playPromise && playPromise.catch) {
-                    playPromise.catch(() => {
-                        showToast("Tap the video to start playback.");
-                    });
-                }
-            } else {
-                viewerVideo.removeAttribute("src");
-                viewerVideo.load();
-                showToast("This video file could not be found.");
-            }
+        if (captionElement) {
+            captionElement.textContent = video.caption || "";
         }
 
-        viewer.dataset.videoId = videoId;
-        showModal(viewer);
+        if (usernameElement) {
+            usernameElement.textContent = `@${video.username || "user"}`;
+        }
+
+        viewerVideo.pause();
+
+        const source = await resolveVideoSource(video);
+
+        if (!source) {
+            showToast("Unable to load this video.");
+            return;
+        }
+
+        viewerVideo.src = source;
+        viewerVideo.loop = true;
+        viewerVideo.playsInline = true;
+        viewerVideo.muted = false;
+
+        viewerElement.classList.add("active");
+        viewerElement.setAttribute("aria-hidden", "false");
+
+        viewerVideo.load();
+
+        try {
+            await viewerVideo.play();
+        } catch {
+            showToast("Tap the video to start playback.");
+        }
     }
 
     function closeViewer() {
-        if (!viewer) return;
+        const viewerElement = byId("videoViewer");
+        const viewerVideo = byId("viewerVideo");
 
-        const video = $("video", viewer) || byId("viewerVideo");
-
-        if (video) {
-            video.pause();
-            video.removeAttribute("src");
-            video.load();
+        if (viewerVideo) {
+            viewerVideo.pause();
+            viewerVideo.removeAttribute("src");
+            viewerVideo.load();
         }
 
-        if (currentObjectUrl) {
-            URL.revokeObjectURL(currentObjectUrl);
-            currentObjectUrl = null;
+        if (viewerElement) {
+            viewerElement.classList.remove("active");
+            viewerElement.setAttribute("aria-hidden", "true");
         }
 
-        hideModal(viewer);
         activeVideoId = null;
     }
 
-    /* 15. NAVIGATION AND TABS */
+    /* 15. NAVIGATION — MATCHES data-section */
 
-    function setActiveTab(tabName) {
-        const allowedTabs = [
-            "For You",
-            "Following",
-            "Saved",
-            "Explore"
-        ];
+    function setActiveTab(sectionName) {
+        const sectionMap = {
+            home: "For You",
+            discover: "Explore",
+            following: "Following",
+            liked: "Liked",
+            saved: "Saved",
+            messages: "Messages",
+            trending: "Trending",
+            music: "Music",
+            gaming: "Gaming",
+            challenges: "Challenges"
+        };
 
-        state.activeTab = allowedTabs.includes(tabName)
-            ? tabName
-            : "For You";
+        const section = String(sectionName || "home").toLowerCase();
 
-        $$(".nav-link, .sidebar-link, .mobile-nav button, [data-tab]")
-            .forEach((element) => {
-                const label = safeText(
-                    element.dataset.tab
-                    || element.dataset.label
-                    || element.textContent,
-                    ""
-                );
+        state.activeTab = sectionMap[section] || "For You";
+        state.currentSection = section;
 
-                const active = label.trim().toLowerCase()
-                    === state.activeTab.toLowerCase();
+        $$("[data-section]").forEach((button) => {
+            const isActive =
+                button.dataset.section?.toLowerCase() === section;
 
-                element.classList.toggle("active", active);
+            button.classList.toggle("active", isActive);
 
-                if (active) {
-                    element.setAttribute("aria-current", "page");
-                } else {
-                    element.removeAttribute("aria-current");
-                }
-            });
+            if (isActive) {
+                button.setAttribute("aria-current", "page");
+            } else {
+                button.removeAttribute("aria-current");
+            }
+        });
 
         saveState();
         renderFeed();
     }
 
     function bindNavigation() {
-        $$("[data-tab], .nav-link, .sidebar-link, .mobile-nav button")
-            .forEach((element) => {
-                if (element.dataset.vtikNavBound) return;
+        $$("[data-section]").forEach((button) => {
+            if (button.dataset.vtikNavigationBound) return;
 
-                element.dataset.vtikNavBound = "true";
+            button.dataset.vtikNavigationBound = "true";
 
-                $on(element, "click", (event) => {
-                    const tab = safeText(
-                        element.dataset.tab
-                        || element.dataset.label
-                        || element.textContent,
-                        ""
-                    ).trim();
+            button.addEventListener("click", (event) => {
+                event.preventDefault();
 
-                    const normalized = tab.toLowerCase();
-
-                    const tabMap = {
-                        "for you": "For You",
-                        "following": "Following",
-                        "saved": "Saved",
-                        "explore": "Explore"
-                    };
-
-                    if (tabMap[normalized]) {
-                        event.preventDefault();
-                        setActiveTab(tabMap[normalized]);
-                    }
-                });
+                const section = button.dataset.section;
+                if (section) setActiveTab(section);
             });
+        });
     }
 
     /* 16. SEARCH */
 
     function bindSearch() {
-        if (!searchInput || searchInput.dataset.vtikSearchBound) return;
+        const input = byId("searchInput");
+        const clearButton = byId("clearSearch");
 
-        searchInput.dataset.vtikSearchBound = "true";
+        if (!input || input.dataset.vtikSearchBound) return;
 
-        $on(searchInput, "input", () => {
-            searchTerm = searchInput.value.trim();
+        input.dataset.vtikSearchBound = "true";
+
+        input.addEventListener("input", () => {
+            searchTerm = input.value.trim();
+
+            if (clearButton) {
+                clearButton.hidden = !searchTerm;
+            }
+
             renderFeed();
         });
 
-        $on(searchInput, "keydown", (event) => {
-            if (event.key === "Escape") {
-                searchInput.value = "";
+        if (clearButton) {
+            clearButton.addEventListener("click", () => {
+                input.value = "";
                 searchTerm = "";
+                clearButton.hidden = true;
+                input.focus();
                 renderFeed();
-                searchInput.blur();
+            });
+        }
+
+        input.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                input.value = "";
+                searchTerm = "";
+
+                if (clearButton) clearButton.hidden = true;
+
+                renderFeed();
+                input.blur();
             }
         });
     }
 
-    /* 17. CLICK ACTIONS */
+    /* 17. FEED ACTIONS */
 
     function bindFeedActions() {
-        if (!feed || feed.dataset.vtikActionsBound) return;
+        const feedElement = byId("feed");
 
-        feed.dataset.vtikActionsBound = "true";
+        if (!feedElement || feedElement.dataset.vtikActionsBound) return;
 
-        $on(feed, "click", async (event) => {
+        feedElement.dataset.vtikActionsBound = "true";
+
+        feedElement.addEventListener("click", async (event) => {
             const button = event.target.closest("[data-action]");
 
-            if (!button || !feed.contains(button)) return;
+            if (!button || !feedElement.contains(button)) return;
 
-            const action = button.dataset.action;
-            const videoId = button.dataset.videoId
-                || button.closest("[data-video-id]")?.dataset.videoId;
+            const card = button.closest("[data-video-id], [data-id]");
 
-            switch (action) {
+            const videoId =
+                button.dataset.videoId
+                || card?.dataset.videoId
+                || card?.dataset.id;
+
+            switch (button.dataset.action) {
                 case "like":
-                    toggleLike(videoId);
+                    if (videoId) toggleLike(videoId);
                     break;
 
                 case "save":
-                    toggleSave(videoId);
+                case "bookmark":
+                    if (videoId) toggleSave(videoId);
                     break;
 
                 case "follow":
-                    toggleFollow(videoId);
+                    if (videoId) toggleFollow(videoId);
                     break;
 
                 case "comment":
-                    openComments(videoId);
+                    if (videoId) openComments(videoId);
                     break;
 
                 case "share":
-                    await shareVideo(videoId);
+                    if (videoId) await shareVideo(videoId);
                     break;
 
                 case "expand":
-                    await openViewer(videoId);
+                case "fullscreen":
+                    if (videoId) await openViewer(videoId);
                     break;
-
-                case "sound": {
-                    const card = button.closest(".video-card");
-                    const video = $(".feed-video", card);
-
-                    if (!video) return;
-
-                    video.muted = !video.muted;
-                    button.textContent = video.muted ? "🔇" : "🔊";
-
-                    if (!video.muted) {
-                        const playPromise = video.play();
-
-                        if (playPromise && playPromise.catch) {
-                            playPromise.catch(() => {});
-                        }
-                    }
-
-                    break;
-                }
 
                 case "open-create":
                     openCreateModal();
-                    break;
-
-                case "close-modal":
-                    hideModal(button.closest(".modal, [role='dialog']"));
-                    break;
-
-                case "close-viewer":
-                    closeViewer();
                     break;
 
                 default:
@@ -1377,135 +875,124 @@
         });
     }
 
-    /* 18. MODAL CONTROLS */
+    /* 18. MODAL BUTTONS — MATCHES YOUR HTML */
 
     function bindModalControls() {
-        $$("[data-open-create], #createButton, #uploadButton, .create-button")
-            .forEach((button) => {
-                if (button.dataset.vtikCreateBound) return;
+        const createButtonIds = [
+            "createTop",
+            "mobileCreate"
+        ];
 
-                button.dataset.vtikCreateBound = "true";
+        createButtonIds.forEach((id) => {
+            const button = byId(id);
 
-                $on(button, "click", (event) => {
-                    event.preventDefault();
-                    openCreateModal();
-                });
-            });
+            if (!button || button.dataset.vtikCreateBound) return;
 
-        $$("[data-close-modal], .modal-close, .close-modal")
-            .forEach((button) => {
-                if (button.dataset.vtikCloseBound) return;
+            button.dataset.vtikCreateBound = "true";
 
-                button.dataset.vtikCloseBound = "true";
-
-                $on(button, "click", () => {
-                    const modal = button.closest(".modal, [role='dialog']");
-
-                    if (modal) hideModal(modal);
-                });
-            });
-
-        [createModal, commentsModal, viewer].forEach((modal) => {
-            if (!modal || modal.dataset.vtikBackdropBound) return;
-
-            modal.dataset.vtikBackdropBound = "true";
-
-            $on(modal, "click", (event) => {
-                if (event.target !== modal) return;
-
-                if (modal === viewer) {
-                    closeViewer();
-                } else {
-                    hideModal(modal);
-                }
+            button.addEventListener("click", (event) => {
+                event.preventDefault();
+                openCreateModal();
             });
         });
 
-        $on(document, "keydown", (event) => {
-            if (event.key === "Escape") {
-                if (viewer && !viewer.hidden) {
-                    closeViewer();
-                } else {
-                    [createModal, commentsModal].forEach((modal) => {
-                        if (modal && !modal.hidden) hideModal(modal);
-                    });
-                }
+        const closeCreate = byId("closeCreate");
+        const closeComments = byId("closeComments");
+        const viewerClose = byId("viewerClose");
+
+        closeCreate?.addEventListener("click", () => {
+            hideModal(byId("createModal"));
+        });
+
+        closeComments?.addEventListener("click", () => {
+            hideModal(byId("commentsModal"));
+        });
+
+        viewerClose?.addEventListener("click", closeViewer);
+
+        const createBackdrop = byId("createBackdrop");
+        const commentsBackdrop = byId("commentsBackdrop");
+
+        createBackdrop?.addEventListener("click", () => {
+            hideModal(byId("createModal"));
+        });
+
+        commentsBackdrop?.addEventListener("click", () => {
+            hideModal(byId("commentsModal"));
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+
+            const viewerElement = byId("videoViewer");
+
+            if (viewerElement?.classList.contains("active")) {
+                closeViewer();
+                return;
+            }
+
+            const createModalElement = byId("createModal");
+            const commentsModalElement = byId("commentsModal");
+
+            if (createModalElement?.classList.contains("active")) {
+                hideModal(createModalElement);
+            }
+
+            if (commentsModalElement?.classList.contains("active")) {
+                hideModal(commentsModalElement);
             }
         });
     }
 
-    /* 19. PROFILE BUTTON EVENTS */
-
-    function bindProfileButtons() {
-        [profileButton, mobileProfile].forEach((button) => {
-            if (!button || button.dataset.vtikProfileBound) return;
-
-            button.dataset.vtikProfileBound = "true";
-
-            $on(button, "click", (event) => {
-                event.preventDefault();
-                openProfile();
-            });
-        });
-    }
-
-    /* 20. VIDEO ERROR HANDLING */
+    /* 19. VIDEO PLAYBACK ERROR HANDLING */
 
     function bindVideoErrors() {
-        if (!feed || feed.dataset.vtikErrorsBound) return;
+        const feedElement = byId("feed");
 
-        feed.dataset.vtikErrorsBound = "true";
+        if (!feedElement || feedElement.dataset.vtikErrorsBound) return;
 
-        $on(feed, "error", (event) => {
+        feedElement.dataset.vtikErrorsBound = "true";
+
+        feedElement.addEventListener("error", (event) => {
             const video = event.target;
 
             if (!(video instanceof HTMLVideoElement)) return;
 
-            video.classList.add("video-source-error");
-
-            const stage = video.closest(".video-stage");
-
-            if (stage) {
-                let message = $(".video-unavailable-message", stage);
-
-                if (!message) {
-                    message = document.createElement("div");
-                    message.className = "video-unavailable-message";
-                    stage.appendChild(message);
-                }
-
-                message.textContent =
-                    "Video could not load. Check the video file path.";
-            }
+            console.warn("V-Tik video failed to load:", video.currentSrc);
         }, true);
     }
 
-    /* 21. INITIALIZE APP */
+    /* 20. INITIALIZE */
 
     function initializeVtik() {
         bindNavigation();
         bindSearch();
         bindFeedActions();
         bindModalControls();
-        bindProfileButtons();
-        bindUploadForm();
         bindVideoErrors();
 
-        updateProfileButton();
+        if (typeof bindUploadForm === "function") {
+            bindUploadForm();
+        }
 
-        setActiveTab(
-            state.activeTab || "For You"
-        );
+        if (typeof updateProfileButton === "function") {
+            updateProfileButton();
+        }
 
-        console.info("V-Tik initialized successfully.");
+        setActiveTab(state.currentSection || "home");
+
+        console.info("V-Tik is ready.");
     }
 
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initializeVtik, {
-            once: true
-        });
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeVtik,
+            { once: true }
+        );
     } else {
         initializeVtik();
     }
 
 })();
+
