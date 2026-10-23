@@ -3,13 +3,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#08090d">
     <meta name="description" content="Discover, watch, share, and create short videos on V-Tik.">
-    <meta name="author" content="V-Tik">
 
-    <title>V-Tik — Discover, Watch & Share Videos</title>
+    <title>V-Tik — Short Videos</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +20,6 @@
             color-scheme: dark;
             --bg: #08090d;
             --panel: #111219;
-            --panel-hover: #20212b;
             --text: #f8f8fb;
             --muted: #a4a6b4;
             --pink: #fe2c55;
@@ -30,8 +27,11 @@
             --border: rgba(255,255,255,.09);
         }
 
-        * {
-            box-sizing: border-box;
+        * { box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            background: var(--bg);
         }
 
         body {
@@ -41,30 +41,12 @@
             font-family: "Plus Jakarta Sans", sans-serif;
         }
 
-        button, input {
-            font: inherit;
-        }
+        button, input { font: inherit; }
+        button { cursor: pointer; }
+        a { color: inherit; text-decoration: none; }
+        [hidden] { display: none !important; }
 
-        button, a {
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        button {
-            cursor: pointer;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        [hidden] {
-            display: none !important;
-        }
-
-        body.modal-open {
-            overflow: hidden;
-        }
+        body.modal-open { overflow: hidden; }
 
         /* Header */
 
@@ -72,22 +54,23 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            min-height: 76px;
+            min-height: 68px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 24px;
-            padding: 12px 5%;
-            background: rgba(8,9,13,.94);
+            gap: 20px;
+            padding: 10px 4%;
             border-bottom: 1px solid var(--border);
+            background: rgba(8,9,13,.94);
             backdrop-filter: blur(18px);
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: 3px;
-            font-size: 23px;
+            gap: 5px;
+            flex-shrink: 0;
+            font-size: 22px;
             font-weight: 800;
             letter-spacing: -1px;
         }
@@ -95,65 +78,59 @@
         .brand-v {
             display: grid;
             place-items: center;
-            width: 35px;
-            height: 35px;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
             background: var(--pink);
-            border-radius: 11px;
             color: white;
-        }
-
-        .brand-tik {
-            letter-spacing: 1px;
         }
 
         .search {
             display: flex;
             align-items: center;
-            gap: 10px;
-            width: min(440px, 42vw);
-            padding: 0 14px;
-            min-height: 43px;
+            gap: 9px;
+            width: min(440px, 45vw);
+            min-height: 42px;
+            padding: 0 12px;
             border: 1px solid var(--border);
-            border-radius: 14px;
+            border-radius: 12px;
             background: #171820;
         }
 
         .search input {
-            min-width: 0;
             width: 100%;
+            min-width: 0;
             border: 0;
             outline: 0;
-            color: white;
             background: transparent;
+            color: white;
         }
 
-        .search input::placeholder {
-            color: var(--muted);
-        }
+        .search input::placeholder { color: var(--muted); }
 
         .clear-search {
             border: 0;
-            color: white;
             background: transparent;
+            color: white;
         }
 
         .topbar-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .create-btn, .round-btn {
+            min-height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            min-height: 42px;
-            padding: 0 14px;
+            gap: 7px;
+            padding: 0 13px;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            color: white;
+            border-radius: 11px;
             background: #171820;
+            color: white;
         }
 
         .create-btn {
@@ -163,41 +140,37 @@
         }
 
         .round-btn {
-            width: 42px;
+            width: 40px;
             padding: 0;
-            font-size: 19px;
+            font-size: 18px;
         }
 
         .avatar {
+            width: 40px;
+            height: 40px;
             display: grid;
             place-items: center;
-            width: 42px;
-            height: 42px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--pink), #7c3aed);
-            font-size: 13px;
+            color: white;
             font-weight: 800;
+            font-size: 12px;
         }
 
-        .avatar.small {
-            width: 36px;
-            height: 36px;
-        }
-
-        /* Main layout */
+        /* Layout */
 
         .shell {
             display: grid;
-            grid-template-columns: 220px minmax(0, 1fr);
-            gap: 30px;
+            grid-template-columns: 210px minmax(0, 1fr);
+            gap: 24px;
             max-width: 1500px;
             margin: 0 auto;
-            padding: 28px 4%;
+            padding: 22px 3%;
         }
 
         .sidebar {
             position: sticky;
-            top: 100px;
+            top: 90px;
             align-self: start;
         }
 
@@ -207,47 +180,44 @@
         }
 
         .nav-item {
+            width: 100%;
+            min-height: 46px;
             display: flex;
             align-items: center;
-            gap: 15px;
-            width: 100%;
-            min-height: 47px;
-            padding: 0 15px;
+            gap: 14px;
+            padding: 0 14px;
             border: 0;
-            border-radius: 12px;
-            color: #c5c6d0;
+            border-radius: 11px;
             background: transparent;
+            color: #c5c6d0;
             text-align: left;
             font-weight: 600;
         }
 
         .nav-item > span:first-child {
-            width: 23px;
-            font-size: 21px;
+            width: 22px;
             text-align: center;
+            font-size: 20px;
         }
 
-        .nav-item:hover,
-        .nav-item.active {
-            color: white;
+        .nav-item:hover, .nav-item.active {
             background: #20212b;
+            color: white;
         }
 
-        .nav-item.active > span:first-child {
-            color: var(--pink);
-        }
+        .nav-item.active > span:first-child { color: var(--pink); }
 
         .side-title {
-            margin: 30px 15px 12px;
+            margin: 28px 14px 12px;
             color: var(--muted);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 800;
-            text-transform: uppercase;
             letter-spacing: 1.5px;
+            text-transform: uppercase;
         }
 
         .side-bottom {
-            margin: 35px 15px 0;
+            margin: 30px 14px 0;
             color: var(--muted);
             font-size: 11px;
             line-height: 2;
@@ -256,60 +226,38 @@
         .footer-links {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px 12px;
+            gap: 4px 12px;
         }
 
-        .copyright {
-            margin-top: 15px;
-        }
-
-        /* Feed */
+        /* Video area: no feed heading */
 
         .main-content {
             min-width: 0;
-            padding-bottom: 70px;
-        }
-
-        .feed-heading {
-            margin: 0 0 24px;
-        }
-
-        .feed-heading h1 {
-            margin: 0 0 6px;
-            font-size: clamp(25px, 3vw, 34px);
-            font-weight: 800;
-        }
-
-        .feed-heading p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 14px;
+            padding-bottom: 30px;
         }
 
         .video-list {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 24px;
+            gap: 20px;
+            width: 100%;
         }
 
         .video-card {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 54px;
+            grid-template-columns: minmax(0, 1fr) 48px;
             align-items: end;
-            gap: 14px;
-            width: min(100%, 700px);
-            padding: 14px;
+            gap: 12px;
+            width: min(100%, 720px);
+            padding: 12px;
             border: 1px solid var(--border);
-            border-radius: 22px;
+            border-radius: 18px;
             background: var(--panel);
-            overflow: hidden;
-            scroll-margin-top: 95px;
+            scroll-margin-top: 80px;
         }
 
-        .video-card-main {
-            min-width: 0;
-        }
+        .video-card-main { min-width: 0; }
 
         .video-stage {
             position: relative;
@@ -319,11 +267,11 @@
         .feed-video {
             display: block;
             width: 100%;
-            max-height: 72vh;
+            max-height: 78vh;
             aspect-ratio: 9 / 16;
             object-fit: contain;
-            border-radius: 16px;
-            background: #030303;
+            border-radius: 13px;
+            background: #000;
         }
 
         .video-play-overlay {
@@ -332,49 +280,46 @@
             left: 50%;
             display: none;
             place-items: center;
-            width: 58px;
-            height: 58px;
+            width: 56px;
+            height: 56px;
             transform: translate(-50%, -50%);
             border: 1px solid #ffffff55;
             border-radius: 50%;
-            color: white;
             background: #0009;
-            font-size: 23px;
+            color: white;
+            font-size: 22px;
+            pointer-events: none;
         }
 
-        .video-card.is-paused .video-play-overlay {
-            display: grid;
-        }
+        .video-card.is-paused .video-play-overlay { display: grid; }
 
-        .video-info {
-            padding: 15px 4px 4px;
-        }
+        .video-info { padding: 13px 3px 3px; }
 
         .video-details {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 9px;
         }
 
         .creator-avatar {
+            width: 38px;
+            height: 38px;
+            flex: 0 0 38px;
             display: grid;
             place-items: center;
-            flex: 0 0 40px;
-            width: 40px;
-            height: 40px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--pink), #7c3aed);
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 800;
         }
 
         .creator-meta {
+            flex: 1;
             min-width: 0;
         }
 
-        .creator-meta strong,
-        .creator-meta span {
+        .creator-meta strong, .creator-meta span {
             display: block;
             overflow-wrap: anywhere;
         }
@@ -387,7 +332,7 @@
 
         .video-caption {
             margin: 0;
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.6;
             overflow-wrap: anywhere;
         }
@@ -396,57 +341,51 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 17px;
-            padding-bottom: 12px;
+            gap: 16px;
+            padding-bottom: 10px;
         }
 
         .video-actions button {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             padding: 0;
             border: 0;
-            color: white;
             background: transparent;
-            font-size: 11px;
+            color: white;
+            font-size: 10px;
         }
 
         .video-actions button span {
+            width: 42px;
+            height: 42px;
             display: grid;
             place-items: center;
-            width: 44px;
-            height: 44px;
             border: 1px solid var(--border);
             border-radius: 50%;
             background: #22232c;
-            font-size: 19px;
-            transition: .2s ease;
+            font-size: 18px;
+            transition: background .2s, color .2s;
         }
 
-        .video-actions button:hover span {
-            color: var(--cyan);
-            background: #2b2c36;
-        }
+        .video-actions button:hover span { color: var(--cyan); }
 
-        .video-actions .like-action:hover span,
-        .video-actions .like-action.active span {
-            color: var(--pink);
-        }
+        .video-actions .like-action.active span { color: var(--pink); }
 
         .follow-btn {
             margin-left: auto;
             padding: 7px 10px;
             border: 0;
             border-radius: 9px;
-            color: white;
             background: var(--pink);
-            font-size: 12px;
+            color: white;
+            font-size: 11px;
             font-weight: 700;
         }
 
         .feed-empty {
-            padding: 35px 20px;
+            padding: 30px 15px;
             color: var(--muted);
             text-align: center;
         }
@@ -455,30 +394,27 @@
 
         .scroll-controls {
             position: fixed;
-            right: 22px;
-            bottom: 25px;
+            right: 18px;
+            bottom: 22px;
             z-index: 50;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 9px;
         }
 
         .scroll-controls button {
+            width: 42px;
+            height: 42px;
             display: grid;
             place-items: center;
-            width: 44px;
-            height: 44px;
             border: 1px solid var(--border);
             border-radius: 50%;
-            color: white;
             background: #20212b;
-            font-size: 22px;
-            box-shadow: 0 6px 20px #0005;
+            color: white;
+            font-size: 21px;
         }
 
-        .scroll-controls button:hover {
-            background: var(--pink);
-        }
+        .scroll-controls button:hover { background: var(--pink); }
 
         /* Modals */
 
@@ -489,7 +425,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px;
         }
 
         .modal.active {
@@ -500,7 +436,7 @@
             position: absolute;
             inset: 0;
             background: #000b;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(7px);
         }
 
         .modal-box {
@@ -509,9 +445,9 @@
             width: min(100%, 480px);
             max-height: 90vh;
             overflow-y: auto;
-            padding: 26px;
+            padding: 24px;
             border: 1px solid var(--border);
-            border-radius: 20px;
+            border-radius: 19px;
             background: #15161e;
             box-shadow: 0 20px 80px #0008;
         }
@@ -521,65 +457,59 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
-        .modal-header h2,
-        .create-box h2 {
+        .modal-header h2, .create-box h2 {
             margin: 0;
-            font-size: 22px;
+            font-size: 21px;
         }
 
-        .close,
-        .viewer-close {
-            display: grid;
-            place-items: center;
+        .close, .viewer-close {
             width: 38px;
             height: 38px;
+            display: grid;
+            place-items: center;
             border: 1px solid var(--border);
             border-radius: 50%;
-            color: white;
             background: #252631;
+            color: white;
         }
 
-        .create-box > .close {
-            float: right;
-        }
+        .create-box > .close { float: right; }
 
         .upload-zone {
             clear: both;
-            padding: 30px 15px;
+            padding: 28px 14px;
             border: 1px dashed #555766;
-            border-radius: 15px;
+            border-radius: 14px;
             text-align: center;
         }
 
         .upload-icon-wrapper {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             color: var(--pink);
             font-size: 30px;
         }
 
-        .upload-zone p {
+        .upload-zone p, .file-name-muted {
             color: var(--muted);
             font-size: 13px;
         }
 
         .upload-btn {
             display: inline-block;
-            margin-top: 10px;
-            padding: 11px 17px;
-            border-radius: 10px;
-            color: white;
+            margin-top: 8px;
+            padding: 10px 15px;
+            border-radius: 9px;
             background: var(--pink);
+            color: white;
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
         }
 
-        .preview-container {
-            margin-top: 18px;
-        }
+        .preview-container { margin-top: 16px; }
 
         .upload-preview {
             display: block;
@@ -589,41 +519,31 @@
             background: black;
         }
 
-        .file-name-muted {
-            color: var(--muted);
-            font-size: 12px;
-            overflow-wrap: anywhere;
-        }
+        .caption-wrapper { margin-top: 16px; }
 
-        .caption-wrapper {
-            margin-top: 18px;
-        }
-
-        .caption-input,
-        .comment-form input {
+        .caption-input, .comment-form input {
             width: 100%;
             min-height: 44px;
-            padding: 12px;
+            padding: 11px;
             border: 1px solid var(--border);
             border-radius: 10px;
-            outline: 0;
-            color: white;
+            outline: none;
             background: #20212b;
+            color: white;
         }
 
-        .caption-input:focus,
-        .comment-form input:focus {
+        .caption-input:focus, .comment-form input:focus {
             border-color: var(--pink);
         }
 
         .post-video-btn {
             width: 100%;
-            min-height: 45px;
-            margin-top: 16px;
+            min-height: 44px;
+            margin-top: 15px;
             border: 0;
             border-radius: 10px;
-            color: white;
             background: var(--pink);
+            color: white;
             font-weight: 800;
         }
 
@@ -635,53 +555,42 @@
         .comments-list {
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            min-height: 80px;
+            gap: 12px;
+            min-height: 70px;
             max-height: 45vh;
             overflow-y: auto;
         }
 
         .comment-item {
             padding: 12px;
-            border-radius: 12px;
+            border-radius: 11px;
             background: #20212b;
         }
 
-        .comment-item strong {
-            font-size: 12px;
-        }
-
         .comment-item p {
-            margin: 6px 0 0;
-            font-size: 14px;
+            margin: 5px 0 0;
+            font-size: 13px;
             overflow-wrap: anywhere;
         }
 
         .comment-form {
             display: flex;
             gap: 8px;
-            margin-top: 18px;
+            margin-top: 16px;
         }
 
-        .comment-form input {
-            min-width: 0;
-            flex: 1;
-        }
+        .comment-form input { min-width: 0; flex: 1; }
 
         .comment-form button {
-            padding: 0 16px;
+            padding: 0 15px;
             border: 0;
-            border-radius: 10px;
-            color: white;
+            border-radius: 9px;
             background: var(--pink);
+            color: white;
             font-weight: 700;
         }
 
-        .comment-form button:disabled {
-            opacity: .4;
-        }
-
-        /* Viewer */
+        /* Fullscreen viewer */
 
         .viewer {
             position: fixed;
@@ -694,9 +603,7 @@
             background: #000f;
         }
 
-        .viewer.active {
-            display: flex;
-        }
+        .viewer.active { display: flex; }
 
         .viewer video {
             width: auto;
@@ -708,163 +615,121 @@
 
         .viewer-close {
             position: absolute;
-            top: 18px;
-            right: 18px;
+            top: 16px;
+            right: 16px;
             z-index: 2;
         }
 
         .toast {
             position: fixed;
             left: 50%;
-            bottom: 28px;
+            bottom: 25px;
             z-index: 2000;
             max-width: calc(100% - 30px);
-            padding: 12px 18px;
+            padding: 12px 17px;
             transform: translateX(-50%);
             border: 1px solid var(--border);
             border-radius: 12px;
-            color: white;
             background: #242530;
-            box-shadow: 0 8px 30px #0006;
+            color: white;
             opacity: 0;
             pointer-events: none;
-            transition: opacity .2s ease;
+            transition: opacity .2s;
         }
 
-        .toast.show {
-            opacity: 1;
-        }
+        .toast.show { opacity: 1; }
 
-        /* Mobile navigation */
-
-        .mobile-nav {
-            display: none;
-        }
+        .mobile-nav { display: none; }
 
         @media (max-width: 900px) {
             .shell {
-                grid-template-columns: 180px minmax(0, 1fr);
-                gap: 18px;
-            }
-
-            .topbar {
-                padding-inline: 3%;
+                grid-template-columns: 175px minmax(0, 1fr);
+                gap: 16px;
             }
         }
 
         @media (max-width: 700px) {
             .topbar {
-                min-height: 65px;
-                gap: 10px;
-                padding: 10px 14px;
+                min-height: 60px;
+                gap: 9px;
+                padding: 9px 12px;
             }
 
-            .brand {
-                font-size: 19px;
-            }
-
-            .brand-v {
-                width: 31px;
-                height: 31px;
-            }
+            .brand { font-size: 18px; }
+            .brand-v { width: 30px; height: 30px; }
 
             .search {
                 flex: 1;
                 width: auto;
                 min-width: 0;
-                padding-inline: 9px;
+                padding: 0 8px;
             }
 
-            .search input {
-                font-size: 12px;
-            }
+            .search input { font-size: 12px; }
 
-            .topbar-actions {
-                gap: 7px;
-            }
+            .topbar-actions { gap: 6px; }
 
             .create-btn {
-                width: 38px;
-                min-height: 38px;
+                width: 36px;
+                min-height: 36px;
                 padding: 0;
             }
 
-            .create-btn span {
-                display: none;
-            }
-
+            .create-btn .create-label,
             .round-btn,
-            .profile-link {
-                display: none;
-            }
+            .profile-link { display: none; }
 
             .shell {
                 display: block;
-                padding: 20px 10px 95px;
+                padding: 10px 8px 85px;
             }
 
-            .sidebar {
-                display: none;
-            }
+            .sidebar { display: none; }
 
-            .feed-heading {
-                margin: 0 4px 18px;
-            }
+            .main-content { padding-bottom: 15px; }
 
-            .feed-heading h1 {
-                font-size: 25px;
-            }
-
-            .video-list {
-                gap: 16px;
-            }
+            .video-list { gap: 13px; }
 
             .video-card {
-                grid-template-columns: minmax(0, 1fr) 42px;
-                gap: 8px;
+                grid-template-columns: minmax(0, 1fr) 39px;
+                gap: 7px;
                 width: 100%;
-                padding: 8px;
-                border-radius: 16px;
-                scroll-margin-top: 75px;
+                padding: 7px;
+                border-radius: 14px;
+                scroll-margin-top: 68px;
             }
 
             .feed-video {
-                max-height: 65vh;
-                border-radius: 11px;
+                max-height: 76vh;
+                border-radius: 10px;
             }
 
-            .video-actions {
-                gap: 13px;
-            }
+            .video-actions { gap: 12px; }
 
             .video-actions button span {
-                width: 35px;
-                height: 35px;
-                font-size: 16px;
+                width: 34px;
+                height: 34px;
+                font-size: 15px;
             }
 
-            .video-actions button {
-                font-size: 10px;
-            }
+            .video-actions button { font-size: 9px; }
 
             .creator-avatar {
-                width: 35px;
-                height: 35px;
-                flex-basis: 35px;
+                width: 33px;
+                height: 33px;
+                flex-basis: 33px;
             }
 
-            .video-caption {
-                font-size: 13px;
-            }
+            .video-caption { font-size: 12px; }
 
             .scroll-controls {
-                right: 10px;
-                bottom: 78px;
+                right: 9px;
+                bottom: 76px;
             }
 
             .scroll-controls button {
-                width: 38px;
-                height: 38px;
+                width: 36px;
+                height: 36px;
             }
 
             .mobile-nav {
@@ -876,49 +741,40 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-around;
-                min-height: 65px;
-                padding: 6px 8px env(safe-area-inset-bottom);
+                min-height: 63px;
+                padding: 5px 6px env(safe-area-inset-bottom);
                 border-top: 1px solid var(--border);
-                background: #0e0f15f5;
+                background: rgba(14,15,21,.97);
                 backdrop-filter: blur(18px);
             }
 
-            .mobile-nav button,
-            .mobile-profile-link {
-                display: flex;
+            .mobile-nav button, .mobile-profile-link {
                 flex: 1;
+                min-width: 0;
+                display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
                 gap: 3px;
-                min-width: 0;
                 border: 0;
-                color: var(--muted);
                 background: transparent;
+                color: var(--muted);
                 font-size: 10px;
             }
 
-            .mobile-nav button > span:first-child {
-                font-size: 20px;
-            }
-
-            .mobile-nav button.active {
-                color: white;
-            }
-
-            .mobile-nav button.active > span:first-child {
-                color: var(--pink);
-            }
+            .mobile-nav button > span:first-child { font-size: 20px; }
+            .mobile-nav button.active { color: white; }
+            .mobile-nav button.active > span:first-child { color: var(--pink); }
 
             .mobile-nav .mobile-create > span {
+                width: 37px;
+                height: 31px;
                 display: grid;
                 place-items: center;
-                width: 38px;
-                height: 32px;
-                border-radius: 10px;
-                color: white;
+                border-radius: 9px;
                 background: var(--pink);
-                font-size: 25px;
+                color: white;
+                font-size: 24px;
             }
 
             .mobile-profile-link .avatar {
@@ -927,20 +783,13 @@
                 font-size: 9px;
             }
 
-            .modal {
-                padding: 12px;
-            }
-
-            .modal-box {
-                padding: 20px;
-            }
+            .modal { padding: 10px; }
+            .modal-box { padding: 19px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                scroll-behavior: auto !important;
-                transition-duration: .01ms !important;
-            }
+            html { scroll-behavior: auto; }
+            *, *::before, *::after { transition: none !important; }
         }
     </style>
 
@@ -951,13 +800,13 @@
     <header class="topbar">
         <a href="./index.html" class="brand" aria-label="V-Tik home">
             <span class="brand-v">V</span>
-            <span class="brand-tik">TIK</span>
+            <span> TIK</span>
         </a>
 
         <div class="search">
             <span aria-hidden="true">⌕</span>
             <input id="searchInput" type="search"
-                   placeholder="Search videos and creators..."
+                   placeholder="Search videos..."
                    autocomplete="off" aria-label="Search videos">
             <button id="clearSearch" class="clear-search"
                     type="button" hidden aria-label="Clear search">✕</button>
@@ -965,16 +814,16 @@
 
         <div class="topbar-actions">
             <button id="createTop" class="create-btn" type="button"
-                    aria-haspopup="dialog" aria-controls="createModal">
+                    aria-controls="createModal" aria-haspopup="dialog">
                 <span aria-hidden="true">＋</span>
-                <span>Create</span>
+                <span class="create-label">Create</span>
             </button>
 
-            <button class="round-btn" id="notificationBtn" type="button"
-                    aria-label="Notifications">♧</button>
+            <button class="round-btn" id="notificationBtn"
+                    type="button" aria-label="Notifications">♧</button>
 
             <a href="log.html" class="profile-link" aria-label="Profile">
-                <span class="avatar small">TR</span>
+                <span class="avatar">TR</span>
             </a>
         </div>
     </header>
@@ -983,25 +832,25 @@
         <aside class="sidebar">
             <nav class="nav-group" aria-label="Main navigation">
                 <button class="nav-item active" type="button" data-section="home">
-                    <span aria-hidden="true">⌂</span><span>Home</span>
+                    <span>⌂</span><span>Home</span>
                 </button>
                 <button class="nav-item" type="button" data-section="discover">
-                    <span aria-hidden="true">⌕</span><span>Discover</span>
+                    <span>⌕</span><span>Discover</span>
                 </button>
                 <button class="nav-item" type="button" data-section="following">
-                    <span aria-hidden="true">♧</span><span>Following</span>
+                    <span>♧</span><span>Following</span>
                 </button>
                 <button class="nav-item" type="button" data-section="liked">
-                    <span aria-hidden="true">♡</span><span>Liked</span>
+                    <span>♡</span><span>Liked</span>
                 </button>
                 <button class="nav-item" type="button" data-section="saved">
-                    <span aria-hidden="true">▤</span><span>Saved</span>
+                    <span>▤</span><span>Saved</span>
                 </button>
             </nav>
 
             <div class="side-title">Explore</div>
 
-            <nav class="nav-group" aria-label="Explore">
+            <nav class="nav-group" aria-label="Explore categories">
                 <button class="nav-item" type="button" data-section="trending">
                     <span>🔥</span><span>Trending</span>
                 </button>
@@ -1015,21 +864,16 @@
 
             <div class="side-bottom">
                 <div class="footer-links">
-                    <a href="#about">About V-Tik</a>
+                    <a href="#about">About</a>
                     <a href="#privacy">Privacy</a>
                     <a href="#terms">Terms</a>
                 </div>
-                <p class="copyright">© 2026 V-Tik</p>
+                <p>© 2026 V-Tik</p>
             </div>
         </aside>
 
         <main class="main-content" id="mainContent">
-            <div class="feed-heading">
-                <h1 id="feedTitle">For You</h1>
-                <p>Discover videos picked for your next scroll.</p>
-            </div>
-
-            <!-- app.js generates the cards in this container -->
+            <!-- No feed heading: JavaScript inserts video cards here. -->
             <div class="video-list" id="videoList"></div>
 
             <p class="feed-empty" id="emptyFeed" hidden role="status">
@@ -1051,44 +895,43 @@
             <span>⌕</span><span>Discover</span>
         </button>
         <button class="mobile-create" id="mobileCreate" type="button"
-                aria-label="Create a video" aria-controls="createModal">
+                aria-label="Create video" aria-controls="createModal">
             <span>＋</span>
         </button>
         <button type="button" data-section="following">
             <span>♧</span><span>Following</span>
         </button>
         <a href="log.html" class="mobile-profile-link">
-            <span class="avatar micro">TR</span><span>Profile</span>
+            <span class="avatar">TR</span><span>Profile</span>
         </a>
     </nav>
 
-    <!-- Comments dialog -->
-    <div class="modal" id="commentsModal" role="dialog" aria-modal="true"
-         aria-labelledby="commentsTitle" aria-hidden="true">
+    <!-- Comments modal -->
+    <div class="modal" id="commentsModal" role="dialog"
+         aria-modal="true" aria-labelledby="commentsTitle" aria-hidden="true">
         <div class="modal-backdrop" data-close-modal></div>
 
-        <div class="modal-box comments-box">
+        <div class="modal-box">
             <div class="modal-header">
                 <h2 id="commentsTitle">Comments</h2>
-                <button class="close" id="closeComments"
-                        data-close-modal type="button"
-                        aria-label="Close comments">✕</button>
+                <button class="close" id="closeComments" data-close-modal
+                        type="button" aria-label="Close comments">✕</button>
             </div>
 
             <div class="comments-list" id="commentsList"></div>
 
             <form class="comment-form" id="commentForm">
                 <input id="commentInput" name="comment" type="text"
-                       placeholder="Add a comment..." maxlength="180"
+                       maxlength="180" placeholder="Add a comment..."
                        autocomplete="off" required>
-                <button type="submit" id="postCommentBtn">Post</button>
+                <button id="postCommentBtn" type="submit">Post</button>
             </form>
         </div>
     </div>
 
-    <!-- Upload dialog -->
-    <div class="modal" id="createModal" role="dialog" aria-modal="true"
-         aria-labelledby="createTitle" aria-hidden="true">
+    <!-- Upload modal -->
+    <div class="modal" id="createModal" role="dialog"
+         aria-modal="true" aria-labelledby="createTitle" aria-hidden="true">
         <div class="modal-backdrop" data-close-modal></div>
 
         <div class="modal-box create-box">
@@ -1102,8 +945,8 @@
 
             <div class="upload-zone" id="uploadZone">
                 <div class="upload-icon-wrapper" aria-hidden="true">⇧</div>
-                <p>Select a video from your device to upload.</p>
-                <label for="videoPicker" class="upload-btn">Select Video</label>
+                <p>Select a video from your device.</p>
+                <label for="videoPicker" class="upload-btn">Choose video</label>
             </div>
 
             <div class="preview-container" id="previewContainer" hidden>
@@ -1123,73 +966,187 @@
         </div>
     </div>
 
-    <!-- Optional full-screen viewer -->
+    <!-- Optional fullscreen viewer -->
     <div class="viewer" id="videoViewer" aria-hidden="true">
         <button class="viewer-close" id="viewerClose" data-close-modal
-                type="button" aria-label="Close viewer">✕</button>
+                type="button" aria-label="Close video">✕</button>
         <video id="viewerVideo" controls playsinline></video>
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const feed = document.getElementById("videoList");
+        (() => {
+            const $ = (selector, root = document) => root.querySelector(selector);
+            const $$ = (selector, root = document) =>
+                [...root.querySelectorAll(selector)];
 
-            function scrollToVideo(direction) {
-                const cards = [...document.querySelectorAll("#videoList .video-card")];
+            let autoplayObserver = null;
+            let scrollTimer = null;
 
-                if (!cards.length) return;
+            function getVideos() {
+                return $$("#videoList video.feed-video");
+            }
 
-                const viewportCenter = window.innerHeight / 2;
-                let closestIndex = 0;
-                let closestDistance = Infinity;
+            function setupAutoplay() {
+                if (autoplayObserver) {
+                    autoplayObserver.disconnect();
+                }
 
-                cards.forEach((card, index) => {
-                    const rect = card.getBoundingClientRect();
-                    const center = rect.top + rect.height / 2;
-                    const distance = Math.abs(center - viewportCenter);
+                const videos = getVideos();
 
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestIndex = index;
+                if (!videos.length) return;
+
+                videos.forEach(video => {
+                    video.autoplay = true;
+                    video.muted = true;
+                    video.defaultMuted = true;
+                    video.playsInline = true;
+                    video.setAttribute("muted", "");
+                    video.setAttribute("playsinline", "");
+                    video.preload = "metadata";
+
+                    video.addEventListener("play", () => {
+                        videos.forEach(other => {
+                            if (other !== video && !other.paused) {
+                                other.pause();
+                            }
+                        });
+                    });
+
+                    video.addEventListener("click", () => {
+                        if (video.paused) {
+                            video.muted = true;
+                            video.play().catch(() => {});
+                        } else {
+                            video.pause();
+                        }
+                    });
+
+                    const card = video.closest(".video-card");
+                    if (card) {
+                        const updatePaused = () => {
+                            card.classList.toggle("is-paused", video.paused);
+                        };
+
+                        video.addEventListener("play", updatePaused);
+                        video.addEventListener("pause", updatePaused);
+                        updatePaused();
                     }
                 });
 
-                const nextIndex = Math.max(
-                    0,
-                    Math.min(cards.length - 1, closestIndex + direction)
-                );
+                autoplayObserver = new IntersectionObserver(entries => {
+                    const visible = entries
+                        .filter(entry => entry.isIntersecting)
+                        .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
 
-                cards[nextIndex].scrollIntoView({
+                    const best = visible.find(entry => entry.intersectionRatio >= 0.55);
+
+                    videos.forEach(video => {
+                        if (!best || best.target !== video) {
+                            video.pause();
+                        }
+                    });
+
+                    if (best) {
+                        const video = best.target;
+                        video.muted = true;
+                        video.play().catch(() => {
+                            // Some browsers require a user interaction first.
+                        });
+                    }
+                }, {
+                    threshold: [0, 0.25, 0.4, 0.55, 0.7, 0.9, 1]
+                });
+
+                videos.forEach(video => autoplayObserver.observe(video));
+            }
+
+            function scheduleAutoplayRefresh() {
+                clearTimeout(scrollTimer);
+                scrollTimer = setTimeout(setupAutoplay, 250);
+            }
+
+            function scrollToVideo(direction) {
+                const cards = $$("#videoList .video-card");
+                if (!cards.length) return;
+
+                const center = window.innerHeight / 2;
+                let closest = 0;
+                let distance = Infinity;
+
+                cards.forEach((card, index) => {
+                    const rect = card.getBoundingClientRect();
+                    const d = Math.abs(rect.top + rect.height / 2 - center);
+
+                    if (d < distance) {
+                        distance = d;
+                        closest = index;
+                    }
+                });
+
+                const next = Math.max(0, Math.min(cards.length - 1, closest + direction));
+
+                cards[next].scrollIntoView({
                     behavior: "smooth",
                     block: "center"
                 });
 
-                setTimeout(() => {
-                    window.VTik?.refreshAutoplay?.();
-                }, 300);
+                setTimeout(setupAutoplay, 350);
             }
 
-            document.getElementById("scrollUp")
-                ?.addEventListener("click", () => scrollToVideo(-1));
+            $("#scrollUp")?.addEventListener("click", () => scrollToVideo(-1));
+            $("#scrollDown")?.addEventListener("click", () => scrollToVideo(1));
 
-            document.getElementById("scrollDown")
-                ?.addEventListener("click", () => scrollToVideo(1));
+            window.addEventListener("scroll", scheduleAutoplayRefresh, { passive: true });
+            window.addEventListener("resize", scheduleAutoplayRefresh);
 
-            document.getElementById("mobileCreate")
-                ?.addEventListener("click", () => {
-                    document.getElementById("createTop")?.click();
+            /*
+             * The app.js script renders the video cards.
+             * Wait briefly and observe any cards it creates.
+             */
+            const feed = $("#videoList");
+
+            if (feed) {
+                const renderObserver = new MutationObserver(() => {
+                    setupAutoplay();
                 });
 
-            const picker = document.getElementById("videoPicker");
-            const postButton = document.getElementById("postVideo");
-            const uploadName = document.getElementById("uploadName");
-            const previewContainer = document.getElementById("previewContainer");
-            const preview = document.getElementById("uploadPreview");
-            const uploadZone = document.getElementById("uploadZone");
-            const caption = document.getElementById("videoCaption");
+                renderObserver.observe(feed, { childList: true, subtree: true });
+            }
 
+            $("#mobileCreate")?.addEventListener("click", () => {
+                $("#createTop")?.click();
+            });
+
+            $("#notificationBtn")?.addEventListener("click", () => {
+                const toast = $("#toast");
+                if (!toast) return;
+
+                toast.textContent = "You're all caught up!";
+                toast.classList.add("show");
+                setTimeout(() => toast.classList.remove("show"), 2200);
+            });
+
+            const search = $("#searchInput");
+            const clear = $("#clearSearch");
+
+            search?.addEventListener("input", () => {
+                if (clear) clear.hidden = !search.value;
+            });
+
+            clear?.addEventListener("click", () => {
+                if (!search) return;
+                search.value = "";
+                search.dispatchEvent(new Event("input", { bubbles: true }));
+                search.focus();
+            });
+
+            const picker = $("#videoPicker");
+            const preview = $("#uploadPreview");
+            const previewContainer = $("#previewContainer");
+            const uploadName = $("#uploadName");
+            const postButton = $("#postVideo");
             let previewURL = null;
 
             picker?.addEventListener("change", () => {
@@ -1215,18 +1172,12 @@
                 if (postButton) postButton.disabled = false;
             });
 
-            uploadZone?.addEventListener("dragover", event => {
+            $("#uploadZone")?.addEventListener("dragover", event => {
                 event.preventDefault();
-                uploadZone.style.borderColor = "#fe2c55";
             });
 
-            uploadZone?.addEventListener("dragleave", () => {
-                uploadZone.style.borderColor = "";
-            });
-
-            uploadZone?.addEventListener("drop", event => {
+            $("#uploadZone")?.addEventListener("drop", event => {
                 event.preventDefault();
-                uploadZone.style.borderColor = "";
 
                 const file = event.dataTransfer?.files?.[0];
                 if (!file || !picker) return;
@@ -1242,36 +1193,57 @@
                     picker.files = transfer.files;
                     picker.dispatchEvent(new Event("change", { bubbles: true }));
                 } catch (error) {
-                    console.warn("Could not attach dropped file.", error);
+                    console.error("Could not load the dropped video.", error);
                 }
             });
 
-            // Keep the caption value available to the upload handler.
-            caption?.addEventListener("input", () => {
-                caption.dataset.caption = caption.value;
+            $$("[data-close-modal]").forEach(button => {
+                button.addEventListener("click", () => {
+                    const modal = button.closest(".modal");
+                    const viewer = button.closest(".viewer");
+
+                    if (modal) {
+                        modal.classList.remove("active");
+                        modal.setAttribute("aria-hidden", "true");
+                        document.body.classList.remove("modal-open");
+                    }
+
+                    if (viewer) {
+                        viewer.classList.remove("active");
+                        viewer.setAttribute("aria-hidden", "true");
+
+                        const viewerVideo = $("#viewerVideo");
+                        if (viewerVideo) {
+                            viewerVideo.pause();
+                            viewerVideo.removeAttribute("src");
+                            viewerVideo.load();
+                        }
+                    }
+                });
             });
 
-            // This form submits comments through the V-Tik app handler.
-            document.getElementById("commentInput")?.addEventListener("input", event => {
-                const button = document.getElementById("postCommentBtn");
-                if (button) button.disabled = !event.target.value.trim();
+            document.addEventListener("keydown", event => {
+                if (event.key !== "Escape") return;
+
+                $$(".modal.active").forEach(modal => {
+                    modal.classList.remove("active");
+                    modal.setAttribute("aria-hidden", "true");
+                });
+
+                const viewer = $("#videoViewer");
+                viewer?.classList.remove("active");
+                viewer?.setAttribute("aria-hidden", "true");
+                document.body.classList.remove("modal-open");
+
+                $("#viewerVideo")?.pause();
             });
 
-            // Keep the clear-search control in sync.
-            const search = document.getElementById("searchInput");
-            const clear = document.getElementById("clearSearch");
+            // Allow app.js or the browser console to refresh autoplay.
+            window.VTik = window.VTik || {};
+            window.VTik.refreshAutoplay = setupAutoplay;
 
-            search?.addEventListener("input", () => {
-                if (clear) clear.hidden = !search.value;
-            });
-
-            clear?.addEventListener("click", () => {
-                if (!search) return;
-                search.value = "";
-                search.dispatchEvent(new Event("input", { bubbles: true }));
-                search.focus();
-            });
-        });
+            setupAutoplay();
+        })();
     </script>
 </body>
 </html>
