@@ -1,55 +1,54 @@
 
 /* =========================================================
-   V-TIK — COMPLETE CSS STYLESHEET
-   Theme: Premium Dark / TikTok-Inspired
-   Layout: Left Sidebar + Vertical Video Feed
-   Features:
-   - Separate desktop navigation
-   - Vertical video cards
-   - Like, comment, save and share actions
-   - Floating scroll controls
-   - Responsive mobile navigation
-   - Upload and comments modals
-   - Fullscreen video viewer
+   V-TIK — MODERN VIDEO SHARING PLATFORM
+   Complete Responsive Stylesheet
+   Theme: Premium Dark / Neon Pink / Cyan
 ========================================================= */
 
 /* =========================================================
-   1. ROOT VARIABLES
+   01. DESIGN TOKENS
 ========================================================= */
 
 :root {
-    --bg: #08080c;
-    --bg-soft: #0e0e14;
-    --sidebar-bg: #0c0c12;
-    --surface: #121219;
-    --surface-2: #1a1a23;
-    --surface-3: #252530;
+    color-scheme: dark;
+
+    --bg: #08090d;
+    --bg-elevated: #0e1016;
+    --sidebar-bg: #0b0c12;
+
+    --surface: #12141c;
+    --surface-hover: #1a1d28;
+    --surface-raised: #202330;
 
     --pink: #fe2c55;
-    --pink-dark: #e91e49;
+    --pink-hover: #ff496d;
     --cyan: #25f4ee;
+    --purple: #9b7bff;
 
-    --text: #f7f7fb;
-    --text-soft: #b6b6c4;
-    --muted: #777786;
+    --text: #f8f8fc;
+    --text-secondary: #b1b4c2;
+    --muted: #777c8d;
 
-    --border: rgba(255, 255, 255, 0.09);
-    --border-strong: rgba(255, 255, 255, 0.16);
+    --border: rgba(255, 255, 255, 0.075);
+    --border-hover: rgba(255, 255, 255, 0.15);
 
     --header-height: 70px;
     --sidebar-width: 245px;
-    --feed-width: 650px;
+    --feed-width: 680px;
 
-    --radius-sm: 9px;
-    --radius-md: 15px;
-    --radius-lg: 21px;
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 22px;
+    --radius-xl: 28px;
 
-    --shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
-    --transition: 0.25s ease;
+    --shadow-card: 0 12px 35px rgba(0, 0, 0, 0.23);
+    --shadow-float: 0 12px 35px rgba(0, 0, 0, 0.4);
+
+    --transition: 220ms ease;
 }
 
 /* =========================================================
-   2. RESET AND GLOBAL STYLES
+   02. RESET
 ========================================================= */
 
 * {
@@ -61,9 +60,9 @@
 html {
     min-height: 100%;
     scroll-behavior: smooth;
-    scroll-padding-top: calc(var(--header-height) + 18px);
+    scroll-padding-top: calc(var(--header-height) + 20px);
+    scrollbar-color: #353846 var(--bg);
     scrollbar-width: thin;
-    scrollbar-color: #3b3b48 var(--bg);
 }
 
 body {
@@ -73,7 +72,7 @@ body {
     background: var(--bg);
     color: var(--text);
 
-    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.6;
 
@@ -93,8 +92,8 @@ button {
 }
 
 button:disabled {
-    opacity: 0.45;
     cursor: not-allowed;
+    opacity: 0.5;
 }
 
 a {
@@ -112,9 +111,13 @@ img {
     object-fit: cover;
 }
 
+svg {
+    flex-shrink: 0;
+}
+
 ::selection {
-    background: var(--pink);
     color: white;
+    background: var(--pink);
 }
 
 :focus-visible {
@@ -132,16 +135,16 @@ img {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #383844;
+    background: #353846;
     border-radius: 20px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #575765;
+    background: #535769;
 }
 
 /* =========================================================
-   3. FIXED TOP HEADER
+   03. TOP HEADER
 ========================================================= */
 
 .topbar,
@@ -160,11 +163,11 @@ header.topbar,
     justify-content: space-between;
     gap: 22px;
 
-    background: rgba(8, 8, 12, 0.96);
+    background: rgba(8, 9, 13, 0.94);
     border-bottom: 1px solid var(--border);
 
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
 }
 
 .topbar-left,
@@ -172,25 +175,26 @@ header.topbar,
 .topbar-right {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 13px;
 }
 
 .topbar-left {
-    flex: 0 0 auto;
+    flex-shrink: 0;
 }
 
 .topbar-center {
     flex: 1;
     justify-content: center;
+    min-width: 0;
 }
 
 .topbar-right {
-    flex: 0 0 auto;
+    flex-shrink: 0;
     justify-content: flex-end;
 }
 
 /* =========================================================
-   4. BRAND / LOGO
+   04. BRAND
 ========================================================= */
 
 .logo,
@@ -205,9 +209,9 @@ header.topbar,
 .logo img,
 .brand img,
 .brand-logo img {
-    width: 39px;
-    height: 39px;
-    border-radius: 11px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     object-fit: cover;
 }
 
@@ -216,7 +220,7 @@ header.topbar,
     color: white;
     font-size: 25px;
     font-weight: 900;
-    letter-spacing: -1.3px;
+    letter-spacing: -1.2px;
 }
 
 .logo span span,
@@ -225,7 +229,7 @@ header.topbar,
 }
 
 /* =========================================================
-   5. HEADER ICON BUTTONS
+   05. HEADER ICONS
 ========================================================= */
 
 .icon-btn,
@@ -241,10 +245,10 @@ header.topbar,
     flex-shrink: 0;
 
     border: 1px solid transparent;
-    border-radius: 12px;
+    border-radius: 13px;
 
     background: transparent;
-    color: var(--text-soft);
+    color: var(--text-secondary);
     font-size: 20px;
 
     transition: var(--transition);
@@ -253,29 +257,29 @@ header.topbar,
 .icon-btn:hover,
 .menu-toggle:hover,
 .menu-btn:hover {
+    background: var(--surface-hover);
     color: white;
-    background: var(--surface-2);
     border-color: var(--border);
 }
 
 /* =========================================================
-   6. SEARCH BAR
+   06. SEARCH
 ========================================================= */
 
 .search-box,
 .search-container,
 .search-wrap {
-    width: min(100%, 430px);
-    height: 44px;
+    width: min(100%, 440px);
+    height: 45px;
     padding: 0 15px;
 
     display: flex;
     align-items: center;
     gap: 11px;
 
-    background: var(--surface-2);
+    background: #171923;
     border: 1px solid transparent;
-    border-radius: 13px;
+    border-radius: 14px;
 
     transition: border-color var(--transition);
 }
@@ -293,8 +297,8 @@ header.topbar,
     min-width: 0;
 
     padding: 0;
-    border: 0;
     outline: none;
+    border: 0;
 
     background: transparent;
     color: white;
@@ -310,17 +314,13 @@ header.topbar,
 .search-box button,
 .search-container button,
 .search-wrap button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
     border: 0;
     background: transparent;
-    color: var(--text-soft);
+    color: var(--text-secondary);
 }
 
 /* =========================================================
-   7. BUTTONS
+   07. BUTTONS
 ========================================================= */
 
 .btn,
@@ -336,7 +336,7 @@ header.topbar,
     gap: 8px;
 
     border: 1px solid transparent;
-    border-radius: 11px;
+    border-radius: 12px;
 
     background: var(--pink);
     color: white;
@@ -355,38 +355,33 @@ header.topbar,
 .primary-btn:hover,
 .create-btn:hover,
 .upload-btn:hover {
-    background: var(--pink-dark);
-    box-shadow: 0 5px 20px rgba(254, 44, 85, 0.2);
+    background: var(--pink-hover);
+    box-shadow: 0 5px 22px rgba(254, 44, 85, 0.18);
     transform: translateY(-1px);
 }
 
 .btn-secondary {
-    background: var(--surface-2);
+    background: var(--surface-hover);
     border-color: var(--border);
     color: white;
 }
 
 .btn-secondary:hover {
-    background: var(--surface-3);
+    background: var(--surface-raised);
 }
 
 .btn-outline {
     background: transparent;
-    border-color: var(--border-strong);
-    color: white;
-}
-
-.btn-outline:hover {
-    background: var(--surface-2);
+    border-color: var(--border-hover);
 }
 
 .btn-cyan {
     background: var(--cyan);
-    color: #050505;
+    color: #08090d;
 }
 
 /* =========================================================
-   8. APPLICATION SHELL
+   08. APP LAYOUT
 ========================================================= */
 
 .shell,
@@ -403,18 +398,16 @@ header.topbar,
     align-items: start;
 }
 
-/* Main content */
-
 .main-content,
 .main,
 .content {
     width: 100%;
     min-width: 0;
-    padding: 28px 32px 70px;
+    padding: 28px 30px 70px;
 }
 
 /* =========================================================
-   9. LEFT SIDEBAR NAVIGATION
+   09. LEFT SIDEBAR
 ========================================================= */
 
 .sidebar,
@@ -438,9 +431,7 @@ header.topbar,
 
     overflow-x: hidden;
     overflow-y: auto;
-
     scrollbar-width: thin;
-    scrollbar-color: #30303b transparent;
 }
 
 .sidebar-section,
@@ -462,8 +453,6 @@ header.topbar,
     text-transform: uppercase;
 }
 
-/* Individual navigation links */
-
 .sidebar a,
 .sidebar button,
 .left-sidebar a,
@@ -482,10 +471,10 @@ header.topbar,
     gap: 13px;
 
     border: 1px solid transparent;
-    border-radius: 12px;
+    border-radius: 13px;
 
     background: transparent;
-    color: #b9b9c7;
+    color: #b9bdca;
 
     font-size: 13px;
     font-weight: 650;
@@ -504,11 +493,9 @@ header.topbar,
 .side-nav a:hover,
 .side-nav button:hover,
 .nav-link:hover {
-    background: var(--surface-2);
+    background: var(--surface-hover);
     color: white;
 }
-
-/* Active navigation item */
 
 .sidebar a.active,
 .sidebar button.active,
@@ -518,8 +505,8 @@ header.topbar,
 .side-nav button.active,
 .nav-link.active,
 .nav-link[aria-current="page"] {
-    background: rgba(254, 44, 85, 0.11);
-    border-color: rgba(254, 44, 85, 0.18);
+    background: rgba(254, 44, 85, 0.105);
+    border-color: rgba(254, 44, 85, 0.16);
     color: var(--pink);
 }
 
@@ -556,16 +543,12 @@ header.topbar,
     font-size: 20px;
 }
 
-/* Navigation divider */
-
 .sidebar-divider,
 .nav-divider {
     width: 100%;
     height: 1px;
     background: var(--border);
 }
-
-/* Sidebar profile */
 
 .sidebar-profile,
 .profile-mini {
@@ -576,7 +559,8 @@ header.topbar,
     padding: 11px;
 
     border: 1px solid var(--border);
-    border-radius: 13px;
+    border-radius: 14px;
+
     background: var(--surface);
 }
 
@@ -590,15 +574,14 @@ header.topbar,
 
 .sidebar-profile-info,
 .profile-mini-info {
-    min-width: 0;
     flex: 1;
+    min-width: 0;
 }
 
 .sidebar-profile-info strong,
 .profile-mini-info strong {
     display: block;
     overflow: hidden;
-
     color: white;
     font-size: 12px;
     text-overflow: ellipsis;
@@ -610,8 +593,6 @@ header.topbar,
     color: var(--muted);
     font-size: 10px;
 }
-
-/* Sidebar footer */
 
 .sidebar-footer {
     margin-top: auto;
@@ -629,20 +610,20 @@ header.topbar,
 }
 
 /* =========================================================
-   10. FEED HEADER
+   10. FEED HEADING AND FILTERS
 ========================================================= */
 
 .feed-header,
 .page-header,
 .section-header {
+    width: 100%;
+    max-width: var(--feed-width);
+    margin: 0 auto 22px;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-
-    width: 100%;
-    max-width: var(--feed-width);
-    margin: 0 auto 22px;
 }
 
 .feed-header h1,
@@ -659,11 +640,9 @@ header.topbar,
 .page-header p,
 .section-header p {
     margin-top: 4px;
-    color: var(--text-soft);
+    color: var(--text-secondary);
     font-size: 12px;
 }
-
-/* Feed categories */
 
 .feed-tabs,
 .category-tabs,
@@ -692,14 +671,14 @@ header.topbar,
 .feed-tabs button,
 .category-tabs button,
 .filter-tabs button {
-    flex: 0 0 auto;
+    flex-shrink: 0;
     padding: 9px 14px;
 
     border: 1px solid transparent;
-    border-radius: 9px;
+    border-radius: 10px;
 
     background: transparent;
-    color: var(--text-soft);
+    color: var(--text-secondary);
 
     font-size: 12px;
     font-weight: 700;
@@ -710,26 +689,21 @@ header.topbar,
 .feed-tabs button:hover,
 .category-tabs button:hover,
 .filter-tabs button:hover {
-    background: var(--surface-2);
+    background: var(--surface-hover);
     color: white;
 }
 
 .feed-tabs button.active,
 .category-tabs button.active,
 .filter-tabs button.active {
-    background: var(--surface-2);
+    background: var(--surface-hover);
     border-color: var(--border);
     color: white;
 }
 
 /* =========================================================
-   11. VERTICAL VIDEO FEED
+   11. VERTICAL FEED CONTAINER
 ========================================================= */
-
-/*
-   Videos appear in one column.
-   Every card is stacked below the previous card.
-*/
 
 #feed,
 .video-feed,
@@ -747,8 +721,6 @@ header.topbar,
     padding: 5px 0 55px;
 }
 
-/* Empty feed */
-
 #feed:empty::before {
     content: "Your videos will appear here.";
 
@@ -756,7 +728,7 @@ header.topbar,
     width: 100%;
     padding: 55px 20px;
 
-    border: 1px dashed var(--border-strong);
+    border: 1px dashed var(--border-hover);
     border-radius: var(--radius-lg);
 
     color: var(--muted);
@@ -764,52 +736,50 @@ header.topbar,
 }
 
 /* =========================================================
-   12. VIDEO CARD STRUCTURE
+   12. MODERN VIDEO CARDS
 ========================================================= */
-
-/*
-   Main structure:
-   --------------------------------
-   | VIDEO               | ACTIONS |
-   | VIDEO               | ACTIONS |
-   | VIDEO               | ACTIONS |
-   | CREATOR / CAPTION           |
-   --------------------------------
-
-   Cards with separate action bars use a vertical layout.
-*/
 
 .video-card,
 .video-item,
 .feed-card {
+    position: relative;
+
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 58px;
+    grid-template-columns: minmax(0, 1fr) 56px;
     grid-template-rows: auto auto;
     align-items: start;
     column-gap: 12px;
 
     width: 100%;
     min-width: 0;
-    padding: 12px;
+    padding: 11px;
 
-    background: var(--surface);
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.035),
+            transparent 42%
+        ),
+        var(--surface);
+
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
 
     overflow: hidden;
 
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-card);
 
     transition:
         border-color var(--transition),
-        box-shadow var(--transition);
+        box-shadow var(--transition),
+        transform var(--transition);
 }
 
 .video-card:hover,
 .video-item:hover,
 .feed-card:hover {
-    border-color: rgba(37, 244, 238, 0.25);
-    box-shadow: var(--shadow);
+    border-color: rgba(37, 244, 238, 0.22);
+    box-shadow: var(--shadow-float);
 }
 
 /* =========================================================
@@ -827,40 +797,35 @@ header.topbar,
 
     width: 100%;
     height: auto;
-    max-height: 680px;
+    max-height: 690px;
+    min-width: 0;
 
     aspect-ratio: 9 / 14;
     object-fit: cover;
 
-    background: #000;
-    border-radius: 13px;
+    background: #050505;
+    border-radius: 15px;
 
     cursor: pointer;
 }
 
-/* Prevent embedded video from overflowing */
-
-.video-card video,
-.video-item video,
-.feed-card video {
-    min-width: 0;
-}
-
-/* Video thumbnail */
+/* Thumbnail alternative */
 
 .video-thumbnail,
 .video-cover,
 .video-card .thumbnail {
+    position: relative;
+
     grid-column: 1;
     grid-row: 1;
 
-    position: relative;
     width: 100%;
     aspect-ratio: 9 / 14;
 
     overflow: hidden;
-    border-radius: 13px;
-    background: #000;
+    border-radius: 15px;
+
+    background: #050505;
 }
 
 .video-thumbnail img,
@@ -869,15 +834,18 @@ header.topbar,
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.45s ease;
+
+    transition: transform 350ms ease;
 }
 
 .video-card:hover .video-thumbnail img,
 .video-card:hover .video-cover img {
-    transform: scale(1.035);
+    transform: scale(1.025);
 }
 
-/* Video overlay */
+/* =========================================================
+   14. VIDEO OVERLAYS
+========================================================= */
 
 .video-overlay {
     position: absolute;
@@ -890,9 +858,9 @@ header.topbar,
 
     background: linear-gradient(
         to bottom,
-        rgba(0, 0, 0, 0.28),
-        transparent 25%,
-        transparent 62%,
+        rgba(0, 0, 0, 0.30),
+        transparent 24%,
+        transparent 65%,
         rgba(0, 0, 0, 0.55)
     );
 
@@ -909,9 +877,9 @@ header.topbar,
     align-self: flex-start;
 
     padding: 4px 8px;
-    border-radius: 6px;
+    border-radius: 7px;
 
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.72);
     color: white;
 
     font-size: 10px;
@@ -923,7 +891,7 @@ header.topbar,
 }
 
 /* =========================================================
-   14. VIDEO ACTION BAR — RIGHT SIDE
+   15. VIDEO ACTIONS
 ========================================================= */
 
 .video-actions,
@@ -932,14 +900,14 @@ header.topbar,
     grid-column: 2;
     grid-row: 1;
 
+    min-width: 0;
+    padding: 9px 0;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    gap: 15px;
-
-    min-width: 0;
-    padding: 8px 0;
+    gap: 14px;
 }
 
 .video-actions button,
@@ -956,14 +924,14 @@ header.topbar,
     justify-content: center;
     gap: 3px;
 
-    border: 0;
-    border-radius: 11px;
+    border: 1px solid transparent;
+    border-radius: 13px;
 
     background: transparent;
-    color: var(--text-soft);
+    color: var(--text-secondary);
 
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 750;
 
     transition:
         background var(--transition),
@@ -975,7 +943,7 @@ header.topbar,
 .video-action-bar button:hover,
 .action-bar button:hover,
 .video-actions a:hover {
-    background: var(--surface-2);
+    background: var(--surface-hover);
     color: white;
 }
 
@@ -1009,7 +977,7 @@ header.topbar,
 }
 
 /* =========================================================
-   15. VIDEO INFORMATION
+   16. VIDEO INFORMATION
 ========================================================= */
 
 .video-info,
@@ -1019,7 +987,7 @@ header.topbar,
     grid-row: 2;
 
     min-width: 0;
-    padding: 13px 4px 4px;
+    padding: 14px 4px 5px;
 }
 
 .video-info h3,
@@ -1031,9 +999,10 @@ header.topbar,
     color: white;
     font-size: 14px;
     font-weight: 800;
-    line-height: 1.5;
+    line-height: 1.55;
 
     overflow-wrap: anywhere;
+
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
 }
@@ -1046,17 +1015,18 @@ header.topbar,
 
     margin-top: 6px;
 
-    color: var(--text-soft);
+    color: var(--text-secondary);
     font-size: 12px;
     line-height: 1.7;
 
     overflow-wrap: anywhere;
+
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
 }
 
 /* =========================================================
-   16. VIDEO CREATOR DETAILS
+   17. CREATOR INFORMATION
 ========================================================= */
 
 .video-creator,
@@ -1067,19 +1037,21 @@ header.topbar,
     gap: 10px;
 
     min-width: 0;
-    margin-bottom: 11px;
+    margin-bottom: 12px;
 }
 
 .video-creator img,
 .creator-row img,
 .video-author img {
-    width: 35px;
-    height: 35px;
-    flex: 0 0 35px;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
 
+    border: 1px solid var(--border-hover);
     border-radius: 50%;
+
     object-fit: cover;
-    background: var(--surface-3);
+    background: var(--surface-raised);
 }
 
 .video-creator-info,
@@ -1097,7 +1069,8 @@ header.topbar,
 
     color: white;
     font-size: 12px;
-    font-weight: 750;
+    font-weight: 800;
+
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -1117,22 +1090,24 @@ header.topbar,
     padding: 7px 12px;
 
     border: 1px solid var(--pink);
-    border-radius: 8px;
+    border-radius: 9px;
 
     background: var(--pink);
     color: white;
 
     font-size: 11px;
     font-weight: 750;
+
+    transition: var(--transition);
 }
 
 .follow-btn:hover,
 .follow-button:hover {
-    background: var(--pink-dark);
+    background: var(--pink-hover);
 }
 
 /* =========================================================
-   17. FLOATING SCROLL UP / DOWN BUTTONS
+   18. SCROLL UP / DOWN CONTROLS
 ========================================================= */
 
 .scroll-controls,
@@ -1159,25 +1134,24 @@ header.topbar,
     align-items: center;
     justify-content: center;
 
-    border: 1px solid var(--border-strong);
-    border-radius: 14px;
+    border: 1px solid var(--border-hover);
+    border-radius: 15px;
 
-    background: rgba(29, 29, 39, 0.96);
+    background: rgba(29, 31, 42, 0.96);
     color: white;
 
     font-size: 23px;
     font-weight: 800;
 
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+    box-shadow: var(--shadow-float);
 
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 
     transition:
         background var(--transition),
         border-color var(--transition),
-        transform var(--transition),
-        opacity var(--transition);
+        transform var(--transition);
 }
 
 .scroll-controls button:hover,
@@ -1201,7 +1175,7 @@ header.topbar,
 }
 
 /* =========================================================
-   18. EMPTY STATES AND LOADING
+   19. EMPTY AND LOADING STATES
 ========================================================= */
 
 .empty-state,
@@ -1217,10 +1191,10 @@ header.topbar,
     justify-content: center;
     gap: 12px;
 
-    border: 1px dashed var(--border-strong);
+    border: 1px dashed var(--border-hover);
     border-radius: var(--radius-lg);
 
-    color: var(--text-soft);
+    color: var(--text-secondary);
     text-align: center;
 }
 
@@ -1246,11 +1220,11 @@ header.topbar,
     height: 35px;
     margin: 30px auto;
 
-    border: 3px solid #33333f;
+    border: 3px solid #333642;
     border-top-color: var(--pink);
     border-radius: 50%;
 
-    animation: vtik-spin 0.75s linear infinite;
+    animation: vtik-spin 750ms linear infinite;
 }
 
 @keyframes vtik-spin {
@@ -1260,7 +1234,7 @@ header.topbar,
 }
 
 /* =========================================================
-   19. MODAL BACKDROP
+   20. MODAL BACKDROP
 ========================================================= */
 
 .modal,
@@ -1276,10 +1250,10 @@ header.topbar,
 
     padding: 20px;
 
-    background: rgba(0, 0, 0, 0.78);
+    background: rgba(0, 0, 0, 0.79);
 
-    backdrop-filter: blur(7px);
-    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .modal.open,
@@ -1306,19 +1280,19 @@ header.topbar,
 
     overflow: hidden;
 
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-hover);
     border-radius: var(--radius-lg);
 
-    background: #111117;
-    box-shadow: var(--shadow);
+    background: #11131b;
+    box-shadow: var(--shadow-float);
 
-    animation: vtik-modal-in 0.22s ease;
+    animation: vtik-modal-in 220ms ease;
 }
 
 @keyframes vtik-modal-in {
     from {
         opacity: 0;
-        transform: translateY(12px) scale(0.98);
+        transform: translateY(12px) scale(0.985);
     }
 
     to {
@@ -1326,8 +1300,6 @@ header.topbar,
         transform: translateY(0) scale(1);
     }
 }
-
-/* Modal header */
 
 .modal-header,
 .dialog-header {
@@ -1359,9 +1331,9 @@ header.topbar,
     justify-content: center;
 
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 11px;
 
-    background: var(--surface-2);
+    background: var(--surface-hover);
     color: white;
     font-size: 21px;
 
@@ -1393,7 +1365,7 @@ header.topbar,
 }
 
 /* =========================================================
-   20. COMMENTS
+   21. COMMENTS
 ========================================================= */
 
 .comments-list,
@@ -1434,7 +1406,7 @@ header.topbar,
 .comment-content p,
 .comment-text p {
     margin-top: 4px;
-    color: var(--text-soft);
+    color: var(--text-secondary);
     font-size: 13px;
     overflow-wrap: anywhere;
 }
@@ -1446,8 +1418,6 @@ header.topbar,
     color: var(--muted);
     font-size: 10px;
 }
-
-/* Comment form */
 
 .comment-form,
 #commentForm {
@@ -1468,9 +1438,9 @@ header.topbar,
     padding: 12px 14px;
 
     border: 1px solid var(--border);
-    border-radius: 11px;
+    border-radius: 12px;
 
-    background: var(--surface-2);
+    background: var(--surface-hover);
     color: white;
     outline: none;
 }
@@ -1482,7 +1452,7 @@ header.topbar,
 }
 
 /* =========================================================
-   21. CREATE VIDEO / UPLOAD FORM
+   22. VIDEO UPLOAD
 ========================================================= */
 
 .upload-modal .modal-content,
@@ -1504,11 +1474,11 @@ header.topbar,
     justify-content: center;
     gap: 12px;
 
-    border: 2px dashed #41414e;
+    border: 2px dashed #414553;
     border-radius: var(--radius-md);
 
-    background: #15151d;
-    color: var(--text-soft);
+    background: #151721;
+    color: var(--text-secondary);
     text-align: center;
 
     transition: var(--transition);
@@ -1520,7 +1490,7 @@ header.topbar,
 .drop-zone.dragover,
 .upload-area:hover {
     border-color: var(--pink);
-    background: rgba(254, 44, 85, 0.05);
+    background: rgba(254, 44, 85, 0.045);
 }
 
 .upload-zone h3,
@@ -1541,7 +1511,7 @@ header.topbar,
 .drop-zone input[type="file"],
 .upload-area input[type="file"] {
     max-width: 100%;
-    color: var(--text-soft);
+    color: var(--text-secondary);
     font-size: 12px;
 }
 
@@ -1557,7 +1527,7 @@ header.topbar,
 
 .form-group label,
 .input-group label {
-    color: #e1e1e9;
+    color: #e1e3ec;
     font-size: 12px;
     font-weight: 750;
 }
@@ -1572,10 +1542,10 @@ header.topbar,
     min-height: 44px;
     padding: 12px 14px;
 
-    border: 1px solid var(--border-strong);
-    border-radius: 11px;
+    border: 1px solid var(--border-hover);
+    border-radius: 12px;
 
-    background: var(--surface-2);
+    background: var(--surface-hover);
     color: white;
     outline: none;
 }
@@ -1596,7 +1566,7 @@ header.topbar,
 }
 
 /* =========================================================
-   22. FULLSCREEN VIDEO VIEWER
+   23. FULLSCREEN VIDEO VIEWER
 ========================================================= */
 
 .fullscreen-viewer,
@@ -1625,13 +1595,14 @@ header.topbar,
 
 .viewer-content,
 .viewer-inner {
+    position: relative;
+
     width: min(100%, 1000px);
     height: min(90vh, 850px);
 
     display: grid;
     grid-template-columns: minmax(0, 1fr) 300px;
 
-    position: relative;
     overflow: hidden;
 
     border: 1px solid var(--border);
@@ -1669,8 +1640,6 @@ header.topbar,
     border-left: 1px solid var(--border);
 }
 
-/* Viewer controls */
-
 .viewer-close,
 .viewer-next,
 .viewer-prev {
@@ -1684,10 +1653,10 @@ header.topbar,
     align-items: center;
     justify-content: center;
 
-    border: 1px solid var(--border-strong);
+    border: 1px solid var(--border-hover);
     border-radius: 50%;
 
-    background: rgba(20, 20, 28, 0.9);
+    background: rgba(20, 22, 30, 0.92);
     color: white;
 
     font-size: 22px;
@@ -1719,7 +1688,7 @@ header.topbar,
 }
 
 /* =========================================================
-   23. TOAST NOTIFICATIONS
+   24. TOAST NOTIFICATIONS
 ========================================================= */
 
 .toast,
@@ -1733,13 +1702,13 @@ header.topbar,
     max-width: min(90vw, 430px);
     padding: 12px 18px;
 
-    border: 1px solid var(--border-strong);
-    border-radius: 12px;
+    border: 1px solid var(--border-hover);
+    border-radius: 13px;
 
-    background: #20202a;
+    background: #202330;
     color: white;
 
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-float);
 
     font-size: 12px;
     font-weight: 700;
@@ -1763,7 +1732,7 @@ header.topbar,
 }
 
 /* =========================================================
-   24. MOBILE NAVIGATION
+   25. MOBILE NAVIGATION
 ========================================================= */
 
 .mobile-nav,
@@ -1773,7 +1742,7 @@ header.topbar,
 }
 
 /* =========================================================
-   25. TABLET RESPONSIVENESS
+   26. TABLET
 ========================================================= */
 
 @media (max-width: 1050px) {
@@ -1785,7 +1754,7 @@ header.topbar,
     .main-content,
     .main,
     .content {
-        padding: 25px 22px 60px;
+        padding: 24px 21px 60px;
     }
 
     .topbar,
@@ -1810,7 +1779,7 @@ header.topbar,
 }
 
 /* =========================================================
-   26. MOBILE RESPONSIVENESS
+   27. MOBILE
 ========================================================= */
 
 @media (max-width: 700px) {
@@ -1825,14 +1794,14 @@ header.topbar,
     header.topbar,
     .site-header {
         height: var(--header-height);
-        padding: 0 11px;
-        gap: 8px;
+        padding: 0 10px;
+        gap: 7px;
     }
 
     .topbar-left,
     .topbar-center,
     .topbar-right {
-        gap: 7px;
+        gap: 6px;
     }
 
     .logo,
@@ -1856,13 +1825,13 @@ header.topbar,
     .search-box,
     .search-container,
     .search-wrap {
-        width: 39px;
-        height: 39px;
+        width: 38px;
+        height: 38px;
         padding: 0;
         justify-content: center;
 
-        border-color: var(--border);
         background: transparent;
+        border-color: var(--border);
     }
 
     .search-box input,
@@ -1874,25 +1843,25 @@ header.topbar,
     .create-btn,
     .upload-btn,
     .topbar .btn {
-        min-height: 37px;
-        padding: 0 11px;
+        min-height: 36px;
+        padding: 0 10px;
         font-size: 11px;
     }
 
     .icon-btn,
     .menu-toggle,
     .menu-btn {
-        width: 37px;
-        height: 37px;
+        width: 36px;
+        height: 36px;
     }
 
-    /* Mobile app shell */
+    /* Layout */
 
     .shell {
         display: block;
     }
 
-    /* Sidebar becomes a slide-out drawer */
+    /* Sidebar becomes a drawer */
 
     .sidebar,
     .left-sidebar,
@@ -1907,14 +1876,14 @@ header.topbar,
         height: auto;
         min-height: 0;
 
-        padding: 21px 14px 25px;
+        padding: 20px 14px 25px;
 
         background: var(--sidebar-bg);
-        border-right: 1px solid var(--border-strong);
+        border-right: 1px solid var(--border-hover);
         box-shadow: 18px 0 45px rgba(0, 0, 0, 0.4);
 
         transform: translateX(-105%);
-        transition: transform 0.3s ease;
+        transition: transform 280ms ease;
     }
 
     .sidebar.open,
@@ -1926,13 +1895,13 @@ header.topbar,
         transform: translateX(0);
     }
 
-    /* Main content */
+    /* Main area */
 
     .main-content,
     .main,
     .content {
         width: 100%;
-        padding: 22px 13px 100px;
+        padding: 21px 12px 100px;
     }
 
     .feed-header,
@@ -1951,7 +1920,7 @@ header.topbar,
     .feed-tabs,
     .category-tabs,
     .filter-tabs {
-        margin-bottom: 18px;
+        margin-bottom: 17px;
         gap: 5px;
     }
 
@@ -1962,27 +1931,27 @@ header.topbar,
         font-size: 11px;
     }
 
-    /* Keep videos in a single vertical column */
+    /* Vertical video feed */
 
     #feed,
     .video-feed,
     .feed-grid {
         width: 100%;
         max-width: 100%;
-        gap: 19px;
+        gap: 18px;
         padding: 3px 0 35px;
     }
 
     .video-card,
     .video-item,
     .feed-card {
-        grid-template-columns: minmax(0, 1fr) 47px;
+        grid-template-columns: minmax(0, 1fr) 46px;
         column-gap: 7px;
 
         width: 100%;
         padding: 8px;
 
-        border-radius: 14px;
+        border-radius: 15px;
     }
 
     .video-card video,
@@ -1996,7 +1965,7 @@ header.topbar,
     .video-card .thumbnail {
         max-height: 70vh;
         aspect-ratio: 9 / 14;
-        border-radius: 10px;
+        border-radius: 11px;
     }
 
     /* Actions */
@@ -2012,8 +1981,8 @@ header.topbar,
     .video-action-bar button,
     .action-bar button,
     .video-actions a {
-        width: 42px;
-        min-height: 41px;
+        width: 41px;
+        min-height: 40px;
         padding: 4px 1px;
         font-size: 9px;
     }
@@ -2029,7 +1998,7 @@ header.topbar,
         font-size: 20px;
     }
 
-    /* Video details */
+    /* Details */
 
     .video-info,
     .video-details,
@@ -2052,12 +2021,12 @@ header.topbar,
     .video-creator img,
     .creator-row img,
     .video-author img {
-        width: 30px;
-        height: 30px;
-        flex-basis: 30px;
+        width: 31px;
+        height: 31px;
+        flex-basis: 31px;
     }
 
-    /* Fixed mobile navigation */
+    /* Bottom navigation */
 
     .mobile-nav,
     .bottom-nav,
@@ -2074,7 +2043,7 @@ header.topbar,
         justify-content: space-around;
         gap: 3px;
 
-        background: rgba(12, 12, 18, 0.97);
+        background: rgba(12, 13, 19, 0.97);
         border-top: 1px solid var(--border);
 
         backdrop-filter: blur(18px);
@@ -2099,7 +2068,7 @@ header.topbar,
         gap: 3px;
 
         border: 0;
-        border-radius: 9px;
+        border-radius: 10px;
 
         background: transparent;
         color: var(--muted);
@@ -2132,11 +2101,11 @@ header.topbar,
         color: var(--pink);
     }
 
-    /* Scroll controls stay above bottom navigation */
+    /* Floating scroll controls */
 
     .scroll-controls,
     .feed-scroll-controls {
-        right: 11px;
+        right: 10px;
         bottom: calc(77px + env(safe-area-inset-bottom));
         gap: 8px;
     }
@@ -2147,11 +2116,11 @@ header.topbar,
     .scroll-bottom {
         width: 40px;
         height: 40px;
-        border-radius: 12px;
+        border-radius: 13px;
         font-size: 20px;
     }
 
-    /* Viewer */
+    /* Fullscreen viewer */
 
     .fullscreen-viewer,
     .video-viewer,
@@ -2205,7 +2174,7 @@ header.topbar,
         left: 9px;
     }
 
-    /* Mobile modal */
+    /* Modals */
 
     .modal,
     .modal-overlay,
@@ -2219,7 +2188,7 @@ header.topbar,
     .dialog {
         width: 100%;
         max-height: 89vh;
-        border-radius: 21px 21px 0 0;
+        border-radius: 22px 22px 0 0;
     }
 
     .modal-header,
@@ -2246,16 +2215,16 @@ header.topbar,
 }
 
 /* =========================================================
-   27. EXTRA SMALL PHONES
+   28. EXTRA SMALL PHONES
 ========================================================= */
 
 @media (max-width: 380px) {
     .topbar,
     header.topbar,
     .site-header {
-        padding-right: 8px;
-        padding-left: 8px;
-        gap: 5px;
+        padding-right: 7px;
+        padding-left: 7px;
+        gap: 4px;
     }
 
     .logo span,
@@ -2273,14 +2242,14 @@ header.topbar,
     .main-content,
     .main,
     .content {
-        padding-right: 9px;
-        padding-left: 9px;
+        padding-right: 8px;
+        padding-left: 8px;
     }
 
     .video-card,
     .video-item,
     .feed-card {
-        grid-template-columns: minmax(0, 1fr) 43px;
+        grid-template-columns: minmax(0, 1fr) 42px;
         gap: 5px;
         padding: 6px;
     }
@@ -2289,7 +2258,7 @@ header.topbar,
     .video-action-bar button,
     .action-bar button,
     .video-actions a {
-        width: 39px;
+        width: 38px;
         font-size: 8px;
     }
 
@@ -2300,7 +2269,7 @@ header.topbar,
 }
 
 /* =========================================================
-   28. REDUCED MOTION ACCESSIBILITY
+   29. REDUCED MOTION
 ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
