@@ -7,59 +7,267 @@
 
     <meta name="theme-color" content="#08090d">
     <meta name="description" content="Discover, watch, share, and create short videos on V-Tik.">
-    <meta name="keywords" content="V-Tik, short videos, video sharing, trending videos, creators">
     <meta name="author" content="V-Tik">
 
     <title>V-Tik — Discover, Watch & Share Videos</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    >
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="style.css">
 
     <style>
-        /* Modal visibility */
-        #createModal,
-        #commentsModal,
-        #videoViewer {
-            display: none;
+        :root {
+            color-scheme: dark;
+            --bg: #08090d;
+            --panel: #111219;
+            --panel-hover: #20212b;
+            --text: #f8f8fb;
+            --muted: #a4a6b4;
+            --pink: #fe2c55;
+            --cyan: #25f4ee;
+            --border: rgba(255,255,255,.09);
         }
 
-        #createModal.active,
-        #commentsModal.active,
-        #videoViewer.active {
-            display: flex;
+        * {
+            box-sizing: border-box;
         }
 
-        body.modal-open {
-            overflow: hidden;
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        button, a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
         }
 
         [hidden] {
             display: none !important;
         }
 
-        /* Application layout */
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        /* Header */
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 12px 5%;
+            background: rgba(8,9,13,.94);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(18px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 23px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .brand-v {
+            display: grid;
+            place-items: center;
+            width: 35px;
+            height: 35px;
+            background: var(--pink);
+            border-radius: 11px;
+            color: white;
+        }
+
+        .brand-tik {
+            letter-spacing: 1px;
+        }
+
+        .search {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: min(440px, 42vw);
+            padding: 0 14px;
+            min-height: 43px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: #171820;
+        }
+
+        .search input {
+            min-width: 0;
+            width: 100%;
+            border: 0;
+            outline: 0;
+            color: white;
+            background: transparent;
+        }
+
+        .search input::placeholder {
+            color: var(--muted);
+        }
+
+        .clear-search {
+            border: 0;
+            color: white;
+            background: transparent;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .create-btn, .round-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 42px;
+            padding: 0 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: white;
+            background: #171820;
+        }
+
+        .create-btn {
+            background: var(--pink);
+            border-color: var(--pink);
+            font-weight: 700;
+        }
+
+        .round-btn {
+            width: 42px;
+            padding: 0;
+            font-size: 19px;
+        }
+
+        .avatar {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pink), #7c3aed);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .avatar.small {
+            width: 36px;
+            height: 36px;
+        }
+
+        /* Main layout */
+
         .shell {
             display: grid;
-            grid-template-columns: 240px minmax(0, 1fr);
-            align-items: start;
-            gap: 28px;
+            grid-template-columns: 220px minmax(0, 1fr);
+            gap: 30px;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 28px 4%;
         }
 
         .sidebar {
-            min-width: 0;
+            position: sticky;
+            top: 100px;
+            align-self: start;
         }
+
+        .nav-group {
+            display: grid;
+            gap: 7px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            min-height: 47px;
+            padding: 0 15px;
+            border: 0;
+            border-radius: 12px;
+            color: #c5c6d0;
+            background: transparent;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .nav-item > span:first-child {
+            width: 23px;
+            font-size: 21px;
+            text-align: center;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: white;
+            background: #20212b;
+        }
+
+        .nav-item.active > span:first-child {
+            color: var(--pink);
+        }
+
+        .side-title {
+            margin: 30px 15px 12px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .side-bottom {
+            margin: 35px 15px 0;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 2;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px 12px;
+        }
+
+        .copyright {
+            margin-top: 15px;
+        }
+
+        /* Feed */
 
         .main-content {
             min-width: 0;
-            position: relative;
-            padding-bottom: 50px;
+            padding-bottom: 70px;
         }
 
         .feed-heading {
@@ -68,23 +276,21 @@
 
         .feed-heading h1 {
             margin: 0 0 6px;
-            font-size: clamp(24px, 3vw, 32px);
+            font-size: clamp(25px, 3vw, 34px);
             font-weight: 800;
         }
 
         .feed-heading p {
             margin: 0;
-            opacity: 0.7;
+            color: var(--muted);
             font-size: 14px;
         }
 
-        /* Video list: no feed section */
         .video-list {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 24px;
-            min-width: 0;
         }
 
         .video-card {
@@ -92,27 +298,52 @@
             grid-template-columns: minmax(0, 1fr) 54px;
             align-items: end;
             gap: 14px;
-            width: min(100%, 680px);
-            margin: 0 auto;
+            width: min(100%, 700px);
             padding: 14px;
-            border: 1px solid rgba(255,255,255,.09);
+            border: 1px solid var(--border);
             border-radius: 22px;
-            background: #111219;
+            background: var(--panel);
             overflow: hidden;
+            scroll-margin-top: 95px;
         }
 
         .video-card-main {
             min-width: 0;
         }
 
+        .video-stage {
+            position: relative;
+            min-width: 0;
+        }
+
         .feed-video {
             display: block;
             width: 100%;
-            max-height: 76vh;
+            max-height: 72vh;
             aspect-ratio: 9 / 16;
             object-fit: contain;
-            background: #050505;
             border-radius: 16px;
+            background: #030303;
+        }
+
+        .video-play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            display: none;
+            place-items: center;
+            width: 58px;
+            height: 58px;
+            transform: translate(-50%, -50%);
+            border: 1px solid #ffffff55;
+            border-radius: 50%;
+            color: white;
+            background: #0009;
+            font-size: 23px;
+        }
+
+        .video-card.is-paused .video-play-overlay {
+            display: grid;
         }
 
         .video-info {
@@ -133,10 +364,9 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            color: #fff;
+            background: linear-gradient(135deg, var(--pink), #7c3aed);
             font-size: 13px;
             font-weight: 800;
-            background: linear-gradient(135deg, #fe2c55, #7c3aed);
         }
 
         .creator-meta {
@@ -146,19 +376,20 @@
         .creator-meta strong,
         .creator-meta span {
             display: block;
+            overflow-wrap: anywhere;
         }
 
         .creator-meta span {
             margin-top: 3px;
+            color: var(--muted);
             font-size: 12px;
-            opacity: .65;
         }
 
         .video-caption {
             margin: 0;
+            font-size: 14px;
             line-height: 1.6;
             overflow-wrap: anywhere;
-            font-size: 14px;
         }
 
         .video-actions {
@@ -176,10 +407,9 @@
             gap: 5px;
             padding: 0;
             border: 0;
-            color: #fff;
+            color: white;
             background: transparent;
-            font: inherit;
-            cursor: pointer;
+            font-size: 11px;
         }
 
         .video-actions button span {
@@ -187,32 +417,46 @@
             place-items: center;
             width: 44px;
             height: 44px;
-            border: 1px solid rgba(255,255,255,.1);
+            border: 1px solid var(--border);
             border-radius: 50%;
             background: #22232c;
             font-size: 19px;
-            transition: background .2s ease, color .2s ease;
-        }
-
-        .video-actions button small {
-            font-size: 11px;
-            opacity: .8;
+            transition: .2s ease;
         }
 
         .video-actions button:hover span {
-            color: #25f4ee;
+            color: var(--cyan);
             background: #2b2c36;
         }
 
-        .video-actions .like-action:hover span {
-            color: #fe2c55;
+        .video-actions .like-action:hover span,
+        .video-actions .like-action.active span {
+            color: var(--pink);
         }
 
-        /* Scroll buttons */
+        .follow-btn {
+            margin-left: auto;
+            padding: 7px 10px;
+            border: 0;
+            border-radius: 9px;
+            color: white;
+            background: var(--pink);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .feed-empty {
+            padding: 35px 20px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        /* Scroll controls */
+
         .scroll-controls {
             position: fixed;
-            right: 24px;
-            bottom: 28px;
+            right: 22px;
+            bottom: 25px;
             z-index: 50;
             display: flex;
             flex-direction: column;
@@ -224,65 +468,369 @@
             place-items: center;
             width: 44px;
             height: 44px;
-            border: 1px solid rgba(255,255,255,.12);
+            border: 1px solid var(--border);
             border-radius: 50%;
-            color: #fff;
-            background: #181a22;
+            color: white;
+            background: #20212b;
             font-size: 22px;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0,0,0,.25);
-            transition: transform .2s ease, background .2s ease;
+            box-shadow: 0 6px 20px #0005;
         }
 
         .scroll-controls button:hover {
-            background: #fe2c55;
-            transform: translateY(-2px);
+            background: var(--pink);
         }
 
-        .empty-feed {
+        /* Modals */
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
             display: none;
-            padding: 40px 20px;
-            text-align: center;
-            opacity: .7;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        /* Responsive layout */
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: #000b;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-box {
+            position: relative;
+            z-index: 1;
+            width: min(100%, 480px);
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 26px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: #15161e;
+            box-shadow: 0 20px 80px #0008;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2,
+        .create-box h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .close,
+        .viewer-close {
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            color: white;
+            background: #252631;
+        }
+
+        .create-box > .close {
+            float: right;
+        }
+
+        .upload-zone {
+            clear: both;
+            padding: 30px 15px;
+            border: 1px dashed #555766;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .upload-icon-wrapper {
+            margin-bottom: 15px;
+            color: var(--pink);
+            font-size: 30px;
+        }
+
+        .upload-zone p {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .upload-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 11px 17px;
+            border-radius: 10px;
+            color: white;
+            background: var(--pink);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .preview-container {
+            margin-top: 18px;
+        }
+
+        .upload-preview {
+            display: block;
+            width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            background: black;
+        }
+
+        .file-name-muted {
+            color: var(--muted);
+            font-size: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        .caption-wrapper {
+            margin-top: 18px;
+        }
+
+        .caption-input,
+        .comment-form input {
+            width: 100%;
+            min-height: 44px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            outline: 0;
+            color: white;
+            background: #20212b;
+        }
+
+        .caption-input:focus,
+        .comment-form input:focus {
+            border-color: var(--pink);
+        }
+
+        .post-video-btn {
+            width: 100%;
+            min-height: 45px;
+            margin-top: 16px;
+            border: 0;
+            border-radius: 10px;
+            color: white;
+            background: var(--pink);
+            font-weight: 800;
+        }
+
+        .post-video-btn:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-height: 80px;
+            max-height: 45vh;
+            overflow-y: auto;
+        }
+
+        .comment-item {
+            padding: 12px;
+            border-radius: 12px;
+            background: #20212b;
+        }
+
+        .comment-item strong {
+            font-size: 12px;
+        }
+
+        .comment-item p {
+            margin: 6px 0 0;
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .comment-form input {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .comment-form button {
+            padding: 0 16px;
+            border: 0;
+            border-radius: 10px;
+            color: white;
+            background: var(--pink);
+            font-weight: 700;
+        }
+
+        .comment-form button:disabled {
+            opacity: .4;
+        }
+
+        /* Viewer */
+
+        .viewer {
+            position: fixed;
+            inset: 0;
+            z-index: 1100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #000f;
+        }
+
+        .viewer.active {
+            display: flex;
+        }
+
+        .viewer video {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+            max-height: 90vh;
+            background: black;
+        }
+
+        .viewer-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            z-index: 2;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 28px;
+            z-index: 2000;
+            max-width: calc(100% - 30px);
+            padding: 12px 18px;
+            transform: translateX(-50%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: white;
+            background: #242530;
+            box-shadow: 0 8px 30px #0006;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Mobile navigation */
+
+        .mobile-nav {
+            display: none;
+        }
+
         @media (max-width: 900px) {
             .shell {
-                grid-template-columns: 190px minmax(0, 1fr);
+                grid-template-columns: 180px minmax(0, 1fr);
                 gap: 18px;
+            }
+
+            .topbar {
+                padding-inline: 3%;
             }
         }
 
         @media (max-width: 700px) {
+            .topbar {
+                min-height: 65px;
+                gap: 10px;
+                padding: 10px 14px;
+            }
+
+            .brand {
+                font-size: 19px;
+            }
+
+            .brand-v {
+                width: 31px;
+                height: 31px;
+            }
+
+            .search {
+                flex: 1;
+                width: auto;
+                min-width: 0;
+                padding-inline: 9px;
+            }
+
+            .search input {
+                font-size: 12px;
+            }
+
+            .topbar-actions {
+                gap: 7px;
+            }
+
+            .create-btn {
+                width: 38px;
+                min-height: 38px;
+                padding: 0;
+            }
+
+            .create-btn span {
+                display: none;
+            }
+
+            .round-btn,
+            .profile-link {
+                display: none;
+            }
+
             .shell {
                 display: block;
-                padding-bottom: 90px;
+                padding: 20px 10px 95px;
             }
 
             .sidebar {
                 display: none;
             }
 
-            .main-content {
-                width: 100%;
+            .feed-heading {
+                margin: 0 4px 18px;
+            }
+
+            .feed-heading h1 {
+                font-size: 25px;
             }
 
             .video-list {
-                gap: 18px;
+                gap: 16px;
             }
 
             .video-card {
-                width: 100%;
-                grid-template-columns: minmax(0, 1fr) 44px;
+                grid-template-columns: minmax(0, 1fr) 42px;
                 gap: 8px;
-                padding: 9px;
-                border-radius: 17px;
+                width: 100%;
+                padding: 8px;
+                border-radius: 16px;
+                scroll-margin-top: 75px;
             }
 
             .feed-video {
-                max-height: 68vh;
-                border-radius: 12px;
+                max-height: 65vh;
+                border-radius: 11px;
             }
 
             .video-actions {
@@ -290,180 +838,178 @@
             }
 
             .video-actions button span {
-                width: 36px;
-                height: 36px;
+                width: 35px;
+                height: 35px;
                 font-size: 16px;
             }
 
+            .video-actions button {
+                font-size: 10px;
+            }
+
+            .creator-avatar {
+                width: 35px;
+                height: 35px;
+                flex-basis: 35px;
+            }
+
+            .video-caption {
+                font-size: 13px;
+            }
+
             .scroll-controls {
-                right: 12px;
-                bottom: 85px;
+                right: 10px;
+                bottom: 78px;
             }
 
             .scroll-controls button {
                 width: 38px;
                 height: 38px;
             }
+
+            .mobile-nav {
+                position: fixed;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                z-index: 200;
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+                min-height: 65px;
+                padding: 6px 8px env(safe-area-inset-bottom);
+                border-top: 1px solid var(--border);
+                background: #0e0f15f5;
+                backdrop-filter: blur(18px);
+            }
+
+            .mobile-nav button,
+            .mobile-profile-link {
+                display: flex;
+                flex: 1;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                min-width: 0;
+                border: 0;
+                color: var(--muted);
+                background: transparent;
+                font-size: 10px;
+            }
+
+            .mobile-nav button > span:first-child {
+                font-size: 20px;
+            }
+
+            .mobile-nav button.active {
+                color: white;
+            }
+
+            .mobile-nav button.active > span:first-child {
+                color: var(--pink);
+            }
+
+            .mobile-nav .mobile-create > span {
+                display: grid;
+                place-items: center;
+                width: 38px;
+                height: 32px;
+                border-radius: 10px;
+                color: white;
+                background: var(--pink);
+                font-size: 25px;
+            }
+
+            .mobile-profile-link .avatar {
+                width: 25px;
+                height: 25px;
+                font-size: 9px;
+            }
+
+            .modal {
+                padding: 12px;
+            }
+
+            .modal-box {
+                padding: 20px;
+            }
         }
 
-        @media (max-width: 380px) {
-            .video-card {
-                gap: 5px;
-                padding: 7px;
-            }
-
-            .video-actions button span {
-                width: 32px;
-                height: 32px;
-            }
-
-            .video-actions button small {
-                font-size: 10px;
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                transition-duration: .01ms !important;
             }
         }
     </style>
 
-    <script src="app.js" defer></script>
+    <script src="./app.js" defer></script>
 </head>
 
 <body>
-
-    <!-- TOP NAVIGATION -->
     <header class="topbar">
-        <a href="index.html" class="brand" aria-label="V-Tik home">
+        <a href="./index.html" class="brand" aria-label="V-Tik home">
             <span class="brand-v">V</span>
             <span class="brand-tik">TIK</span>
         </a>
 
         <div class="search">
-            <span class="search-icon" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.3-4.3"></path>
-                </svg>
-            </span>
-
-            <input
-                id="searchInput"
-                type="search"
-                placeholder="Search accounts, videos..."
-                autocomplete="off"
-                aria-label="Search videos and accounts"
-            >
-
-            <button
-                id="clearSearch"
-                class="clear-search"
-                type="button"
-                hidden
-                aria-label="Clear search"
-            >✕</button>
+            <span aria-hidden="true">⌕</span>
+            <input id="searchInput" type="search"
+                   placeholder="Search videos and creators..."
+                   autocomplete="off" aria-label="Search videos">
+            <button id="clearSearch" class="clear-search"
+                    type="button" hidden aria-label="Clear search">✕</button>
         </div>
 
         <div class="topbar-actions">
-            <button
-                id="createTop"
-                class="create-btn"
-                type="button"
-                aria-haspopup="dialog"
-                aria-controls="createModal"
-            >
-                <svg width="18" height="18" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round"
-                     aria-hidden="true">
-                    <path d="M5 12h14"></path>
-                    <path d="M12 5v14"></path>
-                </svg>
+            <button id="createTop" class="create-btn" type="button"
+                    aria-haspopup="dialog" aria-controls="createModal">
+                <span aria-hidden="true">＋</span>
                 <span>Create</span>
             </button>
 
-            <button
-                class="round-btn"
-                id="notificationBtn"
-                type="button"
-                aria-label="Notifications"
-                title="Notifications"
-            >
-                <svg width="20" height="20" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round"
-                     aria-hidden="true">
-                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
-                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
-                </svg>
-                <span class="badge" aria-hidden="true"></span>
-            </button>
+            <button class="round-btn" id="notificationBtn" type="button"
+                    aria-label="Notifications">♧</button>
 
-            <a href="log.html" class="profile-link" aria-label="User profile">
+            <a href="log.html" class="profile-link" aria-label="Profile">
                 <span class="avatar small">TR</span>
             </a>
         </div>
     </header>
 
-
-    <!-- APPLICATION SHELL -->
     <div class="shell">
-
-        <!-- LEFT SIDEBAR -->
         <aside class="sidebar">
             <nav class="nav-group" aria-label="Main navigation">
-
-                <button class="nav-item active" type="button"
-                        data-section="home" aria-current="page">
-                    <span aria-hidden="true">⌂</span>
-                    <span>Home</span>
+                <button class="nav-item active" type="button" data-section="home">
+                    <span aria-hidden="true">⌂</span><span>Home</span>
                 </button>
-
                 <button class="nav-item" type="button" data-section="discover">
-                    <span aria-hidden="true">⌕</span>
-                    <span>Discover</span>
+                    <span aria-hidden="true">⌕</span><span>Discover</span>
                 </button>
-
                 <button class="nav-item" type="button" data-section="following">
-                    <span aria-hidden="true">♧</span>
-                    <span>Following</span>
+                    <span aria-hidden="true">♧</span><span>Following</span>
                 </button>
-
                 <button class="nav-item" type="button" data-section="liked">
-                    <span aria-hidden="true">♡</span>
-                    <span>Liked</span>
+                    <span aria-hidden="true">♡</span><span>Liked</span>
                 </button>
-
                 <button class="nav-item" type="button" data-section="saved">
-                    <span aria-hidden="true">▤</span>
-                    <span>Saved</span>
-                </button>
-
-                <button class="nav-item" type="button" data-section="messages">
-                    <span aria-hidden="true">▱</span>
-                    <span>Messages</span>
+                    <span aria-hidden="true">▤</span><span>Saved</span>
                 </button>
             </nav>
 
             <div class="side-title">Explore</div>
 
-            <nav class="nav-group" aria-label="Explore categories">
+            <nav class="nav-group" aria-label="Explore">
                 <button class="nav-item" type="button" data-section="trending">
-                    <span class="emoji-icon" aria-hidden="true">🔥</span>
-                    <span>Trending</span>
+                    <span>🔥</span><span>Trending</span>
                 </button>
-
                 <button class="nav-item" type="button" data-section="music">
-                    <span class="emoji-icon" aria-hidden="true">♫</span>
-                    <span>Music</span>
+                    <span>♫</span><span>Music</span>
                 </button>
-
                 <button class="nav-item" type="button" data-section="gaming">
-                    <span class="emoji-icon" aria-hidden="true">🎮</span>
-                    <span>Gaming</span>
-                </button>
-
-                <button class="nav-item" type="button" data-section="challenges">
-                    <span class="emoji-icon" aria-hidden="true">🏆</span>
-                    <span>Challenges</span>
+                    <span>🎮</span><span>Gaming</span>
                 </button>
             </nav>
 
@@ -473,305 +1019,91 @@
                     <a href="#privacy">Privacy</a>
                     <a href="#terms">Terms</a>
                 </div>
-
                 <p class="copyright">© 2026 V-Tik</p>
             </div>
         </aside>
 
-
-        <!-- MAIN CONTENT: NO FEED SECTION -->
         <main class="main-content" id="mainContent">
-
             <div class="feed-heading">
-                <h1>For You</h1>
+                <h1 id="feedTitle">For You</h1>
                 <p>Discover videos picked for your next scroll.</p>
             </div>
 
-            <!-- Videos are placed directly in this div. -->
-            <div class="video-list" id="videoList">
+            <!-- app.js generates the cards in this container -->
+            <div class="video-list" id="videoList"></div>
 
-                <!-- VIDEO 1 -->
-                <article class="video-card" data-video-card>
-                    <div class="video-card-main">
-                        <video
-                            class="feed-video"
-                            controls
-                            playsinline
-                            preload="metadata"
-                            aria-label="Formula One donut video"
-                        >
-                            <source src="./Ranking Best F1 Donut's!.mp4" type="video/mp4">
-                            Your browser does not support HTML video.
-                        </video>
-
-                        <div class="video-info">
-                            <div class="video-details">
-                                <div class="creator-avatar" aria-hidden="true">VT</div>
-                                <div class="creator-meta">
-                                    <strong>@vtikcreator</strong>
-                                    <span>V-Tik creator</span>
-                                </div>
-                            </div>
-
-                            <p class="video-caption">
-                                Formula One donut action 🏎️ #F1 #motorsport
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="video-actions" aria-label="Video actions">
-                        <button class="like-action" type="button" aria-label="Like video">
-                            <span aria-hidden="true">♡</span>
-                            <small>Like</small>
-                        </button>
-
-                        <button type="button" aria-label="Open comments">
-                            <span aria-hidden="true">☰</span>
-                            <small>Comment</small>
-                        </button>
-
-                        <button type="button" aria-label="Save video">
-                            <span aria-hidden="true">▤</span>
-                            <small>Save</small>
-                        </button>
-
-                        <button type="button" aria-label="Share video">
-                            <span aria-hidden="true">↗</span>
-                            <small>Share</small>
-                        </button>
-                    </div>
-                </article>
-
-
-                <!-- VIDEO 2 -->
-                <article class="video-card" data-video-card>
-                    <div class="video-card-main">
-                        <video
-                            class="feed-video"
-                            controls
-                            playsinline
-                            preload="metadata"
-                            aria-label="Second V-Tik video"
-                        >
-                            <source src="./video2.mp4" type="video/mp4">
-                            Your browser does not support HTML video.
-                        </video>
-
-                        <div class="video-info">
-                            <div class="video-details">
-                                <div class="creator-avatar" aria-hidden="true">VT</div>
-                                <div class="creator-meta">
-                                    <strong>@vtikcreator</strong>
-                                    <span>V-Tik creator</span>
-                                </div>
-                            </div>
-
-                            <p class="video-caption">
-                                Watch this moment! ✨ #V-Tik
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="video-actions" aria-label="Video actions">
-                        <button class="like-action" type="button" aria-label="Like video">
-                            <span aria-hidden="true">♡</span>
-                            <small>Like</small>
-                        </button>
-
-                        <button type="button" aria-label="Open comments">
-                            <span aria-hidden="true">☰</span>
-                            <small>Comment</small>
-                        </button>
-
-                        <button type="button" aria-label="Save video">
-                            <span aria-hidden="true">▤</span>
-                            <small>Save</small>
-                        </button>
-
-                        <button type="button" aria-label="Share video">
-                            <span aria-hidden="true">↗</span>
-                            <small>Share</small>
-                        </button>
-                    </div>
-                </article>
-
-
-                <!-- VIDEO 3 -->
-                <article class="video-card" data-video-card>
-                    <div class="video-card-main">
-                        <video
-                            class="feed-video"
-                            controls
-                            playsinline
-                            preload="metadata"
-                            aria-label="Third V-Tik video"
-                        >
-                            <source src="./videoplayback.mp4" type="video/mp4">
-                            Your browser does not support HTML video.
-                        </video>
-
-                        <div class="video-info">
-                            <div class="video-details">
-                                <div class="creator-avatar" aria-hidden="true">VT</div>
-                                <div class="creator-meta">
-                                    <strong>@vtikcreator</strong>
-                                    <span>V-Tik creator</span>
-                                </div>
-                            </div>
-
-                            <p class="video-caption">
-                                Another video to explore 🎬 #shorts
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="video-actions" aria-label="Video actions">
-                        <button class="like-action" type="button" aria-label="Like video">
-                            <span aria-hidden="true">♡</span>
-                            <small>Like</small>
-                        </button>
-
-                        <button type="button" aria-label="Open comments">
-                            <span aria-hidden="true">☰</span>
-                            <small>Comment</small>
-                        </button>
-
-                        <button type="button" aria-label="Save video">
-                            <span aria-hidden="true">▤</span>
-                            <small>Save</small>
-                        </button>
-
-                        <button type="button" aria-label="Share video">
-                            <span aria-hidden="true">↗</span>
-                            <small>Share</small>
-                        </button>
-                    </div>
-                </article>
-
-            </div>
-
-            <p class="empty-feed" id="emptyFeed" role="status">
+            <p class="feed-empty" id="emptyFeed" hidden role="status">
                 No videos found. Try another search.
             </p>
-
         </main>
     </div>
 
-
-    <!-- SCROLL CONTROLS -->
-    <div class="scroll-controls" aria-label="Video scrolling controls">
-        <button id="scrollUp" type="button"
-                aria-label="Previous video" title="Previous video">↑</button>
-
-        <button id="scrollDown" type="button"
-                aria-label="Next video" title="Next video">↓</button>
+    <div class="scroll-controls" aria-label="Video navigation">
+        <button id="scrollUp" type="button" aria-label="Previous video">↑</button>
+        <button id="scrollDown" type="button" aria-label="Next video">↓</button>
     </div>
 
-
-    <!-- MOBILE NAVIGATION -->
     <nav class="mobile-nav" aria-label="Mobile navigation">
-        <button class="active" type="button" data-section="home"
-                aria-label="Home" aria-current="page">
-            <span aria-hidden="true">⌂</span>
-            <span>Home</span>
+        <button class="active" type="button" data-section="home">
+            <span>⌂</span><span>Home</span>
         </button>
-
-        <button type="button" data-section="discover" aria-label="Discover">
-            <span aria-hidden="true">⌕</span>
-            <span>Discover</span>
+        <button type="button" data-section="discover">
+            <span>⌕</span><span>Discover</span>
         </button>
-
         <button class="mobile-create" id="mobileCreate" type="button"
-                aria-label="Create a video" aria-haspopup="dialog"
-                aria-controls="createModal">
-            <span aria-hidden="true">＋</span>
+                aria-label="Create a video" aria-controls="createModal">
+            <span>＋</span>
         </button>
-
-        <button type="button" data-section="messages" aria-label="Inbox">
-            <span aria-hidden="true">▱</span>
-            <span>Inbox</span>
+        <button type="button" data-section="following">
+            <span>♧</span><span>Following</span>
         </button>
-
-        <a href="log.html" class="mobile-profile-link" aria-label="Profile">
-            <span class="avatar micro">TR</span>
-            <span>Profile</span>
+        <a href="log.html" class="mobile-profile-link">
+            <span class="avatar micro">TR</span><span>Profile</span>
         </a>
     </nav>
 
-
-    <!-- COMMENTS MODAL -->
-    <div class="modal" id="commentsModal"
-         role="dialog" aria-modal="true"
+    <!-- Comments dialog -->
+    <div class="modal" id="commentsModal" role="dialog" aria-modal="true"
          aria-labelledby="commentsTitle" aria-hidden="true">
-
-        <div class="modal-backdrop" id="commentsBackdrop"></div>
+        <div class="modal-backdrop" data-close-modal></div>
 
         <div class="modal-box comments-box">
             <div class="modal-header">
                 <h2 id="commentsTitle">Comments</h2>
-
                 <button class="close" id="closeComments"
-                        type="button" aria-label="Close comments">✕</button>
+                        data-close-modal type="button"
+                        aria-label="Close comments">✕</button>
             </div>
 
-            <div class="comments-list" id="comments"></div>
+            <div class="comments-list" id="commentsList"></div>
 
             <form class="comment-form" id="commentForm">
-                <input
-                    id="commentInput"
-                    name="comment"
-                    type="text"
-                    placeholder="Add a comment..."
-                    maxlength="180"
-                    autocomplete="off"
-                    aria-label="Write a comment"
-                    required
-                >
-
-                <button type="submit" id="postCommentBtn" disabled>
-                    Post
-                </button>
+                <input id="commentInput" name="comment" type="text"
+                       placeholder="Add a comment..." maxlength="180"
+                       autocomplete="off" required>
+                <button type="submit" id="postCommentBtn">Post</button>
             </form>
         </div>
     </div>
 
-
-    <!-- CREATE VIDEO MODAL -->
-    <div class="modal" id="createModal"
-         role="dialog" aria-modal="true"
+    <!-- Upload dialog -->
+    <div class="modal" id="createModal" role="dialog" aria-modal="true"
          aria-labelledby="createTitle" aria-hidden="true">
-
-        <div class="modal-backdrop" id="createBackdrop"></div>
+        <div class="modal-backdrop" data-close-modal></div>
 
         <div class="modal-box create-box">
-            <button class="close" id="closeCreate"
+            <button class="close" id="closeCreate" data-close-modal
                     type="button" aria-label="Close upload dialog">✕</button>
 
-            <input
-                id="videoPicker"
-                name="video"
-                type="file"
-                accept="video/*"
-                hidden
-            >
+            <h2 id="createTitle">Create on V-Tik</h2>
+
+            <input id="videoPicker" name="video" type="file"
+                   accept="video/*" hidden>
 
             <div class="upload-zone" id="uploadZone">
-                <div class="upload-icon-wrapper" aria-hidden="true">
-                    <svg width="32" height="32" viewBox="0 0 24 24"
-                         fill="none" stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="17 8 12 3 7 8"></polyline>
-                        <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                </div>
-
-                <h2 id="createTitle">Create on V-Tik</h2>
-                <p>Drag and drop a video file, or browse.</p>
-
-                <label for="videoPicker" class="upload-btn">
-                    <span>Select Video</span>
-                </label>
+                <div class="upload-icon-wrapper" aria-hidden="true">⇧</div>
+                <p>Select a video from your device to upload.</p>
+                <label for="videoPicker" class="upload-btn">Select Video</label>
             </div>
 
             <div class="preview-container" id="previewContainer" hidden>
@@ -781,84 +1113,165 @@
             </div>
 
             <div class="caption-wrapper">
-                <input
-                    id="videoCaption"
-                    class="caption-input"
-                    name="caption"
-                    type="text"
-                    maxlength="180"
-                    placeholder="Write a catchy caption..."
-                    autocomplete="off"
-                    aria-label="Video caption"
-                >
+                <input id="videoCaption" class="caption-input"
+                       name="caption" type="text" maxlength="180"
+                       placeholder="Write a caption...">
             </div>
 
             <button id="postVideo" class="post-video-btn"
-                    type="button" disabled>
-                Post Video
-            </button>
+                    type="button" disabled>Post video</button>
         </div>
     </div>
 
-
-    <!-- FULLSCREEN VIDEO VIEWER -->
+    <!-- Optional full-screen viewer -->
     <div class="viewer" id="videoViewer" aria-hidden="true">
-        <button class="viewer-close" id="viewerClose"
-                type="button" aria-label="Close video viewer">✕</button>
-
+        <button class="viewer-close" id="viewerClose" data-close-modal
+                type="button" aria-label="Close viewer">✕</button>
         <video id="viewerVideo" controls playsinline></video>
     </div>
 
-
-    <!-- TOAST MESSAGE -->
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-
-    <!-- SCROLL CONTROL BEHAVIOUR -->
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const scrollUp = document.getElementById("scrollUp");
-            const scrollDown = document.getElementById("scrollDown");
+        document.addEventListener("DOMContentLoaded", () => {
+            const feed = document.getElementById("videoList");
 
-            function getVideoCards() {
-                return [...document.querySelectorAll("#videoList .video-card")];
-            }
+            function scrollToVideo(direction) {
+                const cards = [...document.querySelectorAll("#videoList .video-card")];
 
-            function scrollToCard(direction) {
-                const cards = getVideoCards();
+                if (!cards.length) return;
 
-                if (!cards.length) {
-                    window.scrollBy({
-                        top: direction * window.innerHeight * 0.8,
-                        behavior: "smooth"
-                    });
-                    return;
-                }
+                const viewportCenter = window.innerHeight / 2;
+                let closestIndex = 0;
+                let closestDistance = Infinity;
 
-                const threshold = window.innerHeight * 0.4;
-                let currentIndex = cards.findIndex(card =>
-                    card.getBoundingClientRect().bottom > threshold
-                );
+                cards.forEach((card, index) => {
+                    const rect = card.getBoundingClientRect();
+                    const center = rect.top + rect.height / 2;
+                    const distance = Math.abs(center - viewportCenter);
 
-                if (currentIndex < 0) {
-                    currentIndex = direction > 0 ? -1 : cards.length;
-                }
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestIndex = index;
+                    }
+                });
 
                 const nextIndex = Math.max(
                     0,
-                    Math.min(cards.length - 1, currentIndex + direction)
+                    Math.min(cards.length - 1, closestIndex + direction)
                 );
 
                 cards[nextIndex].scrollIntoView({
                     behavior: "smooth",
-                    block: "start"
+                    block: "center"
                 });
+
+                setTimeout(() => {
+                    window.VTik?.refreshAutoplay?.();
+                }, 300);
             }
 
-            scrollUp?.addEventListener("click", () => scrollToCard(-1));
-            scrollDown?.addEventListener("click", () => scrollToCard(1));
+            document.getElementById("scrollUp")
+                ?.addEventListener("click", () => scrollToVideo(-1));
+
+            document.getElementById("scrollDown")
+                ?.addEventListener("click", () => scrollToVideo(1));
+
+            document.getElementById("mobileCreate")
+                ?.addEventListener("click", () => {
+                    document.getElementById("createTop")?.click();
+                });
+
+            const picker = document.getElementById("videoPicker");
+            const postButton = document.getElementById("postVideo");
+            const uploadName = document.getElementById("uploadName");
+            const previewContainer = document.getElementById("previewContainer");
+            const preview = document.getElementById("uploadPreview");
+            const uploadZone = document.getElementById("uploadZone");
+            const caption = document.getElementById("videoCaption");
+
+            let previewURL = null;
+
+            picker?.addEventListener("change", () => {
+                const file = picker.files?.[0];
+                if (!file) return;
+
+                if (!file.type.startsWith("video/")) {
+                    alert("Please select a video file.");
+                    picker.value = "";
+                    return;
+                }
+
+                if (previewURL) URL.revokeObjectURL(previewURL);
+                previewURL = URL.createObjectURL(file);
+
+                if (preview) {
+                    preview.src = previewURL;
+                    preview.load();
+                }
+
+                if (uploadName) uploadName.textContent = file.name;
+                if (previewContainer) previewContainer.hidden = false;
+                if (postButton) postButton.disabled = false;
+            });
+
+            uploadZone?.addEventListener("dragover", event => {
+                event.preventDefault();
+                uploadZone.style.borderColor = "#fe2c55";
+            });
+
+            uploadZone?.addEventListener("dragleave", () => {
+                uploadZone.style.borderColor = "";
+            });
+
+            uploadZone?.addEventListener("drop", event => {
+                event.preventDefault();
+                uploadZone.style.borderColor = "";
+
+                const file = event.dataTransfer?.files?.[0];
+                if (!file || !picker) return;
+
+                if (!file.type.startsWith("video/")) {
+                    alert("Please drop a video file.");
+                    return;
+                }
+
+                try {
+                    const transfer = new DataTransfer();
+                    transfer.items.add(file);
+                    picker.files = transfer.files;
+                    picker.dispatchEvent(new Event("change", { bubbles: true }));
+                } catch (error) {
+                    console.warn("Could not attach dropped file.", error);
+                }
+            });
+
+            // Keep the caption value available to the upload handler.
+            caption?.addEventListener("input", () => {
+                caption.dataset.caption = caption.value;
+            });
+
+            // This form submits comments through the V-Tik app handler.
+            document.getElementById("commentInput")?.addEventListener("input", event => {
+                const button = document.getElementById("postCommentBtn");
+                if (button) button.disabled = !event.target.value.trim();
+            });
+
+            // Keep the clear-search control in sync.
+            const search = document.getElementById("searchInput");
+            const clear = document.getElementById("clearSearch");
+
+            search?.addEventListener("input", () => {
+                if (clear) clear.hidden = !search.value;
+            });
+
+            clear?.addEventListener("click", () => {
+                if (!search) return;
+                search.value = "";
+                search.dispatchEvent(new Event("input", { bubbles: true }));
+                search.focus();
+            });
         });
     </script>
-
 </body>
 </html>
