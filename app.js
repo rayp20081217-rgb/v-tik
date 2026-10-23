@@ -8,23 +8,15 @@
 ========================================================= */
 
 (() => {
-    /* -----------------------------------------------------
-       1. SAFE DOM HELPERS
-    ----------------------------------------------------- */
+    /* 1. SAFE DOM HELPERS */
 
     const $ = (selector, parent = document) => {
-        if (!parent || typeof parent.querySelector !== "function") {
-            return null;
-        }
-
+        if (!parent || typeof parent.querySelector !== "function") return null;
         return parent.querySelector(selector);
     };
 
     const $$ = (selector, parent = document) => {
-        if (!parent || typeof parent.querySelectorAll !== "function") {
-            return [];
-        }
-
+        if (!parent || typeof parent.querySelectorAll !== "function") return [];
         return Array.from(parent.querySelectorAll(selector));
     };
 
@@ -44,22 +36,13 @@
 
     const formatCount = (number = 0) => {
         const value = Number(number) || 0;
-
-        if (value >= 1_000_000) {
-            return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-        }
-
-        if (value >= 1_000) {
-            return `${(value / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
-        }
-
+        if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+        if (value >= 1_000) return `${(value / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
         return String(value);
     };
 
     const safeText = (value, fallback = "") =>
-        typeof value === "string" && value.trim()
-            ? value.trim()
-            : fallback;
+        typeof value === "string" && value.trim() ? value.trim() : fallback;
 
     const $on = (element, event, callback, options) => {
         if (element && typeof element.addEventListener === "function") {
@@ -67,11 +50,7 @@
         }
     };
 
-    /* -----------------------------------------------------
-       2. APP ELEMENTS
-
-       Missing optional elements won't crash the app.
-    ----------------------------------------------------- */
+    /* 2. APP ELEMENTS */
 
     const feed = byId("feed") || $(".feed");
     const searchInput = $(".search input, #searchInput, #search");
@@ -89,9 +68,7 @@
         avatar: "😎"
     };
 
-    /* -----------------------------------------------------
-       3. STORAGE
-    ----------------------------------------------------- */
+    /* 3. STORAGE */
 
     const STORAGE_KEY = "vtik_app_state_v1";
     const VIDEO_DB_NAME = "vtik_video_storage";
@@ -107,15 +84,13 @@
             music: "Original sound",
             src: "vtik-demo-1.mp4",
             likes: 128,
-            comments: [
-                {
-                    id: makeId(),
-                    username: "happyviewer",
-                    avatar: "😊",
-                    text: "Welcome to V-Tik! 🔥",
-                    createdAt: Date.now()
-                }
-            ],
+            comments: [{
+                id: makeId(),
+                username: "happyviewer",
+                avatar: "😊",
+                text: "Welcome to V-Tik! 🔥",
+                createdAt: Date.now()
+            }],
             liked: false,
             saved: false,
             following: false,
@@ -209,7 +184,6 @@
 
     function saveState() {
         try {
-            // Video files themselves are stored separately in IndexedDB.
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         } catch (error) {
             console.warn("V-Tik: state could not be saved.", error);
@@ -225,17 +199,11 @@
         return safeText(state.avatar, currentUser.avatar);
     }
 
-    /* -----------------------------------------------------
-       4. VIDEO FILE DATABASE
-
-       Uploaded videos can remain on this device after reload.
-    ----------------------------------------------------- */
+    /* 4. VIDEO FILE DATABASE */
 
     function openVideoDB() {
         if (!("indexedDB" in window)) {
-            return Promise.reject(
-                new Error("IndexedDB is not supported in this browser.")
-            );
+            return Promise.reject(new Error("IndexedDB is not supported in this browser."));
         }
 
         if (dbPromise) return dbPromise;
@@ -245,11 +213,8 @@
 
             request.onupgradeneeded = () => {
                 const db = request.result;
-
                 if (!db.objectStoreNames.contains(VIDEO_STORE_NAME)) {
-                    db.createObjectStore(VIDEO_STORE_NAME, {
-                        keyPath: "id"
-                    });
+                    db.createObjectStore(VIDEO_STORE_NAME, { keyPath: "id" });
                 }
             };
 
@@ -264,10 +229,7 @@
         const db = await openVideoDB();
 
         return new Promise((resolve, reject) => {
-            const transaction = db.transaction(
-                VIDEO_STORE_NAME,
-                "readwrite"
-            );
+            const transaction = db.transaction(VIDEO_STORE_NAME, "readwrite");
 
             transaction.objectStore(VIDEO_STORE_NAME).put({
                 id,
@@ -285,14 +247,8 @@
         const db = await openVideoDB();
 
         return new Promise((resolve, reject) => {
-            const transaction = db.transaction(
-                VIDEO_STORE_NAME,
-                "readonly"
-            );
-
-            const request = transaction
-                .objectStore(VIDEO_STORE_NAME)
-                .get(id);
+            const transaction = db.transaction(VIDEO_STORE_NAME, "readonly");
+            const request = transaction.objectStore(VIDEO_STORE_NAME).get(id);
 
             request.onsuccess = () => {
                 resolve(request.result ? request.result.file : null);
@@ -307,11 +263,7 @@
             const db = await openVideoDB();
 
             await new Promise((resolve, reject) => {
-                const transaction = db.transaction(
-                    VIDEO_STORE_NAME,
-                    "readwrite"
-                );
-
+                const transaction = db.transaction(VIDEO_STORE_NAME, "readwrite");
                 transaction.objectStore(VIDEO_STORE_NAME).delete(id);
                 transaction.oncomplete = resolve;
                 transaction.onerror = () => reject(transaction.error);
@@ -327,10 +279,7 @@
         if (video.uploaded && video.id) {
             try {
                 const file = await getVideoFile(video.id);
-
-                if (file) {
-                    return URL.createObjectURL(file);
-                }
+                if (file) return URL.createObjectURL(file);
             } catch (error) {
                 console.warn("V-Tik: uploaded video unavailable.", error);
             }
@@ -341,9 +290,7 @@
         return video.src || "";
     }
 
-    /* -----------------------------------------------------
-       5. TOAST NOTIFICATIONS
-    ----------------------------------------------------- */
+    /* 5. TOAST NOTIFICATIONS */
 
     function showToast(message) {
         let toast = byId("vtikToast");
@@ -367,9 +314,7 @@
         }, 2600);
     }
 
-    /* -----------------------------------------------------
-       6. VIDEO CARD HTML
-    ----------------------------------------------------- */
+    /* 6. VIDEO CARD HTML */
 
     function videoCardHTML(video) {
         const username = safeText(video.username, "creator");
@@ -379,12 +324,9 @@
         const music = safeText(video.music, "Original sound");
 
         return `
-            <article class="video-card"
-                     data-video-id="${escapeHTML(video.id)}">
-
+            <article class="video-card" data-video-id="${escapeHTML(video.id)}">
                 <div class="video-user">
                     <div class="avatar">${escapeHTML(avatar)}</div>
-
                     <div class="video-user-info">
                         <strong>@${escapeHTML(username)}</strong>
                         <span>${escapeHTML(displayName)}</span>
@@ -404,6 +346,7 @@
                            src=""
                            preload="metadata"
                            playsinline
+                           muted
                            loop
                            controls
                            aria-label="Video by ${escapeHTML(username)}">
@@ -482,9 +425,7 @@
         `;
     }
 
-    /* -----------------------------------------------------
-       7. FEED FILTERING AND RENDERING
-    ----------------------------------------------------- */
+    /* 7. FEED FILTERING AND RENDERING */
 
     function getVisibleVideos() {
         let videos = [...state.videos];
@@ -510,9 +451,7 @@
             });
         }
 
-        return videos.sort(
-            (a, b) => (b.createdAt || 0) - (a.createdAt || 0)
-        );
+        return videos.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     }
 
     function renderEmptyFeed(message) {
@@ -534,9 +473,7 @@
 
     function renderFeed() {
         if (!feed) {
-            console.error(
-                'V-Tik: Could not find the feed element. Add <main id="feed" class="feed"></main> to index.html.'
-            );
+            console.error('V-Tik: Add <main id="feed" class="feed"></main> to index.html.');
             showToast("Feed element is missing. Check index.html.");
             return;
         }
@@ -557,11 +494,20 @@
             return;
         }
 
-        feed.innerHTML = videos.map(videoCardHTML).join("");
+        $$(".feed-video[data-object-url]", feed).forEach((oldVideo) => {
+            const oldUrl = oldVideo.dataset.objectUrl;
+            if (oldUrl) {
+                try {
+                    URL.revokeObjectURL(oldUrl);
+                } catch (_) {}
+            }
+        });
 
+        feed.innerHTML = videos.map(videoCardHTML).join("");
         updateProfileButton();
-        loadFeedVideoSources();
+
         setupVideoPlayback();
+        loadFeedVideoSources();
     }
 
     async function loadFeedVideoSources() {
@@ -570,12 +516,10 @@
         for (const element of videoElements) {
             const videoId = element.dataset.videoId;
             const video = getVideo(videoId);
-
             if (!video) continue;
 
             const source = await resolveVideoSource(video);
 
-            // The card may have been removed while the file was loading.
             if (!element.isConnected) {
                 if (source.startsWith("blob:")) URL.revokeObjectURL(source);
                 continue;
@@ -605,11 +549,31 @@
 
             element.src = source;
             element.dataset.loaded = "true";
+            element.classList.remove("video-source-error");
             element.load();
 
             if (source.startsWith("blob:")) {
                 element.dataset.objectUrl = source;
             }
+
+            const tryPlayWhenReady = () => {
+                if (!element.isConnected || element.paused) {
+                    const rect = element.getBoundingClientRect();
+                    const visible = rect.width > 0 && rect.height > 0 &&
+                        rect.bottom > 0 && rect.top < window.innerHeight;
+
+                    if (visible && element.isConnected) {
+                        element.muted = true;
+                        const playPromise = element.play();
+
+                        if (playPromise && typeof playPromise.catch === "function") {
+                            playPromise.catch(() => {});
+                        }
+                    }
+                }
+            };
+
+            element.addEventListener("loadeddata", tryPlayWhenReady, { once: true });
         }
     }
 
@@ -619,6 +583,17 @@
         if (!("IntersectionObserver" in window)) {
             videos.forEach((video) => {
                 video.muted = true;
+
+                const rect = video.getBoundingClientRect();
+                const visible = rect.width > 0 && rect.height > 0 &&
+                    rect.bottom > 0 && rect.top < window.innerHeight;
+
+                if (visible) {
+                    const playPromise = video.play();
+                    if (playPromise && typeof playPromise.catch === "function") {
+                        playPromise.catch(() => {});
+                    }
+                }
             });
             return;
         }
@@ -627,30 +602,25 @@
             window.vtikVideoObserver.disconnect();
         }
 
-        window.vtikVideoObserver = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    const video = entry.target;
+        window.vtikVideoObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                const video = entry.target;
 
-                    if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-                        videos.forEach((otherVideo) => {
-                            if (otherVideo !== video) otherVideo.pause();
-                        });
+                if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+                    videos.forEach((otherVideo) => {
+                        if (otherVideo !== video) otherVideo.pause();
+                    });
 
-                        const playPromise = video.play();
+                    const playPromise = video.play();
 
-                        if (playPromise && typeof playPromise.catch === "function") {
-                            playPromise.catch(() => {
-                                // Autoplay may be blocked until the user presses play.
-                            });
-                        }
-                    } else {
-                        video.pause();
+                    if (playPromise && typeof playPromise.catch === "function") {
+                        playPromise.catch(() => {});
                     }
-                });
-            },
-            { threshold: [0, 0.6, 1] }
-        );
+                } else {
+                    video.pause();
+                }
+            });
+        }, { threshold: [0, 0.6, 1] });
 
         videos.forEach((video) => {
             video.muted = true;
@@ -658,33 +628,49 @@
         });
     }
 
-    /* -----------------------------------------------------
-       8. PROFILE AVATAR — NULL-SAFE
-    ----------------------------------------------------- */
+    /* Continue with Part 2 below this line. */
+
+    /* 8. PROFILE */
 
     function updateProfileButton() {
+        const username = safeText(state.username, currentUser.username);
         const avatar = getCurrentAvatar();
 
-        if (profileButton) {
-            profileButton.innerHTML = `
-                <span class="avatar small">${escapeHTML(avatar)}</span>
-            `;
-        }
+        [profileButton, mobileProfile].forEach((button) => {
+            if (!button) return;
 
-        if (mobileProfile) {
-            const mobileAvatar = $(".avatar", mobileProfile);
+            const avatarElement = $(".avatar, .profile-avatar", button);
+            const nameElement = $(".username, .profile-name", button);
 
-            if (mobileAvatar) {
-                mobileAvatar.textContent = avatar;
-            } else {
-                mobileProfile.textContent = avatar;
-            }
-        }
+            if (avatarElement) avatarElement.textContent = avatar;
+            if (nameElement) nameElement.textContent = `@${username}`;
+
+            button.setAttribute("aria-label", `Profile: ${username}`);
+        });
     }
 
-    /* -----------------------------------------------------
-       9. LIKES, SAVES AND FOLLOWING
-    ----------------------------------------------------- */
+    function openProfile() {
+        const username = window.prompt(
+            "Enter your username:",
+            state.username || currentUser.username
+        );
+
+        if (username === null) return;
+
+        const cleanUsername = username.trim().replace(/^@/, "");
+
+        if (!cleanUsername) {
+            showToast("Please enter a username.");
+            return;
+        }
+
+        state.username = cleanUsername.slice(0, 30);
+        saveState();
+        updateProfileButton();
+        showToast(`Welcome, @${state.username}!`);
+    }
+
+    /* 9. LIKES, SAVES AND FOLLOWS */
 
     function toggleLike(videoId) {
         const video = getVideo(videoId);
@@ -698,6 +684,8 @@
 
         saveState();
         renderFeed();
+
+        if (video.liked) showToast("You liked this video ❤️");
     }
 
     function toggleSave(videoId) {
@@ -709,7 +697,7 @@
         saveState();
         renderFeed();
 
-        showToast(video.saved ? "Video saved ⭐" : "Removed from saved videos");
+        showToast(video.saved ? "Video saved! ⭐" : "Video removed from Saved.");
     }
 
     function toggleFollow(videoId) {
@@ -718,33 +706,32 @@
 
         video.following = !video.following;
 
+        // Apply the follow choice to videos from the same creator.
+        state.videos.forEach((item) => {
+            if (item.username === video.username) {
+                item.following = video.following;
+            }
+        });
+
         saveState();
         renderFeed();
 
-        showToast(video.following
-            ? `Following @${video.username}`
-            : `Unfollowed @${video.username}`);
+        showToast(
+            video.following
+                ? `Following @${video.username}`
+                : `Unfollowed @${video.username}`
+        );
     }
 
-    /* -----------------------------------------------------
-       10. COMMENTS
-    ----------------------------------------------------- */
+    /* 10. COMMENTS */
 
     function openComments(videoId) {
         const video = getVideo(videoId);
+
         if (!video) return;
 
-        activeVideoId = videoId;
-
         if (!commentsModal) {
-            const commentText = window.prompt(
-                `Add a comment to @${video.username}'s video:`
-            );
-
-            if (commentText && commentText.trim()) {
-                addComment(videoId, commentText.trim());
-            }
-
+            showToast("Add an element with id='commentsModal' to index.html.");
             return;
         }
 
@@ -752,27 +739,29 @@
             || byId("commentsTitle");
 
         const list = $("[data-comments-list]", commentsModal)
-            || byId("commentsList")
-            || $(".comments-list", commentsModal);
+            || byId("commentsList");
 
-        const form = $("form", commentsModal);
-        const input = $("textarea, input[name='comment'], input[type='text']", commentsModal);
+        const input = $("[data-comment-input]", commentsModal)
+            || byId("commentInput");
 
         if (title) {
-            title.textContent = `Comments · @${video.username}`;
+            title.textContent = `Comments (${video.comments.length})`;
         }
 
         if (list) {
-            if (!video.comments.length) {
+            if (video.comments.length === 0) {
                 list.innerHTML = `
-                    <div class="no-comments">
-                        Be the first to comment 💬
-                    </div>
+                    <p class="no-comments">
+                        No comments yet. Be the first to comment!
+                    </p>
                 `;
             } else {
                 list.innerHTML = video.comments.map((comment) => `
                     <div class="comment-item">
-                        <div class="avatar small">${escapeHTML(comment.avatar || "🙂")}</div>
+                        <div class="comment-avatar">
+                            ${escapeHTML(comment.avatar || "🙂")}
+                        </div>
+
                         <div class="comment-content">
                             <strong>@${escapeHTML(comment.username || "user")}</strong>
                             <p>${escapeHTML(comment.text || "")}</p>
@@ -787,6 +776,9 @@
         commentsModal.dataset.videoId = videoId;
         showModal(commentsModal);
 
+        const form = byId("commentForm")
+            || $("form", commentsModal);
+
         if (form && !form.dataset.vtikBound) {
             form.dataset.vtikBound = "true";
 
@@ -794,8 +786,15 @@
                 event.preventDefault();
 
                 const targetId = commentsModal.dataset.videoId;
-                const commentInput = $("textarea, input[name='comment'], input[type='text']", form);
-                const text = commentInput ? commentInput.value.trim() : "";
+
+                const commentInput = $(
+                    "textarea, input[name='comment'], input[type='text']",
+                    form
+                );
+
+                const text = commentInput
+                    ? commentInput.value.trim()
+                    : "";
 
                 if (!text) return;
 
@@ -808,13 +807,14 @@
 
     function addComment(videoId, text) {
         const video = getVideo(videoId);
+
         if (!video || !text.trim()) return;
 
         video.comments.push({
             id: makeId(),
             username: state.username || currentUser.username,
             avatar: getCurrentAvatar(),
-            text: text.trim(),
+            text: text.trim().slice(0, 1000),
             createdAt: Date.now()
         });
 
@@ -823,12 +823,11 @@
         showToast("Comment added 💬");
     }
 
-    /* -----------------------------------------------------
-       11. SHARE
-    ----------------------------------------------------- */
+    /* 11. SHARE */
 
     async function shareVideo(videoId) {
         const video = getVideo(videoId);
+
         if (!video) return;
 
         const shareData = {
@@ -840,10 +839,14 @@
         try {
             if (navigator.share) {
                 await navigator.share(shareData);
-            } else if (navigator.clipboard && navigator.clipboard.writeText) {
+            } else if (
+                navigator.clipboard &&
+                navigator.clipboard.writeText
+            ) {
                 await navigator.clipboard.writeText(
                     `${shareData.text}\n${shareData.url}`
                 );
+
                 showToast("Video link copied!");
             } else {
                 window.prompt("Copy this video link:", shareData.url);
@@ -856,9 +859,7 @@
         }
     }
 
-    /* -----------------------------------------------------
-       12. MODALS
-    ----------------------------------------------------- */
+    /* 12. MODALS */
 
     function showModal(modal) {
         if (!modal) return;
@@ -888,12 +889,15 @@
 
     function openCreateModal() {
         if (!createModal) {
-            const fileInput = byId("videoUpload") || byId("videoFile");
+            const fileInput = byId("videoUpload")
+                || byId("videoFile");
 
             if (fileInput) {
                 fileInput.click();
             } else {
-                showToast("Add a create modal or video upload input to index.html.");
+                showToast(
+                    "Add a create modal or video upload input to index.html."
+                );
             }
 
             return;
@@ -902,9 +906,7 @@
         showModal(createModal);
     }
 
-    /* -----------------------------------------------------
-       13. VIDEO UPLOAD
-    ----------------------------------------------------- */
+    /* 13. VIDEO UPLOAD */
 
     function getUploadElements() {
         return {
@@ -927,12 +929,14 @@
 
     function bindUploadPreview() {
         const { input } = getUploadElements();
+
         if (!input || input.dataset.vtikPreviewBound) return;
 
         input.dataset.vtikPreviewBound = "true";
 
         $on(input, "change", () => {
             const file = input.files && input.files[0];
+
             if (!file) return;
 
             if (!file.type.startsWith("video/")) {
@@ -941,16 +945,31 @@
                 return;
             }
 
-            const preview = byId("uploadPreview") || $(".upload-preview");
+            const preview = byId("uploadPreview")
+                || $(".upload-preview");
+
             if (!preview) return;
 
-            const url = URL.createObjectURL(file);
+            const oldVideo = $("video", preview);
 
-            preview.innerHTML = `
-                <video src="${url}" controls playsinline
-                       style="width:100%;max-height:320px;object-fit:contain;">
-                </video>
-            `;
+            if (oldVideo && oldVideo.dataset.objectUrl) {
+                URL.revokeObjectURL(oldVideo.dataset.objectUrl);
+            }
+
+            preview.innerHTML = "";
+
+            const previewVideo = document.createElement("video");
+            const objectUrl = URL.createObjectURL(file);
+
+            previewVideo.src = objectUrl;
+            previewVideo.dataset.objectUrl = objectUrl;
+            previewVideo.controls = true;
+            previewVideo.playsInline = true;
+            previewVideo.style.width = "100%";
+            previewVideo.style.maxHeight = "320px";
+            previewVideo.style.objectFit = "contain";
+
+            preview.appendChild(previewVideo);
         });
     }
 
@@ -965,13 +984,17 @@
             return;
         }
 
+        const cleanUsername = safeText(
+            username,
+            state.username || currentUser.username
+        ).replace(/^@/, "").slice(0, 30);
+
         const video = {
             id: makeId(),
-            username: safeText(username, state.username || currentUser.username)
-                .replace(/^@/, ""),
-            displayName: safeText(username, "V-Tik Creator"),
+            username: cleanUsername,
+            displayName: safeText(username, "V-Tik Creator").slice(0, 60),
             avatar: getCurrentAvatar(),
-            caption: caption.trim(),
+            caption: caption.trim().slice(0, 2000),
             music: "Original sound",
             src: "",
             uploaded: true,
@@ -993,6 +1016,7 @@
 
         state.videos.unshift(video);
         state.activeTab = "For You";
+
         searchTerm = "";
 
         if (searchInput) searchInput.value = "";
@@ -1041,8 +1065,20 @@
 
                     form.reset();
 
-                    const preview = byId("uploadPreview") || $(".upload-preview");
-                    if (preview) preview.innerHTML = "";
+                    const preview = byId("uploadPreview")
+                        || $(".upload-preview");
+
+                    if (preview) {
+                        const previewVideo = $("video", preview);
+
+                        if (previewVideo && previewVideo.dataset.objectUrl) {
+                            URL.revokeObjectURL(
+                                previewVideo.dataset.objectUrl
+                            );
+                        }
+
+                        preview.innerHTML = "";
+                    }
                 } finally {
                     if (submit) {
                         submit.disabled = false;
@@ -1067,9 +1103,9 @@
         }
     }
 
-    /* -----------------------------------------------------
-       14. FULLSCREEN VIDEO VIEWER
-    ----------------------------------------------------- */
+    /* Continue with Part 3 below this line. */
+
+    /* 14. FULLSCREEN VIDEO VIEWER */
 
     async function openViewer(videoId) {
         const video = getVideo(videoId);
@@ -1088,16 +1124,16 @@
                     await element.requestFullscreen();
                 } catch (error) {
                     console.warn("V-Tik: fullscreen unavailable.", error);
+                    showToast("Could not open fullscreen.");
                 }
             } else {
-                showToast("Fullscreen viewer is not set up in index.html.");
+                showToast("Add a fullscreen viewer to index.html.");
             }
 
             return;
         }
 
-        const viewerVideo = $("video", viewer)
-            || byId("viewerVideo");
+        const viewerVideo = $("video", viewer) || byId("viewerVideo");
 
         const caption = $("[data-viewer-caption]", viewer)
             || byId("viewerCaption");
@@ -1106,22 +1142,42 @@
             || byId("viewerUsername");
 
         if (caption) caption.textContent = video.caption || "";
+
         if (username) username.textContent = `@${video.username}`;
 
         if (viewerVideo) {
             viewerVideo.pause();
 
             const source = await resolveVideoSource(video);
-            viewerVideo.src = source;
+
+            viewerVideo.muted = false;
             viewerVideo.loop = true;
             viewerVideo.playsInline = true;
-            viewerVideo.muted = false;
-            viewerVideo.load();
 
-            const playPromise = viewerVideo.play();
+            if (source) {
+                viewerVideo.src = source;
 
-            if (playPromise && playPromise.catch) {
-                playPromise.catch(() => {});
+                if (source.startsWith("blob:")) {
+                    if (currentObjectUrl) {
+                        URL.revokeObjectURL(currentObjectUrl);
+                    }
+
+                    currentObjectUrl = source;
+                }
+
+                viewerVideo.load();
+
+                const playPromise = viewerVideo.play();
+
+                if (playPromise && playPromise.catch) {
+                    playPromise.catch(() => {
+                        showToast("Tap the video to start playback.");
+                    });
+                }
+            } else {
+                viewerVideo.removeAttribute("src");
+                viewerVideo.load();
+                showToast("This video file could not be found.");
             }
         }
 
@@ -1140,16 +1196,24 @@
             video.load();
         }
 
+        if (currentObjectUrl) {
+            URL.revokeObjectURL(currentObjectUrl);
+            currentObjectUrl = null;
+        }
+
         hideModal(viewer);
         activeVideoId = null;
     }
 
-    /* -----------------------------------------------------
-       15. NAVIGATION AND TABS
-    ----------------------------------------------------- */
+    /* 15. NAVIGATION AND TABS */
 
     function setActiveTab(tabName) {
-        const allowedTabs = ["For You", "Following", "Saved", "Explore"];
+        const allowedTabs = [
+            "For You",
+            "Following",
+            "Saved",
+            "Explore"
+        ];
 
         state.activeTab = allowedTabs.includes(tabName)
             ? tabName
@@ -1159,15 +1223,21 @@
             .forEach((element) => {
                 const label = safeText(
                     element.dataset.tab
-                        || element.dataset.nav
-                        || element.textContent,
+                    || element.dataset.label
+                    || element.textContent,
                     ""
                 );
 
-                element.classList.toggle(
-                    "active",
-                    label.trim().toLowerCase() === state.activeTab.toLowerCase()
-                );
+                const active = label.trim().toLowerCase()
+                    === state.activeTab.toLowerCase();
+
+                element.classList.toggle("active", active);
+
+                if (active) {
+                    element.setAttribute("aria-current", "page");
+                } else {
+                    element.removeAttribute("aria-current");
+                }
             });
 
         saveState();
@@ -1175,38 +1245,38 @@
     }
 
     function bindNavigation() {
-        $$("[data-tab], [data-nav], .nav-link, .sidebar-link, .mobile-nav button")
+        $$("[data-tab], .nav-link, .sidebar-link, .mobile-nav button")
             .forEach((element) => {
                 if (element.dataset.vtikNavBound) return;
 
                 element.dataset.vtikNavBound = "true";
 
-                $on(element, "click", () => {
-                    const label = safeText(
-                        element.dataset.tab || element.dataset.nav || element.textContent,
+                $on(element, "click", (event) => {
+                    const tab = safeText(
+                        element.dataset.tab
+                        || element.dataset.label
+                        || element.textContent,
                         ""
-                    ).trim().toLowerCase();
+                    ).trim();
 
-                    if (label.includes("following")) {
-                        setActiveTab("Following");
-                    } else if (label.includes("saved") || label.includes("bookmark")) {
-                        setActiveTab("Saved");
-                    } else if (label.includes("explore") || label.includes("discover")) {
-                        setActiveTab("Explore");
-                    } else if (
-                        label.includes("for you")
-                        || label.includes("home")
-                        || label.includes("feed")
-                    ) {
-                        setActiveTab("For You");
-                    } else if (label.includes("create") || label.includes("upload")) {
-                        openCreateModal();
-                    } else if (label.includes("profile")) {
-                        showToast(`Your profile: @${state.username}`);
+                    const normalized = tab.toLowerCase();
+
+                    const tabMap = {
+                        "for you": "For You",
+                        "following": "Following",
+                        "saved": "Saved",
+                        "explore": "Explore"
+                    };
+
+                    if (tabMap[normalized]) {
+                        event.preventDefault();
+                        setActiveTab(tabMap[normalized]);
                     }
                 });
             });
     }
+
+    /* 16. SEARCH */
 
     function bindSearch() {
         if (!searchInput || searchInput.dataset.vtikSearchBound) return;
@@ -1228,251 +1298,214 @@
         });
     }
 
-    /* -----------------------------------------------------
-       16. CLICK HANDLING
-    ----------------------------------------------------- */
+    /* 17. CLICK ACTIONS */
 
-    function bindGlobalClicks() {
-        $on(document, "click", async (event) => {
-            const target = event.target;
-            if (!(target instanceof Element)) return;
+    function bindFeedActions() {
+        if (!feed || feed.dataset.vtikActionsBound) return;
 
-            const actionElement = target.closest("[data-action]");
-            if (!actionElement) return;
+        feed.dataset.vtikActionsBound = "true";
 
-            const action = actionElement.dataset.action;
-            const videoId = actionElement.dataset.videoId
-                || actionElement.closest("[data-video-id]")?.dataset.videoId;
+        $on(feed, "click", async (event) => {
+            const button = event.target.closest("[data-action]");
+
+            if (!button || !feed.contains(button)) return;
+
+            const action = button.dataset.action;
+            const videoId = button.dataset.videoId
+                || button.closest("[data-video-id]")?.dataset.videoId;
 
             switch (action) {
                 case "like":
-                    event.preventDefault();
                     toggleLike(videoId);
                     break;
 
                 case "save":
-                    event.preventDefault();
                     toggleSave(videoId);
                     break;
 
                 case "follow":
-                    event.preventDefault();
                     toggleFollow(videoId);
                     break;
 
                 case "comment":
-                    event.preventDefault();
                     openComments(videoId);
                     break;
 
                 case "share":
-                    event.preventDefault();
                     await shareVideo(videoId);
                     break;
 
                 case "expand":
-                case "fullscreen":
-                    event.preventDefault();
                     await openViewer(videoId);
                     break;
 
                 case "sound": {
-                    const card = actionElement.closest(".video-card");
-                    const video = $("video", card);
+                    const card = button.closest(".video-card");
+                    const video = $(".feed-video", card);
 
-                    if (video) {
-                        video.muted = !video.muted;
-                        actionElement.textContent = video.muted ? "🔇" : "🔊";
+                    if (!video) return;
+
+                    video.muted = !video.muted;
+                    button.textContent = video.muted ? "🔇" : "🔊";
+
+                    if (!video.muted) {
+                        const playPromise = video.play();
+
+                        if (playPromise && playPromise.catch) {
+                            playPromise.catch(() => {});
+                        }
                     }
+
                     break;
                 }
 
                 case "open-create":
-                case "create":
-                case "upload":
-                    event.preventDefault();
                     openCreateModal();
                     break;
 
                 case "close-modal":
-                case "close-create":
-                    event.preventDefault();
-                    hideModal(actionElement.closest(".modal") || createModal);
-                    break;
-
-                case "close-comments":
-                    event.preventDefault();
-                    hideModal(commentsModal);
+                    hideModal(button.closest(".modal, [role='dialog']"));
                     break;
 
                 case "close-viewer":
-                    event.preventDefault();
                     closeViewer();
                     break;
 
-                case "profile":
-                    event.preventDefault();
-                    showToast(`Signed in locally as @${state.username}`);
-                    break;
-
-                case "clear-search":
-                    if (searchInput) {
-                        searchInput.value = "";
-                        searchTerm = "";
-                        renderFeed();
-                    }
+                default:
                     break;
             }
         });
+    }
 
-        // Clicking a modal backdrop closes it.
-        [createModal, commentsModal, viewer].filter(Boolean).forEach((modal) => {
+    /* 18. MODAL CONTROLS */
+
+    function bindModalControls() {
+        $$("[data-open-create], #createButton, #uploadButton, .create-button")
+            .forEach((button) => {
+                if (button.dataset.vtikCreateBound) return;
+
+                button.dataset.vtikCreateBound = "true";
+
+                $on(button, "click", (event) => {
+                    event.preventDefault();
+                    openCreateModal();
+                });
+            });
+
+        $$("[data-close-modal], .modal-close, .close-modal")
+            .forEach((button) => {
+                if (button.dataset.vtikCloseBound) return;
+
+                button.dataset.vtikCloseBound = "true";
+
+                $on(button, "click", () => {
+                    const modal = button.closest(".modal, [role='dialog']");
+
+                    if (modal) hideModal(modal);
+                });
+            });
+
+        [createModal, commentsModal, viewer].forEach((modal) => {
+            if (!modal || modal.dataset.vtikBackdropBound) return;
+
+            modal.dataset.vtikBackdropBound = "true";
+
             $on(modal, "click", (event) => {
-                if (event.target === modal) {
-                    if (modal === viewer) {
-                        closeViewer();
-                    } else {
-                        hideModal(modal);
-                    }
+                if (event.target !== modal) return;
+
+                if (modal === viewer) {
+                    closeViewer();
+                } else {
+                    hideModal(modal);
                 }
             });
         });
 
         $on(document, "keydown", (event) => {
             if (event.key === "Escape") {
-                if (viewer && !viewer.hidden) closeViewer();
-
-                [createModal, commentsModal].filter(Boolean).forEach((modal) => {
-                    if (!modal.hidden) hideModal(modal);
-                });
+                if (viewer && !viewer.hidden) {
+                    closeViewer();
+                } else {
+                    [createModal, commentsModal].forEach((modal) => {
+                        if (modal && !modal.hidden) hideModal(modal);
+                    });
+                }
             }
         });
     }
 
-    /* -----------------------------------------------------
-       17. PROFILE EDITING
-    ----------------------------------------------------- */
+    /* 19. PROFILE BUTTON EVENTS */
 
-    function bindProfileEditing() {
-        const usernameInput = byId("profileUsername");
-        const avatarInput = byId("profileAvatar");
-        const saveProfile = byId("saveProfile");
+    function bindProfileButtons() {
+        [profileButton, mobileProfile].forEach((button) => {
+            if (!button || button.dataset.vtikProfileBound) return;
 
-        if (!saveProfile || saveProfile.dataset.vtikProfileBound) return;
+            button.dataset.vtikProfileBound = "true";
 
-        saveProfile.dataset.vtikProfileBound = "true";
-
-        $on(saveProfile, "click", () => {
-            if (usernameInput && usernameInput.value.trim()) {
-                state.username = usernameInput.value.trim().replace(/^@/, "");
-            }
-
-            if (avatarInput && avatarInput.value.trim()) {
-                state.avatar = avatarInput.value.trim();
-            }
-
-            saveState();
-            updateProfileButton();
-            showToast("Profile updated!");
+            $on(button, "click", (event) => {
+                event.preventDefault();
+                openProfile();
+            });
         });
     }
 
-    /* -----------------------------------------------------
-       18. BASIC ACCESSIBILITY AND ERROR HANDLING
-    ----------------------------------------------------- */
+    /* 20. VIDEO ERROR HANDLING */
 
     function bindVideoErrors() {
+        if (!feed || feed.dataset.vtikErrorsBound) return;
+
+        feed.dataset.vtikErrorsBound = "true";
+
         $on(feed, "error", (event) => {
             const video = event.target;
 
             if (!(video instanceof HTMLVideoElement)) return;
 
+            video.classList.add("video-source-error");
+
             const stage = video.closest(".video-stage");
-            if (!stage) return;
 
-            stage.classList.add("video-unavailable");
+            if (stage) {
+                let message = $(".video-unavailable-message", stage);
 
-            let notice = $(".video-unavailable-message", stage);
+                if (!message) {
+                    message = document.createElement("div");
+                    message.className = "video-unavailable-message";
+                    stage.appendChild(message);
+                }
 
-            if (!notice) {
-                notice = document.createElement("div");
-                notice.className = "video-unavailable-message";
-                stage.appendChild(notice);
+                message.textContent =
+                    "Video could not load. Check the video file path.";
             }
-
-            notice.textContent = "Unable to play this video. Check the video file path.";
         }, true);
     }
 
-    function cleanupObjectURLs() {
-        $$(".feed-video[data-object-url]", feed).forEach((video) => {
-            const url = video.dataset.objectUrl;
+    /* 21. INITIALIZE APP */
 
-            if (url) {
-                try {
-                    URL.revokeObjectURL(url);
-                } catch (_) {
-                    // Ignore invalid or already-revoked URLs.
-                }
-            }
-        });
-
-        if (currentObjectUrl) {
-            URL.revokeObjectURL(currentObjectUrl);
-            currentObjectUrl = null;
-        }
-    }
-
-    /* -----------------------------------------------------
-       19. INITIALIZE
-    ----------------------------------------------------- */
-
-    function initializeApp() {
-        updateProfileButton();
+    function initializeVtik() {
         bindNavigation();
         bindSearch();
-        bindGlobalClicks();
+        bindFeedActions();
+        bindModalControls();
+        bindProfileButtons();
         bindUploadForm();
-        bindProfileEditing();
         bindVideoErrors();
 
-        // Ensure optional modals start hidden when present.
-        [createModal, commentsModal, viewer].filter(Boolean).forEach((modal) => {
-            if (!modal.hasAttribute("data-start-open")) {
-                modal.hidden = true;
-                modal.setAttribute("aria-hidden", "true");
-            }
-        });
+        updateProfileButton();
 
-        renderFeed();
-
-        console.info(
-            `V-Tik initialized successfully. Videos in feed: ${state.videos.length}`
+        setActiveTab(
+            state.activeTab || "For You"
         );
+
+        console.info("V-Tik initialized successfully.");
     }
 
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initializeApp, { once: true });
+        document.addEventListener("DOMContentLoaded", initializeVtik, {
+            once: true
+        });
     } else {
-        initializeApp();
+        initializeVtik();
     }
 
-    window.addEventListener("beforeunload", cleanupObjectURLs);
-
-    /* -----------------------------------------------------
-       20. OPTIONAL PUBLIC FUNCTIONS
-    ----------------------------------------------------- */
-
-    window.VTik = {
-        renderFeed,
-        uploadVideo,
-        openComments,
-        openViewer,
-        closeViewer,
-        setActiveTab,
-        showToast,
-        get videos() {
-            return [...state.videos];
-        }
-    };
 })();
