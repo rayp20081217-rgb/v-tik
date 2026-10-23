@@ -2882,3 +2882,58 @@ video {
     }
 }
 
+/* =========================================
+   V-TIK — RIGHT-SIDE VERTICAL ACTION BAR
+========================================= */
+
+@media screen and (max-width: 700px) {
+    .video-card {
+        position: relative;
+        align-items: stretch;
+    }
+
+    .video-card-main {
+        min-width: 0;
+    }
+
+    .video-actions {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        align-self: center;
+        gap: 18px;
+        width: 42px;
+        height: 100%;
+        padding: 12px 0;
+        margin: 0;
+    }
+
+    .video-actions button {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 4px;
+        width: 42px;
+        min-height: 42px;
+        padding: 4px 0;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .video-actions button i,
+    .video-actions button svg {
+        font-size: 23px;
+        width: 23px;
+        height: 23px;
+    }
+
+    .video-actions button span {
+        font-size: 11px;
+        line-height: 1.2;
+        text-align: center;
+    }
+}
+
