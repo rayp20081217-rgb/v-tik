@@ -44,6 +44,18 @@ const videos = [
         category: "gaming"
     },
     {
+        id: "video-1",
+        src: "./Download.mp4",
+        username: "f1creator",
+        caption: "Ranking the best F1 donuts! 🏎️🔥 #F1 #Formula1 #Motorsport",
+        likes: 1250,
+        comments: [],
+        liked: false,
+        saved: false,
+        following: false,
+        category: "gaming"
+    },
+    {
         id: "video-2",
         src: "./video2.mp4",
         username: "daily_moments",
