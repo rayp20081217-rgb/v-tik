@@ -1,179 +1,98 @@
-    border-radius: 13px;
-    box-shadow: var(--vt-shadow);
-}
-.toast.success, .notification.success { border-color: rgba(53,217,160,.5); }
-.toast.error, .notification.error { border-color: rgba(255,49,91,.55); }
 
-/* Modal/utility states */
-[hidden] { display: none !important; }
+/* ==========================================================
+   V-TIK — PREMIUM VIDEO SHARING UI
+   Theme: midnight navy + electric cyan + vivid coral
+   File: style.css
 
-@keyframes vt-modal-in {
-    from { opacity: 0; transform: translateY(12px) scale(.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
+   Recommended HTML:
+   <link rel="stylesheet" href="style.css">
+   Put this stylesheet AFTER any older stylesheet so these
+   styles can override the previous design.
+========================================================== */
 
-/* Tablet */
-@media (max-width: 900px) {
-    :root { --vt-sidebar-width: 76px; --vt-header-height: 66px; }
-    .sidebar, aside.sidebar, .side-nav { align-items: center; padding: 18px 8px; }
-    .sidebar a, .sidebar button, .sidebar .nav-item,
-    .side-nav a, .side-nav button {
-        justify-content: center;
-        width: 50px;
-        padding: 0;
-        font-size: 0;
-    }
-    .sidebar a svg, .sidebar button svg, .side-nav a svg, .side-nav button svg {
-        width: 22px;
-        height: 22px;
-        flex-shrink: 0;
-    }
-    .sidebar h2, .sidebar h3, .sidebar-title, .side-nav h2, .side-nav h3, .sidebar hr, .side-nav hr {
-        display: none;
-    }
-    main, .main-content, .content, .app-content {
-        padding-right: 18px;
-        padding-left: 18px;
-    }
-}
-
-@media (max-width: 620px) {
-    :root { --vt-header-height: 60px; }
-    body { padding-bottom: 74px; }
-    .topbar, header.topbar, .app-header, .navbar {
-        gap: 9px;
-        padding-inline: 11px;
-    }
-    .topbar h1, .topbar .logo, .topbar .brand, .logo, .brand, .site-logo {
-        gap: 6px;
-        font-size: 18px;
-        letter-spacing: -.7px;
-    }
-    .logo img, .brand img, .site-logo img { width: 31px; height: 31px; border-radius: 10px; }
-    .search-box, .search-container, .search-wrapper, .topbar form, form.search {
-        width: auto;
-        min-width: 0;
-        flex: 1;
-        min-height: 38px;
-        padding-inline: 10px;
-    }
-    .search-box input, .search-container input, .search-wrapper input,
-    .topbar form input, form.search input { font-size: 12px; }
-    .topbar .create-btn, .create-btn, .upload-btn {
-        min-height: 37px;
-        padding-inline: 11px;
-        font-size: 12px;
-    }
-    .sidebar, aside.sidebar, .side-nav { display: none; }
-    main, .main-content, .content, .app-content {
-        margin-left: 0;
-        padding: calc(var(--vt-header-height) + 16px) 9px 24px;
-    }
-    #videoList, .video-list, .video-feed, .feed {
-        gap: 17px;
-        margin-top: 14px;
-    }
-    .video-card {
-        grid-template-columns: minmax(0, 1fr) 44px;
-        gap: 5px;
-        padding: 7px;
-        border-radius: 18px;
-    }
-    .video-card video, .video-card .video-wrapper, .video-card .video-container {
-        border-radius: 13px;
-    }
-    .video-card video { max-height: 68vh; }
-    .video-actions, .action-bar, .video-card .actions, .video-card .video-actions { gap: 10px; }
-    .video-actions button, .action-bar button, .video-card .actions button,
-    .video-card .video-actions button {
-        width: 41px;
-        min-height: 46px;
-        font-size: 9px;
-    }
-    .video-actions button svg, .action-bar button svg, .video-card .actions button svg,
-    .video-card .video-actions button svg { width: 22px; height: 22px; }
-    .video-info, .video-details, .video-caption { padding-top: 9px; }
-    .video-info h3, .video-details h3, .video-caption h3 { font-size: 13px; }
-    .video-info p, .video-details p, .video-caption p { font-size: 11px; }
-    .mobile-nav, .bottom-nav {
-        position: fixed;
-        z-index: 1500;
-        inset: auto 0 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-        gap: 4px;
-        min-height: 65px;
-        padding: 7px 6px calc(7px + env(safe-area-inset-bottom));
-        background: rgba(12,13,19,.95);
-        border-top: 1px solid var(--vt-border);
-        -webkit-backdrop-filter: blur(20px);
-        backdrop-filter: blur(20px);
-    }
-    .mobile-nav a, .mobile-nav button, .bottom-nav a, .bottom-nav button {
-        display: flex;
-        flex: 1;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 3px;
-        min-height: 45px;
-        padding: 3px 1px;
-        color: var(--vt-dim);
-        font-size: 10px;
-        font-weight: 700;
-        background: transparent;
-        border: 0;
-        border-radius: 11px;
-    }
-    .mobile-nav a svg, .mobile-nav button svg, .bottom-nav a svg, .bottom-nav button svg {
-        width: 21px;
-        height: 21px;
-    }
-    .mobile-nav .active, .bottom-nav .active { color: var(--vt-pink); }
-    .mobile-nav .create-btn, .bottom-nav .create-btn {
-        flex: 0 0 43px;
-        min-height: 40px;
-        color: #fff;
-        background: linear-gradient(135deg, var(--vt-pink), #e53e94);
-        border-radius: 12px;
-    }
-    .modal, .upload-modal, .dialog, .modal-backdrop {
-        align-items: flex-end;
-        padding: 8px;
-    }
-    .modal-content, .upload-modal-content, .dialog-content, .modal-inner {
-        width: 100%;
-        max-height: 90vh;
-        padding: 23px 17px;
-        border-radius: 23px 23px 15px 15px;
-    }
-    .scroll-controls { right: 10px; bottom: 82px; }
-    .scroll-controls button { width: 36px; height: 36px; }
-    .toast, .notification, .toast-message {
-        right: 10px;
-        bottom: 80px;
-        left: 10px;
-        max-width: none;
-    }
+/* -------------------- 1. DESIGN TOKENS -------------------- */
+:root {
+    color-scheme: dark;
+    --bg: #080b14;
+    --bg-deep: #05070d;
+    --surface: #101522;
+    --surface-2: #151c2c;
+    --surface-3: #1b2437;
+    --surface-glass: rgba(16, 21, 34, 0.82);
+    --text: #f4f7ff;
+    --muted: #98a4bb;
+    --muted-2: #71809a;
+    --line: rgba(166, 190, 226, 0.12);
+    --line-strong: rgba(166, 190, 226, 0.22);
+    --cyan: #35e6f5;
+    --cyan-deep: #00b8d4;
+    --pink: #ff3d81;
+    --purple: #9b6bff;
+    --green: #55e6a5;
+    --danger: #ff5570;
+    --radius-sm: 12px;
+    --radius-md: 18px;
+    --radius-lg: 26px;
+    --shadow-soft: 0 12px 34px rgba(0, 0, 0, 0.22);
+    --shadow-card: 0 20px 55px rgba(0, 0, 0, 0.32);
+    --shadow-glow: 0 0 28px rgba(53, 230, 245, 0.13);
+    --ease: 220ms cubic-bezier(.2, .75, .25, 1);
+    --header-height: 76px;
+    --sidebar-width: 248px;
 }
 
-@media (max-width: 380px) {
-    .topbar h1, .topbar .logo, .topbar .brand, .logo, .brand, .site-logo { font-size: 16px; }
-    .search-box, .search-container, .search-wrapper, .topbar form, form.search { padding-inline: 7px; }
-    .search-box input, .search-container input, .search-wrapper input,
-    .topbar form input, form.search input { font-size: 11px; }
-    .topbar .create-btn, .create-btn, .upload-btn { padding-inline: 8px; font-size: 11px; }
-    .video-card { grid-template-columns: minmax(0, 1fr) 39px; gap: 3px; padding: 5px; }
-    .video-actions button, .action-bar button, .video-card .actions button,
-    .video-card .video-actions button { width: 37px; }
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        scroll-behavior: auto !important;
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
-    }
+html {
+    min-height: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-height) + 18px);
 }
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    color: var(--text);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    line-height: 1.55;
+    background:
+        radial-gradient(ellipse at 8% 0%, rgba(0, 191, 216, 0.13), transparent 31rem),
+        radial-gradient(ellipse at 95% 12%, rgba(155, 107, 255, 0.12), transparent 29rem),
+        radial-gradient(ellipse at 52% 100%, rgba(255, 61, 129, 0.055), transparent 34rem),
+        linear-gradient(135deg, #080b14 0%, #0a0e19 48%, #070a12 100%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+body::before {
+    position: fixed;
+    z-index: -1;
+    inset: 0;
+    pointer-events: none;
+    content: "";
+    opacity: .16;
+    background-image: radial-gradient(rgba(177, 204, 255, .32) .65px, transparent .65px);
+    background-size: 22px 22px;
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+img,
+video,
+svg {
+    max-width: 100%;
+}
+
+img {
+    display: block;
+}
+
+button,
+input,
+textarea,
+⋮⋮⋮⋮⋮⋮⋮⋮
