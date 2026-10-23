@@ -1,53 +1,44 @@
 ```css
 /* =========================================================
-   V-TIK — MODERN SHORT VIDEO PLATFORM
-   File: style.css
-   Theme: Midnight Purple + Neon Pink + Violet
+   V-TIK — TIKTOK-INSPIRED DESIGN SYSTEM
+   Modern • Clean • Responsive • Video-first
 ========================================================= */
 
-/* =========================
-   1. ROOT VARIABLES
-========================= */
+/* 1. DESIGN TOKENS */
 
 :root {
-    --bg: #0f0c1b;
-    --bg-secondary: #151125;
-    --surface: #1b1730;
-    --surface-hover: #26203f;
-    --surface-light: #302747;
+    color-scheme: dark;
 
-    --primary: #ff2e88;
-    --primary-hover: #ed176f;
-    --secondary: #9b5cff;
-    --accent: #36d9ff;
+    --bg: #08080b;
+    --panel: #111115;
+    --panel-2: #19191f;
+    --panel-3: #23232b;
 
-    --text: #f8f7ff;
-    --text-secondary: #b7b1ca;
-    --text-muted: #807994;
+    --white: #ffffff;
+    --text: #f5f5f7;
+    --muted: #a4a4ad;
+    --subtle: #6e6e79;
+
+    --pink: #fe2c55;
+    --pink-hover: #e91e48;
+    --cyan: #25f4ee;
+    --purple: #8b5cf6;
 
     --border: rgba(255, 255, 255, 0.09);
-    --border-active: rgba(255, 46, 136, 0.5);
+    --border-strong: rgba(255, 255, 255, 0.15);
 
-    --success: #35d69a;
-    --danger: #ff5263;
+    --topbar-height: 64px;
+    --sidebar-width: 225px;
+    --mobile-nav-height: 64px;
 
-    --topbar-height: 76px;
-    --sidebar-width: 245px;
-    --mobile-nav-height: 68px;
+    --radius-sm: 8px;
+    --radius-md: 13px;
+    --radius-lg: 18px;
 
-    --radius-sm: 10px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-
-    --shadow:
-        0 12px 35px rgba(0, 0, 0, 0.25);
-
-    --transition: 0.25s ease;
+    --transition: 180ms ease;
 }
 
-/* =========================
-   2. RESET & GLOBAL STYLES
-========================= */
+/* 2. RESET */
 
 * {
     box-sizing: border-box;
@@ -57,54 +48,32 @@
 
 html {
     scroll-behavior: smooth;
-    scrollbar-color: #44365f var(--bg);
+    scrollbar-color: #44444d #101014;
     scrollbar-width: thin;
 }
 
 body {
     min-height: 100vh;
-    background:
-        radial-gradient(
-            circle at 80% 0%,
-            rgba(155, 92, 255, 0.09),
-            transparent 32%
-        ),
-        var(--bg);
+    padding-top: var(--topbar-height);
 
     color: var(--text);
+    background: var(--bg);
+
     font-family: "Plus Jakarta Sans", sans-serif;
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.55;
 
-    padding-top: var(--topbar-height);
     -webkit-font-smoothing: antialiased;
 }
 
-body,
 button,
 input,
 textarea {
-    font-family: "Plus Jakarta Sans", sans-serif;
-}
-
-button,
-input,
-textarea {
-    font-size: inherit;
+    font: inherit;
 }
 
 button {
     color: inherit;
-}
-
-button,
-a,
-input,
-label {
-    -webkit-tap-highlight-color: transparent;
-}
-
-button {
     border: 0;
     cursor: pointer;
 }
@@ -119,127 +88,126 @@ a {
     text-decoration: none;
 }
 
-img,
-video,
 svg {
-    max-width: 100%;
+    display: block;
+    flex-shrink: 0;
 }
 
-svg {
-    flex-shrink: 0;
+img,
+video {
+    max-width: 100%;
 }
 
 input {
     color: var(--text);
 }
 
-input::placeholder {
-    color: var(--text-muted);
-}
-
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-label:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 3px;
+input::placeholder,
+textarea::placeholder {
+    color: var(--subtle);
 }
 
 [hidden] {
     display: none !important;
 }
 
-/* =========================
-   3. TOP NAVIGATION
-========================= */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 3px;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+/* 3. TOP BAR */
 
 .topbar {
     position: fixed;
-    inset: 0 0 auto 0;
+    inset: 0 0 auto;
     z-index: 1000;
 
     height: var(--topbar-height);
-    padding: 0 30px;
+    padding: 0 28px;
 
-    display: flex;
+    display: grid;
+    grid-template-columns: 190px minmax(160px, 440px) 1fr;
     align-items: center;
-    gap: 30px;
+    gap: 28px;
 
-    background: rgba(15, 12, 27, 0.94);
+    background: rgba(8, 8, 11, 0.94);
     border-bottom: 1px solid var(--border);
 
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 }
 
-/* Brand */
+/* Logo */
 
 .brand {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    flex-shrink: 0;
+    gap: 4px;
+    width: fit-content;
 }
 
 .brand-v {
+    width: 35px;
+    height: 35px;
+
     display: grid;
     place-items: center;
 
-    width: 39px;
-    height: 39px;
+    color: #08080b;
+    background: var(--cyan);
 
-    color: white;
-    font-size: 27px;
+    border-radius: 9px;
+
+    font-size: 25px;
     font-weight: 800;
+    line-height: 1;
 
-    background: linear-gradient(
-        135deg,
-        var(--primary),
-        var(--secondary)
-    );
-
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(255, 46, 136, 0.25);
-    transform: rotate(-5deg);
+    transform: rotate(-4deg);
+    box-shadow: 3px 3px 0 var(--pink);
 }
 
 .brand-tik {
+    margin-left: 4px;
+
+    color: var(--white);
     font-size: 23px;
     font-weight: 800;
-    letter-spacing: -1.5px;
-    margin-left: 3px;
+    letter-spacing: -1.3px;
 }
 
 /* Search */
 
 .search {
-    width: min(100%, 440px);
-    height: 44px;
-    margin-inline: auto;
+    height: 40px;
+    width: 100%;
+    min-width: 0;
 
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 10px;
 
-    padding: 0 14px;
+    padding: 0 13px;
 
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
+    background: #202025;
+    border: 1px solid transparent;
+    border-radius: 10px;
 
-    transition:
-        border-color var(--transition),
-        box-shadow var(--transition);
+    transition: border-color var(--transition);
 }
 
 .search:focus-within {
-    border-color: var(--secondary);
-    box-shadow: 0 0 0 3px rgba(155, 92, 255, 0.12);
+    border-color: var(--border-strong);
 }
 
 .search-icon {
-    display: flex;
-    color: var(--text-muted);
+    color: var(--muted);
 }
 
 .search input {
@@ -247,94 +215,91 @@ label:focus-visible {
     min-width: 0;
     height: 100%;
 
+    color: var(--white);
+    background: transparent;
     border: 0;
     outline: 0;
-    background: transparent;
 
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .clear-search {
-    width: 27px;
-    height: 27px;
+    width: 25px;
+    height: 25px;
     flex-shrink: 0;
 
-    color: var(--text-secondary);
-    background: var(--surface-light);
+    display: grid;
+    place-items: center;
+
+    color: var(--muted);
+    background: var(--panel-3);
     border-radius: 50%;
 }
 
-/* Header actions */
+/* Right-side controls */
 
 .topbar-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 15px;
-    flex-shrink: 0;
 }
 
 .create-btn {
-    min-height: 41px;
+    min-height: 38px;
+    padding: 0 14px;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
 
-    padding: 0 17px;
+    color: var(--white);
+    background: var(--pink);
+    border-radius: 8px;
 
-    background: linear-gradient(
-        120deg,
-        var(--primary),
-        #e83dbb
-    );
-
-    color: white;
+    font-size: 12px;
     font-weight: 800;
-    border-radius: 12px;
-
-    box-shadow: 0 5px 18px rgba(255, 46, 136, 0.15);
 
     transition:
-        transform var(--transition),
-        box-shadow var(--transition);
+        background var(--transition),
+        transform var(--transition);
 }
 
 .create-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(255, 46, 136, 0.3);
+    background: var(--pink-hover);
+    transform: translateY(-1px);
 }
 
 .round-btn {
     position: relative;
 
+    width: 38px;
+    height: 38px;
+
     display: grid;
     place-items: center;
 
-    width: 42px;
-    height: 42px;
+    color: var(--text);
+    background: transparent;
+    border-radius: 9px;
 
-    color: var(--text-secondary);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 13px;
-
-    transition: var(--transition);
+    transition: background var(--transition);
 }
 
 .round-btn:hover {
-    color: white;
-    background: var(--surface-hover);
+    background: var(--panel-3);
 }
 
 .badge {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 6px;
+    right: 6px;
 
     width: 8px;
     height: 8px;
 
-    background: var(--primary);
+    background: var(--pink);
     border: 2px solid var(--bg);
     border-radius: 50%;
 }
@@ -350,44 +315,37 @@ label:focus-visible {
     flex-shrink: 0;
 
     color: white;
-    font-weight: 800;
-
-    background: linear-gradient(
-        135deg,
-        var(--secondary),
-        var(--primary)
-    );
-
-    border: 2px solid rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, #7c3aed, #fe2c55);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
+
+    font-weight: 800;
 }
 
 .avatar.small {
-    width: 39px;
-    height: 39px;
-    font-size: 12px;
+    width: 34px;
+    height: 34px;
+    font-size: 11px;
 }
 
 .avatar.micro {
-    width: 27px;
-    height: 27px;
+    width: 26px;
+    height: 26px;
     font-size: 9px;
 }
 
-/* =========================
-   4. APPLICATION LAYOUT
-========================= */
+/* 4. MAIN SHELL */
 
 .shell {
     min-height: calc(100vh - var(--topbar-height));
 
     display: grid;
-    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    grid-template-columns:
+        var(--sidebar-width)
+        minmax(0, 1fr);
 }
 
-/* =========================
-   5. SIDEBAR
-========================= */
+/* 5. SIDEBAR */
 
 .sidebar {
     position: sticky;
@@ -398,11 +356,11 @@ label:focus-visible {
 
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 22px;
 
-    padding: 25px 17px 20px;
+    padding: 22px 14px;
 
-    background: rgba(17, 13, 31, 0.76);
+    background: var(--bg);
     border-right: 1px solid var(--border);
 
     overflow-y: auto;
@@ -411,33 +369,30 @@ label:focus-visible {
 
 .nav-group {
     display: grid;
-    gap: 7px;
+    gap: 5px;
 }
 
 .nav-item {
+    min-height: 45px;
     width: 100%;
-    min-height: 47px;
 
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 13px;
 
-    padding: 0 15px;
+    padding: 0 13px;
+
+    color: #c3c3ca;
+    background: transparent;
+    border-radius: 9px;
 
     text-align: left;
-    color: var(--text-secondary);
-
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 13px;
-
     font-size: 13px;
     font-weight: 700;
 
     transition:
-        color var(--transition),
         background var(--transition),
-        border-color var(--transition);
+        color var(--transition);
 }
 
 .nav-item svg {
@@ -446,24 +401,17 @@ label:focus-visible {
 }
 
 .nav-item:hover {
-    color: white;
-    background: var(--surface);
+    color: var(--white);
+    background: #1b1b21;
 }
 
 .nav-item.active {
-    color: white;
-
-    background: linear-gradient(
-        100deg,
-        rgba(255, 46, 136, 0.18),
-        rgba(155, 92, 255, 0.12)
-    );
-
-    border-color: rgba(255, 46, 136, 0.2);
+    color: var(--white);
+    background: #202025;
 }
 
 .nav-item.active svg {
-    color: var(--primary);
+    color: var(--pink);
 }
 
 .emoji-icon {
@@ -473,100 +421,100 @@ label:focus-visible {
 }
 
 .side-title {
-    margin: -8px 0 -15px;
-    padding-left: 14px;
+    margin: -5px 0 -14px;
+    padding: 0 13px;
 
-    color: var(--text-muted);
-
+    color: var(--subtle);
     font-size: 10px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 1.8px;
+    letter-spacing: 1.4px;
 }
 
 .side-bottom {
     margin-top: auto;
-    padding: 20px 9px 0;
+    padding: 16px 10px 0;
+
+    border-top: 1px solid var(--border);
 }
 
 .footer-links {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 13px;
+    gap: 8px 12px;
 }
 
 .footer-links button {
-    color: var(--text-muted);
+    color: var(--subtle);
     background: transparent;
     font-size: 10px;
-
-    transition: color var(--transition);
 }
 
 .footer-links button:hover {
-    color: var(--primary);
+    color: var(--white);
 }
 
 .copyright {
-    margin-top: 14px;
-    color: var(--text-muted);
+    margin-top: 12px;
+    color: var(--subtle);
     font-size: 10px;
 }
 
-/* =========================
-   6. VIDEO FEED
-========================= */
+/* 6. VIDEO FEED */
 
 .feed {
     width: 100%;
     min-width: 0;
-    max-width: 1150px;
+    max-width: 1280px;
 
     margin-inline: auto;
-    padding: 28px clamp(18px, 3vw, 42px) 70px;
+    padding: 26px 25px 55px;
 
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-content: start;
     align-items: start;
-    gap: 28px 22px;
+
+    gap: 25px 18px;
 }
 
-/* Video cards generated by JavaScript */
+/* Cards */
 
 .video-card {
     position: relative;
     min-width: 0;
     overflow: hidden;
 
-    background: var(--surface);
+    background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 20px;
-
-    box-shadow: var(--shadow);
+    border-radius: var(--radius-md);
 
     transition:
-        transform var(--transition),
-        border-color var(--transition);
+        border-color var(--transition),
+        transform var(--transition);
 }
 
 .video-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(155, 92, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
 }
 
-/* Support common video wrapper names */
+/* Recognized video wrapper classes */
 
 .video-media,
 .video-container,
 .video-wrapper,
 .video-frame {
     position: relative;
+
     width: 100%;
     overflow: hidden;
-    background: #08070e;
+
     aspect-ratio: 9 / 14;
+    background: #050507;
 }
+
+/* Video itself */
 
 .video-card video,
 .feed-video {
@@ -574,27 +522,28 @@ label:focus-visible {
 
     width: 100%;
     height: 100%;
+
     aspect-ratio: 9 / 14;
-
     object-fit: cover;
-    background: #08070e;
 
+    background: #050507;
     cursor: pointer;
 }
 
-/* Video information */
+/* Card details */
 
 .video-info,
 .video-details {
     min-width: 0;
-    padding: 15px;
+    padding: 12px 13px;
 }
 
 .video-info h3,
 .video-details h3 {
     margin-bottom: 5px;
 
-    font-size: 13px;
+    color: var(--white);
+    font-size: 12px;
     font-weight: 800;
     line-height: 1.5;
 
@@ -602,19 +551,18 @@ label:focus-visible {
 }
 
 .video-info p,
-.video-details p {
-    color: var(--text-secondary);
-    font-size: 12px;
+.video-details p,
+.video-caption {
+    color: var(--muted);
+    font-size: 11px;
     overflow-wrap: anywhere;
 }
 
 .video-caption {
-    margin-top: 7px;
-    color: var(--text-secondary);
-    font-size: 12px;
+    margin-top: 5px;
 }
 
-/* Creator information */
+/* Creator rows */
 
 .video-author,
 .video-user,
@@ -624,14 +572,14 @@ label:focus-visible {
     gap: 9px;
 
     min-width: 0;
-    margin-bottom: 10px;
+    margin-bottom: 9px;
 }
 
 .video-author img,
 .video-user img,
 .creator-info img {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     object-fit: cover;
     border-radius: 50%;
 }
@@ -643,13 +591,13 @@ label:focus-visible {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    color: #ededf1;
     font-size: 11px;
     font-weight: 700;
 }
 
-/* =========================
-   7. VIDEO ACTIONS
-========================= */
+/* 7. VIDEO ACTION BAR */
 
 .video-actions,
 .video-action-bar,
@@ -657,29 +605,28 @@ label:focus-visible {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 7px;
 
-    padding: 10px 13px 14px;
+    padding: 0 12px 13px;
 }
 
 .video-actions button,
 .video-action-bar button,
 .action-bar button {
-    min-height: 35px;
+    min-height: 32px;
+    padding: 0 9px;
 
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 5px;
 
-    padding: 0 10px;
-
-    color: var(--text-secondary);
-    background: var(--surface-light);
+    color: #d0d0d6;
+    background: #222228;
     border: 1px solid transparent;
-    border-radius: 10px;
+    border-radius: 7px;
 
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
 
     transition: var(--transition);
@@ -689,8 +636,7 @@ label:focus-visible {
 .video-action-bar button:hover,
 .action-bar button:hover {
     color: white;
-    background: var(--surface-hover);
-    border-color: var(--border);
+    background: #303038;
 }
 
 .video-actions button.liked,
@@ -699,29 +645,25 @@ label:focus-visible {
 .video-action-bar button.active,
 .action-bar button.liked,
 .action-bar button.active {
-    color: var(--primary);
-    background: rgba(255, 46, 136, 0.12);
-    border-color: rgba(255, 46, 136, 0.18);
+    color: var(--pink);
+    background: rgba(254, 44, 85, 0.1);
+    border-color: rgba(254, 44, 85, 0.18);
 }
 
 .video-actions svg,
 .video-action-bar svg,
 .action-bar svg {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
 }
 
-/* =========================
-   8. MOBILE NAVIGATION
-========================= */
+/* 8. MOBILE NAVIGATION */
 
 .mobile-nav {
     display: none;
 }
 
-/* =========================
-   9. GENERAL MODALS
-========================= */
+/* 9. MODALS */
 
 .modal {
     position: fixed;
@@ -743,93 +685,85 @@ label:focus-visible {
     position: absolute;
     inset: 0;
 
-    background: rgba(5, 4, 12, 0.78);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .modal-box {
     position: relative;
     z-index: 1;
 
-    width: min(100%, 520px);
-    max-height: min(85vh, 760px);
-
     display: flex;
     flex-direction: column;
 
+    width: min(100%, 520px);
+    max-height: 88vh;
+
     overflow: auto;
 
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 24px;
+    background: #151519;
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
 
-    box-shadow: 0 25px 100px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 25px 100px rgba(0, 0, 0, 0.65);
 
-    animation: modalEnter 0.22s ease;
+    animation: modalEnter 180ms ease;
 }
 
 @keyframes modalEnter {
     from {
         opacity: 0;
-        transform: translateY(12px) scale(0.98);
+        transform: translateY(8px);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0);
     }
 }
 
 .close {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 14px;
+    right: 14px;
     z-index: 2;
 
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
 
     display: grid;
     place-items: center;
 
-    color: var(--text-secondary);
-    background: var(--surface-light);
-    border: 1px solid var(--border);
+    color: #eee;
+    background: #29292f;
     border-radius: 50%;
 
-    font-size: 15px;
-
-    transition: var(--transition);
+    transition: background var(--transition);
 }
 
 .close:hover {
-    color: white;
-    background: var(--danger);
-    border-color: var(--danger);
+    background: var(--pink);
 }
 
-/* =========================
-   10. COMMENTS MODAL
-========================= */
+/* 10. COMMENTS */
 
 .comments-box {
     height: min(650px, 85vh);
 }
 
 .modal-header {
-    min-height: 65px;
+    min-height: 62px;
 
     display: flex;
     align-items: center;
 
-    padding: 18px 22px;
-
+    padding: 17px 20px;
     border-bottom: 1px solid var(--border);
 }
 
 .modal-header h2 {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 800;
 }
 
@@ -837,7 +771,7 @@ label:focus-visible {
     flex: 1;
     min-height: 150px;
 
-    padding: 20px;
+    padding: 18px;
     overflow-y: auto;
 }
 
@@ -845,15 +779,15 @@ label:focus-visible {
 .comment {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
 
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .comment-item .avatar,
 .comment .avatar {
-    width: 35px;
-    height: 35px;
+    width: 33px;
+    height: 33px;
 }
 
 .comment-content {
@@ -863,66 +797,65 @@ label:focus-visible {
 
 .comment-content strong {
     display: block;
-    margin-bottom: 4px;
-    font-size: 12px;
+    margin-bottom: 3px;
+    font-size: 11px;
 }
 
 .comment-content p {
-    color: var(--text-secondary);
+    color: #d0d0d6;
     font-size: 12px;
     overflow-wrap: anywhere;
 }
 
 .comment-form {
     display: flex;
-    gap: 10px;
+    gap: 9px;
 
-    padding: 16px;
+    padding: 13px;
     border-top: 1px solid var(--border);
 }
 
 .comment-form input {
     flex: 1;
     min-width: 0;
-    height: 43px;
+    height: 42px;
 
-    padding: 0 14px;
+    padding: 0 13px;
 
+    background: #242429;
+    border: 1px solid transparent;
+    border-radius: 8px;
     outline: none;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
 }
 
 .comment-form input:focus {
-    border-color: var(--secondary);
+    border-color: var(--border-strong);
 }
 
 .comment-form button {
-    padding: 0 17px;
+    padding: 0 15px;
 
     color: white;
-    background: var(--primary);
-    border-radius: 12px;
+    background: var(--pink);
+    border-radius: 8px;
 
+    font-size: 12px;
     font-weight: 800;
 }
 
 .comment-form button:hover:not(:disabled) {
-    background: var(--primary-hover);
+    background: var(--pink-hover);
 }
 
-/* =========================
-   11. CREATE VIDEO MODAL
-========================= */
+/* 11. CREATE VIDEO */
 
 .create-box {
-    padding: 30px;
-    gap: 18px;
+    padding: 28px;
+    gap: 17px;
 }
 
 .upload-zone {
-    min-height: 250px;
+    min-height: 235px;
 
     display: flex;
     flex-direction: column;
@@ -930,20 +863,13 @@ label:focus-visible {
     justify-content: center;
     gap: 12px;
 
-    padding: 25px 18px;
+    padding: 22px 16px;
 
     text-align: center;
 
-    background:
-        radial-gradient(
-            circle at center,
-            rgba(155, 92, 255, 0.12),
-            transparent 70%
-        ),
-        var(--surface);
-
-    border: 2px dashed rgba(155, 92, 255, 0.45);
-    border-radius: 19px;
+    background: #1b1b21;
+    border: 1px dashed #55555f;
+    border-radius: 14px;
 
     transition:
         background var(--transition),
@@ -951,60 +877,54 @@ label:focus-visible {
 }
 
 .upload-zone.dragover {
-    background: rgba(255, 46, 136, 0.1);
-    border-color: var(--primary);
+    background: rgba(37, 244, 238, 0.06);
+    border-color: var(--cyan);
 }
 
 .upload-icon-wrapper {
-    width: 64px;
-    height: 64px;
+    width: 58px;
+    height: 58px;
 
     display: grid;
     place-items: center;
 
-    color: white;
-    background: linear-gradient(
-        135deg,
-        var(--primary),
-        var(--secondary)
-    );
-
-    border-radius: 19px;
+    color: #08080b;
+    background: var(--cyan);
+    border-radius: 16px;
 }
 
 .upload-zone h2 {
-    font-size: 21px;
+    font-size: 19px;
     font-weight: 800;
 }
 
 .upload-zone p {
-    color: var(--text-secondary);
+    color: var(--muted);
     font-size: 12px;
 }
 
 .upload-btn {
+    min-height: 39px;
+    margin-top: 3px;
+    padding: 0 18px;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
 
-    min-height: 42px;
-    margin-top: 5px;
-    padding: 0 20px;
-
     color: white;
-    background: var(--primary);
-    border-radius: 12px;
+    background: var(--pink);
+    border-radius: 7px;
 
     font-size: 12px;
     font-weight: 800;
-
     cursor: pointer;
-    transition: var(--transition);
+
+    transition: background var(--transition);
 }
 
 .upload-btn:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
+    background: var(--pink-hover);
 }
 
 .preview-container {
@@ -1019,14 +939,13 @@ label:focus-visible {
     aspect-ratio: 9 / 12;
 
     object-fit: contain;
-    background: #050408;
-
-    border-radius: 15px;
+    background: #000;
+    border-radius: 10px;
 }
 
 .file-name-muted {
-    margin-top: 8px;
-    color: var(--text-secondary);
+    margin-top: 7px;
+    color: var(--muted);
     font-size: 11px;
     overflow-wrap: anywhere;
 }
@@ -1037,50 +956,39 @@ label:focus-visible {
 
 .caption-input {
     width: 100%;
-    height: 47px;
+    height: 44px;
 
-    padding: 0 14px;
+    padding: 0 13px;
 
+    background: #242429;
+    border: 1px solid transparent;
+    border-radius: 8px;
     outline: none;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
 }
 
 .caption-input:focus {
-    border-color: var(--secondary);
+    border-color: var(--border-strong);
 }
 
 .post-video-btn {
+    min-height: 45px;
     width: 100%;
-    min-height: 48px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
 
     color: white;
-    background: linear-gradient(
-        110deg,
-        var(--primary),
-        var(--secondary)
-    );
+    background: var(--pink);
+    border-radius: 8px;
 
-    border-radius: 13px;
-
+    font-size: 13px;
     font-weight: 800;
 
-    transition: var(--transition);
+    transition: background var(--transition);
 }
 
 .post-video-btn:hover:not(:disabled) {
-    box-shadow: 0 8px 25px rgba(255, 46, 136, 0.2);
-    transform: translateY(-1px);
+    background: var(--pink-hover);
 }
 
-/* =========================
-   12. FULLSCREEN VIDEO VIEWER
-========================= */
+/* 12. FULLSCREEN VIEWER */
 
 .viewer {
     position: fixed;
@@ -1091,9 +999,8 @@ label:focus-visible {
     align-items: center;
     justify-content: center;
 
-    padding: 30px;
-
-    background: rgba(4, 3, 9, 0.97);
+    padding: 25px;
+    background: rgba(0, 0, 0, 0.97);
 }
 
 .viewer.active {
@@ -1107,70 +1014,62 @@ label:focus-visible {
     height: auto;
 
     max-width: 100%;
-    max-height: calc(100vh - 60px);
+    max-height: calc(100vh - 50px);
 
-    aspect-ratio: auto;
     object-fit: contain;
-
     background: #000;
-    border-radius: 12px;
+    border-radius: 8px;
 }
 
 .viewer-close {
     position: absolute;
-    top: 20px;
-    right: 22px;
+    top: 18px;
+    right: 20px;
     z-index: 2;
 
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
 
     display: grid;
     place-items: center;
 
     color: white;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--border);
+    background: #26262b;
     border-radius: 50%;
 
-    font-size: 19px;
-
-    transition: var(--transition);
+    font-size: 18px;
 }
 
 .viewer-close:hover {
-    background: var(--primary);
+    background: var(--pink);
 }
 
-/* =========================
-   13. TOAST NOTIFICATION
-========================= */
+/* 13. TOAST */
 
 .toast {
     position: fixed;
     left: 50%;
-    bottom: 30px;
+    bottom: 25px;
     z-index: 5000;
 
-    max-width: calc(100% - 32px);
-    padding: 13px 20px;
+    max-width: calc(100% - 30px);
+    padding: 12px 18px;
 
     color: white;
-    background: var(--surface-light);
-    border: 1px solid var(--border);
-    border-radius: 13px;
-
-    box-shadow: var(--shadow);
+    background: #29292f;
+    border: 1px solid var(--border-strong);
+    border-radius: 9px;
 
     font-size: 12px;
     font-weight: 700;
     text-align: center;
 
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-
-    transform: translate(-50%, 12px);
+    transform: translate(-50%, 10px);
 
     transition:
         opacity var(--transition),
@@ -1185,54 +1084,49 @@ label:focus-visible {
     transform: translate(-50%, 0);
 }
 
-/* =========================
-   14. EMPTY STATES
-========================= */
+/* 14. EMPTY STATES */
 
 .empty-state,
 .feed-empty,
 .no-results {
     grid-column: 1 / -1;
 
-    min-height: 280px;
+    min-height: 260px;
+    padding: 28px;
 
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-
-    padding: 30px;
+    gap: 10px;
 
     text-align: center;
 
-    background: var(--surface);
-    border: 1px dashed var(--border);
-    border-radius: 22px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
 }
 
 .empty-state h2,
 .feed-empty h2,
 .no-results h2 {
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 800;
 }
 
 .empty-state p,
 .feed-empty p,
 .no-results p {
-    max-width: 340px;
-    color: var(--text-secondary);
+    max-width: 350px;
+    color: var(--muted);
     font-size: 12px;
 }
 
-/* =========================
-   15. SCROLLBARS
-========================= */
+/* 15. SCROLLBARS */
 
 *::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
 }
 
 *::-webkit-scrollbar-track {
@@ -1240,46 +1134,44 @@ label:focus-visible {
 }
 
 *::-webkit-scrollbar-thumb {
-    background: #44365f;
+    background: #3b3b43;
     border-radius: 10px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-    background: var(--secondary);
+    background: #666670;
 }
 
-/* =========================
-   16. TABLET
-========================= */
+/* 16. LARGE TABLETS */
 
 @media (max-width: 1200px) {
     :root {
-        --sidebar-width: 215px;
+        --sidebar-width: 200px;
     }
 
     .topbar {
-        gap: 20px;
-        padding-inline: 22px;
+        grid-template-columns: 155px minmax(150px, 400px) 1fr;
+        gap: 18px;
+        padding-inline: 20px;
     }
 
     .feed {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 22px 18px;
+        gap: 22px 16px;
+        padding-inline: 20px;
     }
 }
 
-/* =========================
-   17. SMALL TABLETS
-========================= */
+/* 17. COMPACT TABLETS */
 
 @media (max-width: 850px) {
     :root {
-        --sidebar-width: 78px;
+        --sidebar-width: 70px;
     }
 
     .sidebar {
         align-items: center;
-        padding-inline: 10px;
+        padding-inline: 8px;
     }
 
     .nav-group {
@@ -1288,46 +1180,31 @@ label:focus-visible {
 
     .nav-item {
         justify-content: center;
-        gap: 0;
-        padding-inline: 5px;
+        padding-inline: 4px;
     }
 
-    .nav-item span:not(.emoji-icon) {
-        display: none;
-    }
-
+    .nav-item span:not(.emoji-icon),
     .side-title,
     .side-bottom {
         display: none;
     }
 
     .nav-item svg {
-        width: 23px;
-        height: 23px;
-    }
-
-    .emoji-icon {
-        font-size: 20px;
-    }
-
-    .topbar {
-        gap: 16px;
-        padding-inline: 18px;
+        width: 22px;
+        height: 22px;
     }
 
     .feed {
-        padding-inline: 20px;
+        padding-inline: 16px;
     }
 }
 
-/* =========================
-   18. MOBILE
-========================= */
+/* 18. MOBILE */
 
 @media (max-width: 600px) {
     :root {
-        --topbar-height: 62px;
-        --mobile-nav-height: 66px;
+        --topbar-height: 58px;
+        --mobile-nav-height: 62px;
     }
 
     body {
@@ -1337,19 +1214,18 @@ label:focus-visible {
 
     .topbar {
         height: var(--topbar-height);
-        padding-inline: 13px;
-        gap: 12px;
-    }
 
-    .brand {
-        gap: 1px;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 10px;
+
+        padding-inline: 12px;
     }
 
     .brand-v {
-        width: 32px;
-        height: 32px;
+        width: 31px;
+        height: 31px;
         font-size: 22px;
-        border-radius: 9px;
+        border-radius: 8px;
     }
 
     .brand-tik {
@@ -1358,50 +1234,42 @@ label:focus-visible {
     }
 
     .search {
-        height: 38px;
+        height: 35px;
+        padding-inline: 9px;
         gap: 7px;
-        padding-inline: 10px;
-        border-radius: 11px;
+        border-radius: 8px;
     }
 
     .search-icon svg {
-        width: 16px;
-        height: 16px;
+        width: 15px;
+        height: 15px;
     }
 
     .search input {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .topbar-actions {
-        gap: 8px;
+        gap: 5px;
     }
 
     .create-btn {
-        width: 37px;
-        height: 37px;
-        min-height: 37px;
+        width: 35px;
+        height: 35px;
+        min-height: 35px;
         padding: 0;
-        border-radius: 10px;
+        border-radius: 8px;
     }
 
-    .create-btn span {
-        display: none;
-    }
-
-    .create-btn svg {
-        width: 20px;
-        height: 20px;
-    }
-
+    .create-btn span,
     #notificationBtn {
         display: none;
     }
 
     .avatar.small {
-        width: 32px;
-        height: 32px;
-        font-size: 10px;
+        width: 30px;
+        height: 30px;
+        font-size: 9px;
     }
 
     .shell {
@@ -1418,15 +1286,15 @@ label:focus-visible {
     }
 
     .feed {
-        max-width: 100%;
-        padding: 16px 12px 25px;
+        width: 100%;
+        padding: 12px 9px 24px;
 
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px 10px;
+        gap: 13px 9px;
     }
 
     .video-card {
-        border-radius: 14px;
+        border-radius: 10px;
     }
 
     .video-media,
@@ -1443,12 +1311,12 @@ label:focus-visible {
 
     .video-info,
     .video-details {
-        padding: 10px;
+        padding: 9px;
     }
 
     .video-info h3,
     .video-details h3 {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .video-info p,
@@ -1461,30 +1329,30 @@ label:focus-visible {
     .video-action-bar,
     .action-bar {
         gap: 5px;
-        padding: 7px 8px 10px;
+        padding: 0 8px 9px;
     }
 
     .video-actions button,
     .video-action-bar button,
     .action-bar button {
-        min-height: 30px;
+        min-height: 28px;
+        padding-inline: 6px;
         gap: 4px;
-        padding-inline: 7px;
-        font-size: 10px;
+        font-size: 9px;
     }
 
     .video-actions svg,
     .video-action-bar svg,
     .action-bar svg {
-        width: 14px;
-        height: 14px;
+        width: 13px;
+        height: 13px;
     }
 
-    /* Bottom navigation */
+    /* Fixed mobile navigation */
 
     .mobile-nav {
         position: fixed;
-        inset: auto 0 0 0;
+        inset: auto 0 0;
         z-index: 1000;
 
         min-height: var(--mobile-nav-height);
@@ -1492,32 +1360,32 @@ label:focus-visible {
         display: flex;
         align-items: center;
         justify-content: space-around;
-        gap: 5px;
+        gap: 4px;
 
-        padding: 7px 8px max(7px, env(safe-area-inset-bottom));
+        padding: 5px 8px max(5px, env(safe-area-inset-bottom));
 
-        background: rgba(17, 13, 31, 0.97);
+        background: rgba(10, 10, 13, 0.97);
         border-top: 1px solid var(--border);
 
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
     }
 
     .mobile-nav > button,
     .mobile-profile-link {
         flex: 1;
         min-width: 0;
+        min-height: 45px;
 
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 3px;
+        gap: 2px;
 
-        min-height: 48px;
         padding: 3px;
 
-        color: var(--text-muted);
+        color: #aaaab3;
         background: transparent;
 
         font-size: 9px;
@@ -1530,59 +1398,59 @@ label:focus-visible {
     }
 
     .mobile-nav > button.active {
-        color: var(--primary);
+        color: var(--white);
+    }
+
+    .mobile-nav > button.active svg {
+        color: var(--pink);
     }
 
     .mobile-nav .mobile-create {
-        flex: 0 0 47px;
+        flex: 0 0 42px;
 
-        width: 47px;
-        height: 43px;
-        min-height: 43px;
+        width: 42px;
+        height: 35px;
+        min-height: 35px;
 
-        color: white;
-        background: linear-gradient(
-            135deg,
-            var(--primary),
-            var(--secondary)
-        );
+        color: #08080b;
+        background: var(--cyan);
+        border-radius: 8px;
 
-        border-radius: 13px;
-        box-shadow: 0 5px 20px rgba(255, 46, 136, 0.2);
+        box-shadow: 3px 0 0 var(--pink);
     }
 
-    .mobile-create svg {
-        width: 24px;
-        height: 24px;
+    .mobile-nav .mobile-create svg {
+        width: 22px;
+        height: 22px;
     }
 
     .mobile-profile-link {
         text-decoration: none;
     }
 
-    /* Mobile dialogs */
+    /* Mobile modals */
 
     .modal {
-        padding: 12px;
+        padding: 10px;
     }
 
     .modal-box {
-        max-height: 88vh;
-        border-radius: 19px;
+        max-height: 90vh;
+        border-radius: 14px;
     }
 
     .create-box {
-        padding: 22px 16px;
-        gap: 14px;
+        padding: 20px 14px;
+        gap: 13px;
     }
 
     .upload-zone {
-        min-height: 220px;
-        padding: 20px 12px;
+        min-height: 210px;
+        padding: 18px 10px;
     }
 
     .upload-zone h2 {
-        font-size: 18px;
+        font-size: 17px;
     }
 
     .upload-zone p {
@@ -1590,19 +1458,19 @@ label:focus-visible {
     }
 
     .comments-box {
-        height: min(650px, 88vh);
+        height: min(650px, 90vh);
     }
 
     .modal-header {
-        padding: 16px;
-    }
-
-    .comments-list {
         padding: 15px;
     }
 
+    .comments-list {
+        padding: 14px;
+    }
+
     .comment-form {
-        padding: 12px;
+        padding: 10px;
     }
 
     .comment-form input {
@@ -1610,20 +1478,18 @@ label:focus-visible {
     }
 
     .viewer {
-        padding: 12px;
+        padding: 10px;
     }
 
     #viewerVideo {
-        max-height: calc(100vh - 24px);
-        border-radius: 8px;
+        max-height: calc(100vh - 20px);
     }
 
     .viewer-close {
-        top: 12px;
-        right: 12px;
-
-        width: 38px;
-        height: 38px;
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
     }
 
     .toast {
@@ -1631,44 +1497,32 @@ label:focus-visible {
     }
 }
 
-/* =========================
-   19. EXTRA SMALL PHONES
-========================= */
+/* 19. VERY SMALL PHONES */
 
 @media (max-width: 360px) {
     .topbar {
-        gap: 8px;
-        padding-inline: 9px;
+        gap: 7px;
+        padding-inline: 8px;
     }
 
     .brand-tik {
         display: none;
     }
 
-    .search {
-        flex: 1;
-    }
-
-    .topbar-actions {
-        gap: 6px;
-    }
-
     .feed {
-        padding-inline: 8px;
-        gap: 12px 8px;
+        padding-inline: 6px;
+        gap: 10px 6px;
     }
 
     .video-actions button,
     .video-action-bar button,
     .action-bar button {
-        padding-inline: 5px;
-        font-size: 9px;
+        padding-inline: 4px;
+        font-size: 8px;
     }
 }
 
-/* =========================
-   20. ACCESSIBILITY
-========================= */
+/* 20. REDUCED MOTION */
 
 @media (prefers-reduced-motion: reduce) {
     *,
