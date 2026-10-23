@@ -100,7 +100,7 @@
             avatar: "🔥",
             caption: "Welcome to V-Tik! Discover amazing videos.",
             music: "Original sound",
-            src: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+            src: "vtik-demo-1.mp4",
             uploaded: false,
             likes: 1240,
             comments: [],
