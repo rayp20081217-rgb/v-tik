@@ -1,108 +1,186 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0F0C1B">
+    <meta name="description" content="Discover, watch, share, and create short videos on V-Tik.">
     <title>V-Tik — Short Videos</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <!-- TOP BAR -->
+    <!-- =========================
+         TOP BAR
+    ========================== -->
     <header class="topbar">
-        <a href="index.html" class="brand">
+        <a href="index.html" class="brand" aria-label="V-Tik home">
             <span class="brand-v">V</span><span class="brand-tik">TIK</span>
         </a>
 
         <div class="search">
-            <span class="search-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span class="search-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.3-4.3"></path>
+                </svg>
             </span>
-            <input id="searchInput" type="search" placeholder="Search accounts, videos..." autocomplete="off">
-            <button id="clearSearch" class="clear-search" type="button" hidden aria-label="Clear search">✕</button>
+
+            <input
+                id="searchInput"
+                type="search"
+                placeholder="Search accounts, videos..."
+                autocomplete="off"
+                aria-label="Search videos and accounts"
+            >
+
+            <button
+                id="clearSearch"
+                class="clear-search"
+                type="button"
+                hidden
+                aria-label="Clear search"
+            >✕</button>
         </div>
 
         <div class="top-actions">
-            <!-- Create Button for Desktop Bar -->
-            <button class="create-top" id="createTop" type="button" aria-label="Browse desktop for a video" onclick="openDesktopVideoPicker()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            <button
+                class="create-top"
+                id="createTop"
+                type="button"
+                aria-label="Create a video"
+                onclick="openDesktopVideoPicker()"
+            >
+                <svg width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14"></path>
+                    <path d="M12 5v14"></path>
+                </svg>
                 <span>Create</span>
             </button>
 
-            <button class="round-btn" id="notificationBtn" type="button" title="Notifications" aria-label="Notifications">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <button
+                class="round-btn"
+                id="notificationBtn"
+                type="button"
+                title="Notifications"
+                aria-label="Notifications"
+            >
+                <svg width="20" height="20" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                </svg>
                 <span class="badge"></span>
             </button>
 
-            <a href="log.html" class="profile-link" aria-label="User Profile">
+            <a href="log.html" class="profile-link" aria-label="User profile">
                 <span class="avatar small">TR</span>
             </a>
         </div>
     </header>
 
-    <!-- MAIN SHELL -->
+
+    <!-- =========================
+         MAIN APPLICATION SHELL
+    ========================== -->
     <div class="shell">
 
         <!-- SIDEBAR -->
         <aside class="sidebar">
-            <nav class="nav-group">
-                <button class="nav-item active" data-section="home">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <nav class="nav-group" aria-label="Main navigation">
+
+                <button class="nav-item active" type="button" data-section="home">
+                    <svg width="22" height="22" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
                     <span>Home</span>
                 </button>
 
-                <button class="nav-item" data-section="discover">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                <button class="nav-item" type="button" data-section="discover">
+                    <svg width="22" height="22" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                    </svg>
                     <span>Discover</span>
                 </button>
 
-                <button class="nav-item" data-section="following">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <button class="nav-item" type="button" data-section="following">
+                    <svg width="22" height="22" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
                     <span>Following</span>
                 </button>
 
-                <button class="nav-item" data-section="liked">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                <button class="nav-item" type="button" data-section="liked">
+                    <svg width="22" height="22" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                    </svg>
                     <span>Liked</span>
                 </button>
 
-                <button class="nav-item" data-section="saved">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                <button class="nav-item" type="button" data-section="saved">
+                    <svg width="22" height="22" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+                    </svg>
                     <span>Saved</span>
                 </button>
 
-                <button class="nav-item" data-section="messages">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <button class="nav-item" type="button" data-section="messages">
+                    <svg width="22" height="22" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
                     <span>Messages</span>
                 </button>
             </nav>
 
             <div class="side-title">Explore</div>
 
-            <nav class="nav-group">
-                <button class="nav-item" data-section="trending">
-                    <span class="emoji-icon">🔥</span>
+            <nav class="nav-group" aria-label="Explore categories">
+                <button class="nav-item" type="button" data-section="trending">
+                    <span class="emoji-icon" aria-hidden="true">🔥</span>
                     <span>Trending</span>
                 </button>
 
-                <button class="nav-item" data-section="music">
-                    <span class="emoji-icon">♫</span>
+                <button class="nav-item" type="button" data-section="music">
+                    <span class="emoji-icon" aria-hidden="true">♫</span>
                     <span>Music</span>
                 </button>
 
-                <button class="nav-item" data-section="gaming">
-                    <span class="emoji-icon">🎮</span>
+                <button class="nav-item" type="button" data-section="gaming">
+                    <span class="emoji-icon" aria-hidden="true">🎮</span>
                     <span>Gaming</span>
                 </button>
 
-                <button class="nav-item" data-section="challenges">
-                    <span class="emoji-icon">🏆</span>
+                <button class="nav-item" type="button" data-section="challenges">
+                    <span class="emoji-icon" aria-hidden="true">🏆</span>
                     <span>Challenges</span>
                 </button>
             </nav>
@@ -113,36 +191,69 @@
                     <button type="button">Privacy</button>
                     <button type="button">Terms</button>
                 </div>
+
                 <p class="copyright">© 2026 V-Tik</p>
             </div>
         </aside>
 
-        <!-- VIDEO FEED -->
-        <main class="feed" id="feed">
-            <!-- JS injects videos dynamically -->
+
+        <!-- =========================
+             VIDEO FEED
+             Videos are rendered by app.js.
+             No automatic Add Video prompt here.
+        ========================== -->
+        <main class="feed" id="feed" aria-label="Video feed">
+            <!-- app.js inserts video cards here -->
         </main>
 
     </div>
 
-    <!-- MOBILE NAVIGATION -->
-    <nav class="mobile-nav">
-        <button class="active" data-section="home" aria-label="Home">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+
+    <!-- =========================
+         MOBILE NAVIGATION
+    ========================== -->
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+
+        <button class="active" type="button" data-section="home" aria-label="Home">
+            <svg width="22" height="22" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
             <span>Home</span>
         </button>
 
-        <button data-section="discover" aria-label="Discover">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+        <button type="button" data-section="discover" aria-label="Discover">
+            <svg width="22" height="22" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+            </svg>
             <span>Discover</span>
         </button>
 
-        <!-- Create Button for Mobile Bar -->
-        <button class="mobile-create" id="mobileCreate" aria-label="Browse desktop for a video" type="button" onclick="openDesktopVideoPicker()">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <button
+            class="mobile-create"
+            id="mobileCreate"
+            type="button"
+            aria-label="Create a video"
+            onclick="openDesktopVideoPicker()"
+        >
+            <svg width="24" height="24" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14"></path>
+                <path d="M5 12h14"></path>
+            </svg>
         </button>
 
-        <button data-section="messages" aria-label="Inbox">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <button type="button" data-section="messages" aria-label="Inbox">
+            <svg width="22" height="22" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
             <span>Inbox</span>
         </button>
 
@@ -152,39 +263,94 @@
         </a>
     </nav>
 
-    <!-- COMMENTS MODAL -->
-    <div class="modal" id="commentsModal">
+
+    <!-- =========================
+         COMMENTS MODAL
+    ========================== -->
+    <div
+        class="modal"
+        id="commentsModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="commentsTitle"
+        aria-hidden="true"
+    >
         <div class="modal-backdrop" id="commentsBackdrop"></div>
+
         <div class="modal-box comments-box">
             <div class="modal-header">
-                <h2>Comments</h2>
-                <button class="close" id="closeComments" type="button" aria-label="Close comments">✕</button>
+                <h2 id="commentsTitle">Comments</h2>
+
+                <button
+                    class="close"
+                    id="closeComments"
+                    type="button"
+                    aria-label="Close comments"
+                >✕</button>
             </div>
 
             <div class="comments-list" id="comments"></div>
 
             <form class="comment-form" id="commentForm">
-                <input id="commentInput" type="text" placeholder="Add a comment..." maxlength="180" autocomplete="off">
+                <input
+                    id="commentInput"
+                    name="comment"
+                    type="text"
+                    placeholder="Add a comment..."
+                    maxlength="180"
+                    autocomplete="off"
+                    aria-label="Write a comment"
+                    required
+                >
+
                 <button type="submit" id="postCommentBtn" disabled>Post</button>
             </form>
         </div>
     </div>
 
-    <!-- CREATE VIDEO MODAL -->
-    <div class="modal" id="createModal">
+
+    <!-- =========================
+         CREATE VIDEO MODAL
+         Closed by default.
+    ========================== -->
+    <div
+        class="modal"
+        id="createModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="createTitle"
+        aria-hidden="true"
+    >
         <div class="modal-backdrop" id="createBackdrop"></div>
+
         <div class="modal-box create-box">
-            <button class="close" id="closeCreate" type="button" aria-label="Close upload modal">✕</button>
+            <button
+                class="close"
+                id="closeCreate"
+                type="button"
+                aria-label="Close upload dialog"
+            >✕</button>
 
-            <!-- Video File Input -->
-            <input id="videoPicker" type="file" accept="video/*" hidden>
+            <input
+                id="videoPicker"
+                name="video"
+                type="file"
+                accept="video/*"
+                hidden
+            >
 
-            <!-- Upload Zone -->
             <div class="upload-zone" id="uploadZone">
-                <div class="upload-icon-wrapper">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                <div class="upload-icon-wrapper" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
                 </div>
-                <h2>Create on V-Tik</h2>
+
+                <h2 id="createTitle">Create on V-Tik</h2>
                 <p>Drag and drop a video file, or browse</p>
 
                 <label for="videoPicker" class="upload-btn">
@@ -192,48 +358,88 @@
                 </label>
             </div>
 
-            <!-- Video Preview Container -->
             <div class="preview-container" id="previewContainer" hidden>
-                <video id="uploadPreview" class="upload-preview" controls muted loop playsinline></video>
+                <video
+                    id="uploadPreview"
+                    class="upload-preview"
+                    controls
+                    muted
+                    loop
+                    playsinline
+                ></video>
+
                 <p id="uploadName" class="file-name-muted"></p>
             </div>
 
             <div class="caption-wrapper">
-                <input id="videoCaption" class="caption-input" type="text" maxlength="180" placeholder="Write a catchy caption..." autocomplete="off">
+                <input
+                    id="videoCaption"
+                    class="caption-input"
+                    name="caption"
+                    type="text"
+                    maxlength="180"
+                    placeholder="Write a catchy caption..."
+                    autocomplete="off"
+                    aria-label="Video caption"
+                >
             </div>
 
-            <button id="postVideo" class="post-video-btn" type="button" disabled>Post Video</button>
+            <button id="postVideo" class="post-video-btn" type="button" disabled>
+                Post Video
+            </button>
         </div>
     </div>
 
-    <!-- FULLSCREEN VIDEO VIEWER -->
-    <div class="viewer" id="videoViewer">
-        <button class="viewer-close" id="viewerClose" type="button" aria-label="Close video viewer">✕</button>
-        <video id="viewerVideo" controls autoplay playsinline></video>
+
+    <!-- =========================
+         FULLSCREEN VIDEO VIEWER
+    ========================== -->
+    <div class="viewer" id="videoViewer" aria-hidden="true">
+        <button
+            class="viewer-close"
+            id="viewerClose"
+            type="button"
+            aria-label="Close video viewer"
+        >✕</button>
+
+        <video id="viewerVideo" controls playsinline></video>
     </div>
 
-    <!-- TOAST NOTIFICATION -->
-    <div class="toast" id="toast"></div>
 
-    <!-- Open the upload dialog and the desktop file picker from the plus/Create buttons. -->
+    <!-- =========================
+         TOAST NOTIFICATION
+    ========================== -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+
+    <!-- =========================
+         CREATE BUTTON HANDLER
+         Runs only when Create is clicked.
+    ========================== -->
     <script>
         function openDesktopVideoPicker() {
-            const createModal = document.getElementById("createModal");
-            const videoPicker = document.getElementById("videoPicker");
+            const modal = document.getElementById("createModal");
+            const picker = document.getElementById("videoPicker");
 
-            if (createModal) {
-                createModal.classList.add("active");
-                createModal.setAttribute("aria-hidden", "false");
+            if (!modal) {
+                console.error("V-Tik: createModal was not found.");
+                return;
             }
 
-            if (videoPicker) {
-                videoPicker.click();
+            modal.classList.add("active", "open");
+            modal.setAttribute("aria-hidden", "false");
+            document.body.classList.add("modal-open");
+
+            // Open the file browser after the user clicks Create.
+            if (picker) {
+                picker.click();
             }
         }
     </script>
 
-    <!-- Application Script -->
-   
+    <!-- Application logic -->
     <script src="app.js" defer></script>
+
 </body>
 </html>
+```
