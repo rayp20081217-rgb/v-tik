@@ -67,6 +67,17 @@ const videos = [
         following: false,
         category: "trending"
     }
+   {
+  id: 4,
+  src: "./video2 (1).mp4",
+  username: "yourname",
+  caption: "Check out my new video!",
+  category: "trending",
+  likes: 0,
+  comments: [],
+  saved: false,
+  following: false
+}
 ];
 
 let activeVideoId = null;
