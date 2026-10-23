@@ -128,7 +128,7 @@ function startSession(user, shouldRemember) {
             localStorage.removeItem(REMEMBER_KEY);
         }
 
-        window.location.href = "accounts.html";
+        window.location.href = "account.html";
     } catch (error) {
         console.error("Could not start login session:", error);
         showError("Unable to log in. Please check your browser storage.");
