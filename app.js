@@ -1,4 +1,4 @@
-```javascript
+
 "use strict";
 
 /* =========================================================
@@ -8,15 +8,15 @@
 ========================================================= */
 
 (() => {
-    /* 1. SAFE HELPERS */
+    /* 1. HELPERS */
 
     const $ = (selector, parent = document) =>
-        parent ? parent.querySelector(selector) : null;
+        parent?.querySelector(selector) || null;
 
     const $$ = (selector, parent = document) =>
         parent ? Array.from(parent.querySelectorAll(selector)) : [];
 
-    const byId = (id) => document.getElementById(id);
+    const byId = id => document.getElementById(id);
 
     const makeId = () =>
         `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -26,8 +26,8 @@
             ? value.trim()
             : fallback;
 
-    const escapeHTML = (value = "") =>
-        String(value).replace(/[&<>"']/g, (character) => ({
+    const escapeHTML = value =>
+        String(value ?? "").replace(/[&<>"']/g, character => ({
             "&": "&amp;",
             "<": "&lt;",
             ">": "&gt;",
@@ -35,7 +35,7 @@
             "'": "&#39;"
         })[character]);
 
-    const formatCount = (value = 0) => {
+    const formatCount = value => {
         const number = Number(value) || 0;
 
         if (number >= 1_000_000) {
@@ -49,21 +49,25 @@
         return String(number);
     };
 
+    const safeRevokeObjectURL = url => {
+        if (url && url.startsWith("blob:")) {
+            try {
+                URL.revokeObjectURL(url);
+            } catch (_) {}
+        }
+    };
+
     /* 2. HTML ELEMENTS */
 
     const feed = byId("feed") || $(".feed");
-    const searchInput = byId("searchInput") ||
-        $(".search input") ||
-        byId("search");
+    const searchInput = byId("searchInput") || $(".search input");
+    const clearSearchButton = byId("clearSearch");
 
-    const createModal = byId("createModal") || byId("uploadModal");
+    const createModal = byId("createModal");
     const commentsModal = byId("commentsModal");
-    const viewer = byId("videoViewer") || byId("fullscreenViewer");
+    const viewer = byId("videoViewer");
 
-    const videoPicker = byId("videoPicker") ||
-        byId("videoUpload") ||
-        byId("videoFile");
-
+    const videoPicker = byId("videoPicker");
     const uploadZone = byId("uploadZone");
     const previewContainer = byId("previewContainer");
     const uploadPreview = byId("uploadPreview");
@@ -77,15 +81,100 @@
         avatar: "😎"
     };
 
-    /* 3. STATE AND STORAGE */
+    /* 3. STORAGE AND DEFAULT VIDEOS */
 
     const STORAGE_KEY = "vtik_app_state_v1";
     const VIDEO_DB_NAME = "vtik_video_storage";
     const VIDEO_STORE_NAME = "videos";
 
+    /*
+     * These are sample videos. They are shown when there are
+     * no saved videos. Replace the URLs with your own videos
+     * whenever you are ready.
+     */
+    const DEMO_VIDEOS = [
+        {
+            id: "sample-vtik-1",
+            username: "vtik_trending",
+            displayName: "V-Tik Trending",
+            avatar: "🔥",
+            caption: "Welcome to V-Tik! Discover amazing videos.",
+            music: "Original sound",
+            src: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+            uploaded: false,
+            likes: 1240,
+            comments: [],
+            liked: false,
+            saved: false,
+            following: false,
+            createdAt: 3
+        },
+        {
+            id: "sample-vtik-2",
+            username: "daily_vibes",
+            displayName: "Daily Vibes",
+            avatar: "✨",
+            caption: "Your next favorite video is waiting for you!",
+            music: "Daily vibes",
+            src: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+            uploaded: false,
+            likes: 856,
+            comments: [],
+            liked: false,
+            saved: false,
+            following: false,
+            createdAt: 2
+        },
+        {
+            id: "sample-vtik-3",
+            username: "fun_zone",
+            displayName: "Fun Zone",
+            avatar: "🎬",
+            caption: "Enjoy the moment. Share the fun.",
+            music: "Original sound",
+            src: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+            uploaded: false,
+            likes: 532,
+            comments: [],
+            liked: false,
+            saved: false,
+            following: false,
+            createdAt: 1
+        }
+    ];
+
+    function createDefaultVideos() {
+        return DEMO_VIDEOS.map(video => ({
+            ...video,
+            comments: []
+        }));
+    }
+
+    function normalizeVideo(video) {
+        return {
+            id: String(video.id || makeId()),
+            username: safeText(video.username, "creator"),
+            displayName: safeText(
+                video.displayName,
+                safeText(video.username, "creator")
+            ),
+            avatar: safeText(video.avatar, "🙂"),
+            caption: typeof video.caption === "string" ? video.caption : "",
+            music: safeText(video.music, "Original sound"),
+            src: typeof video.src === "string" ? video.src : "",
+            uploaded: Boolean(video.uploaded),
+            likes: Math.max(0, Number(video.likes) || 0),
+            comments: Array.isArray(video.comments) ? video.comments : [],
+            liked: Boolean(video.liked),
+            saved: Boolean(video.saved),
+            following: Boolean(video.following),
+            createdAt: Number(video.createdAt) || Date.now()
+        };
+    }
+
     function loadState() {
-        const cleanState = {
-            videos: [],
+        const defaults = {
+            videos: createDefaultVideos(),
             activeTab: "For You",
             currentSection: "home",
             username: currentUser.username,
@@ -94,40 +183,38 @@
 
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return cleanState;
+
+            if (!raw) return defaults;
 
             const saved = JSON.parse(raw);
 
-            // Remove the old sample videos from previous app versions.
-            const videos = Array.isArray(saved.videos)
-                ? saved.videos.filter((video) =>
-                    video &&
-                    !/^demo-\d+$/i.test(String(video.id || "")) &&
-                    !/^vtik-demo-/i.test(String(video.src || ""))
-                )
+            let videos = Array.isArray(saved.videos)
+                ? saved.videos
+                    .filter(video => video && video.id)
+                    .filter(video =>
+                        !/^vtik-demo-/i.test(String(video.src || ""))
+                    )
+                    .map(normalizeVideo)
                 : [];
 
+            /*
+             * Older versions may have saved an empty array.
+             * Restore sample cards instead of showing a blank feed.
+             */
+            if (videos.length === 0) {
+                videos = createDefaultVideos();
+            }
+
             return {
-                videos: videos.map((video) => ({
-                    likes: 0,
-                    liked: false,
-                    saved: false,
-                    following: false,
-                    music: "Original sound",
-                    comments: [],
-                    ...video,
-                    comments: Array.isArray(video.comments)
-                        ? video.comments
-                        : []
-                })),
+                videos,
                 activeTab: saved.activeTab || "For You",
                 currentSection: saved.currentSection || "home",
                 username: saved.username || currentUser.username,
                 avatar: saved.avatar || currentUser.avatar
             };
         } catch (error) {
-            console.warn("V-Tik: saved state could not be read.", error);
-            return cleanState;
+            console.warn("V-Tik: Could not read saved state.", error);
+            return defaults;
         }
     }
 
@@ -143,21 +230,23 @@
     function saveState() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            return true;
         } catch (error) {
-            console.error("V-Tik: could not save app state.", error);
+            console.error("V-Tik: Could not save state.", error);
             showToast("Could not save changes in this browser.");
+            return false;
         }
     }
 
     function getVideo(id) {
-        return state.videos.find((video) => video.id === id);
+        return state.videos.find(video => video.id === String(id));
     }
 
     function getAvatar() {
         return safeText(state.avatar, currentUser.avatar);
     }
 
-    /* 4. VIDEO FILE STORAGE */
+    /* 4. INDEXEDDB VIDEO STORAGE */
 
     function openVideoDB() {
         if (!("indexedDB" in window)) {
@@ -191,6 +280,10 @@
                 dbPromise = null;
                 reject(request.error);
             };
+
+            request.onblocked = () => {
+                console.warn("V-Tik: Video storage is blocked by another tab.");
+            };
         });
 
         return dbPromise;
@@ -223,7 +316,7 @@
             const request = transaction.objectStore(VIDEO_STORE_NAME).get(id);
 
             request.onsuccess = () =>
-                resolve(request.result ? request.result.file : null);
+                resolve(request.result?.file || null);
 
             request.onerror = () => reject(request.error);
         });
@@ -234,17 +327,15 @@
             const db = await openVideoDB();
 
             await new Promise((resolve, reject) => {
-                const transaction = db.transaction(
-                    VIDEO_STORE_NAME,
-                    "readwrite"
-                );
+                const transaction = db.transaction(VIDEO_STORE_NAME, "readwrite");
 
                 transaction.objectStore(VIDEO_STORE_NAME).delete(id);
                 transaction.oncomplete = resolve;
                 transaction.onerror = () => reject(transaction.error);
+                transaction.onabort = () => reject(transaction.error);
             });
         } catch (error) {
-            console.warn("V-Tik: could not delete stored video.", error);
+            console.warn("V-Tik: Could not delete video file.", error);
         }
     }
 
@@ -252,51 +343,42 @@
         if (!video) return "";
 
         if (video.uploaded) {
-            try {
-                const file = await getVideoFile(video.id);
-                return file ? URL.createObjectURL(file) : "";
-            } catch (error) {
-                console.warn("V-Tik: video file could not be loaded.", error);
-                return "";
-            }
+            const file = await getVideoFile(video.id);
+            return file ? URL.createObjectURL(file) : "";
         }
 
         return video.src || "";
     }
 
-    /* 5. TOAST MESSAGE */
+    /* 5. TOAST */
 
     function showToast(message) {
-        let toast = byId("vtikToast");
+        const toast = byId("toast") || byId("vtikToast");
 
         if (!toast) {
-            toast = document.createElement("div");
-            toast.id = "vtikToast";
-            toast.className = "vtik-toast";
-            toast.setAttribute("role", "status");
-            toast.setAttribute("aria-live", "polite");
-            document.body.appendChild(toast);
+            console.info("V-Tik:", message);
+            return;
         }
 
         toast.textContent = message;
-        toast.classList.add("show");
+        toast.classList.add("show", "visible");
 
         if (toastTimer) clearTimeout(toastTimer);
 
         toastTimer = setTimeout(() => {
-            toast.classList.remove("show");
+            toast.classList.remove("show", "visible");
         }, 2800);
     }
 
-    /* 6. VIDEO CARD */
+    /* 6. VIDEO CARD HTML */
 
     function videoCardHTML(video) {
+        const id = escapeHTML(video.id);
         const username = safeText(video.username, "creator");
         const displayName = safeText(video.displayName, username);
         const avatar = safeText(video.avatar, "🙂");
         const caption = safeText(video.caption, "");
         const music = safeText(video.music, "Original sound");
-        const id = escapeHTML(video.id);
 
         return `
             <article class="video-card" data-video-id="${id}">
@@ -409,27 +491,23 @@
         `;
     }
 
-    /* 7. FEED FILTERING AND RENDERING */
+    /* 7. FILTER AND RENDER FEED */
 
     function getVisibleVideos() {
         let videos = [...state.videos];
 
         if (state.activeTab === "Following") {
-            videos = videos.filter((video) => video.following);
-        }
-
-        if (state.activeTab === "Saved") {
-            videos = videos.filter((video) => video.saved);
-        }
-
-        if (state.activeTab === "Liked") {
-            videos = videos.filter((video) => video.liked);
+            videos = videos.filter(video => video.following);
+        } else if (state.activeTab === "Saved") {
+            videos = videos.filter(video => video.saved);
+        } else if (state.activeTab === "Liked") {
+            videos = videos.filter(video => video.liked);
         }
 
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
 
-            videos = videos.filter((video) => {
+            videos = videos.filter(video => {
                 const searchable = [
                     video.username,
                     video.displayName,
@@ -442,55 +520,65 @@
         }
 
         if (state.activeTab === "Trending") {
-            videos.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+            videos.sort((a, b) => b.likes - a.likes);
         } else {
-            videos.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            videos.sort((a, b) => b.createdAt - a.createdAt);
         }
 
         return videos;
     }
 
-    function renderEmptyFeed() {
-        if (!feed) return;
-
-        // Intentionally leave the feed blank: no automatic create-video prompt.
-        feed.replaceChildren();
-    }
-
     function revokeFeedObjectUrls() {
-        $$(".feed-video[data-object-url]", feed).forEach((video) => {
-            try {
-                URL.revokeObjectURL(video.dataset.objectUrl);
-            } catch (_) {}
-
+        $$(".feed-video[data-object-url]", feed).forEach(video => {
+            safeRevokeObjectURL(video.dataset.objectUrl);
             delete video.dataset.objectUrl;
         });
     }
 
+    function renderEmptyFeed() {
+        if (!feed) return;
+
+        feed.replaceChildren();
+
+        const empty = document.createElement("div");
+        empty.className = "empty-feed";
+        empty.innerHTML = `
+            <div class="empty-feed-icon">🎬</div>
+            <h2>No videos here yet</h2>
+            <p>Try another section or create your first video.</p>
+            <button type="button" class="empty-create-btn" data-action="open-create">
+                Create a video
+            </button>
+        `;
+
+        feed.appendChild(empty);
+    }
+
     function renderFeed() {
         if (!feed) {
-            console.error('V-Tik: missing <main id="feed"> in index.html.');
+            console.error('V-Tik: Missing <main id="feed"> in index.html.');
             return;
         }
 
         const videos = getVisibleVideos();
 
-        if (videos.length === 0) {
-            if (window.vtikVideoObserver) {
-                window.vtikVideoObserver.disconnect();
-            }
-
-            revokeFeedObjectUrls();
-            renderEmptyFeed();
-            updateProfileButton();
-            return;
+        if (window.vtikVideoObserver) {
+            window.vtikVideoObserver.disconnect();
         }
 
         revokeFeedObjectUrls();
 
+        if (!videos.length) {
+            renderEmptyFeed();
+            updateProfileButton();
+            updateSearchClearButton();
+            return;
+        }
+
         feed.innerHTML = videos.map(videoCardHTML).join("");
 
         updateProfileButton();
+        updateSearchClearButton();
         setupVideoPlayback();
         loadFeedVideoSources();
     }
@@ -507,30 +595,27 @@
             try {
                 source = await resolveVideoSource(video);
             } catch (error) {
-                console.warn("V-Tik: source could not be loaded.", error);
+                console.warn("V-Tik: Could not load video source.", error);
             }
 
             if (!element.isConnected) {
-                if (source.startsWith("blob:")) URL.revokeObjectURL(source);
+                safeRevokeObjectURL(source);
                 continue;
             }
 
             if (!source) {
-                const stage = element.closest(".video-stage");
                 element.removeAttribute("src");
                 element.load();
 
-                if (stage) {
-                    stage.classList.add("video-unavailable");
+                const stage = element.closest(".video-stage");
+                stage?.classList.remove("is-loading");
+                stage?.classList.add("video-unavailable");
 
-                    let notice = $(".video-unavailable-message", stage);
-
-                    if (!notice) {
-                        notice = document.createElement("div");
-                        notice.className = "video-unavailable-message";
-                        notice.textContent = "Video file is unavailable";
-                        stage.appendChild(notice);
-                    }
+                if (stage && !$(".video-unavailable-message", stage)) {
+                    const notice = document.createElement("div");
+                    notice.className = "video-unavailable-message";
+                    notice.textContent = "Video file is unavailable";
+                    stage.appendChild(notice);
                 }
 
                 continue;
@@ -555,30 +640,34 @@
         }
 
         if (!("IntersectionObserver" in window)) {
-            videos.forEach((video) => {
+            videos.forEach(video => {
                 video.muted = true;
             });
             return;
         }
 
-        window.vtikVideoObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
+        window.vtikVideoObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
                 const video = entry.target;
 
                 if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-                    videos.forEach((other) => {
+                    $$(".feed-video", feed).forEach(other => {
                         if (other !== video) other.pause();
                     });
 
-                    const result = video.play();
-                    if (result && result.catch) result.catch(() => {});
+                    const playResult = video.play();
+                    if (playResult?.catch) {
+                        playResult.catch(() => {});
+                    }
                 } else {
                     video.pause();
                 }
             });
-        }, { threshold: [0, 0.6, 1] });
+        }, {
+            threshold: [0, 0.6, 1]
+        });
 
-        videos.forEach((video) => {
+        videos.forEach(video => {
             video.muted = true;
             window.vtikVideoObserver.observe(video);
         });
@@ -591,24 +680,18 @@
         const profileButton = byId("profileButton") || $(".profile-button");
         const mobileProfile = byId("mobileProfile");
 
-        if (profileButton) {
-            const avatarElement = $(".avatar", profileButton);
+        [profileButton, mobileProfile].forEach(button => {
+            if (!button) return;
+
+            const avatarElement = $(".avatar", button);
 
             if (avatarElement) {
                 avatarElement.textContent = avatar;
-            } else {
-                profileButton.textContent = avatar;
             }
-        }
-
-        if (mobileProfile) {
-            const avatarElement = $(".avatar", mobileProfile);
-            if (avatarElement) avatarElement.textContent = avatar;
-            else mobileProfile.textContent = avatar;
-        }
+        });
     }
 
-    /* 9. LIKES, SAVES AND FOLLOWS */
+    /* 9. LIKES, SAVES, FOLLOWS */
 
     function toggleLike(id) {
         const video = getVideo(id);
@@ -617,7 +700,7 @@
         video.liked = !video.liked;
         video.likes = Math.max(
             0,
-            (Number(video.likes) || 0) + (video.liked ? 1 : -1)
+            video.likes + (video.liked ? 1 : -1)
         );
 
         saveState();
@@ -632,6 +715,7 @@
 
         saveState();
         renderFeed();
+
         showToast(video.saved ? "Video saved ⭐" : "Video removed from saved");
     }
 
@@ -644,9 +728,11 @@
         saveState();
         renderFeed();
 
-        showToast(video.following
-            ? `Following @${video.username}`
-            : `Unfollowed @${video.username}`);
+        showToast(
+            video.following
+                ? `Following @${video.username}`
+                : `Unfollowed @${video.username}`
+        );
     }
 
     /* 10. COMMENTS */
@@ -659,11 +745,15 @@
         if (!list) return;
 
         if (!video.comments.length) {
-            list.innerHTML = '<div class="no-comments">Be the first to comment 💬</div>';
+            list.innerHTML = `
+                <div class="no-comments">
+                    Be the first to comment 💬
+                </div>
+            `;
             return;
         }
 
-        list.innerHTML = video.comments.map((comment) => `
+        list.innerHTML = video.comments.map(comment => `
             <div class="comment-item">
                 <div class="avatar small">${escapeHTML(comment.avatar || "🙂")}</div>
                 <div class="comment-content">
@@ -678,26 +768,22 @@
         const video = getVideo(id);
         if (!video) return;
 
-        activeVideoId = id;
-
         if (!commentsModal) {
             showToast("Comments window is missing from index.html.");
             return;
         }
 
-        const title = byId("commentsTitle") ||
-            $("[data-comments-title]", commentsModal);
+        activeVideoId = id;
 
+        const title = byId("commentsTitle");
         if (title) title.textContent = `Comments · @${video.username}`;
 
         commentsModal.dataset.videoId = id;
         renderComments(video);
         showModal(commentsModal);
 
-        const input = byId("commentInput") ||
-            $("textarea, input[name='comment'], input[type='text']", commentsModal);
-
-        if (input) input.focus();
+        const input = byId("commentInput");
+        input?.focus();
     }
 
     function addComment(id, text) {
@@ -721,37 +807,39 @@
     }
 
     function bindComments() {
-        const form = byId("commentForm") ||
-            $("form", commentsModal);
-
+        const form = byId("commentForm");
         const input = byId("commentInput");
 
         if (!form || form.dataset.vtikBound) return;
 
         form.dataset.vtikBound = "true";
 
-        form.addEventListener("submit", (event) => {
+        form.addEventListener("submit", event => {
             event.preventDefault();
 
-            const text = input
-                ? input.value.trim()
-                : ($("textarea, input[type='text']", form)?.value || "").trim();
-
+            const text = input?.value.trim() || "";
             if (!text || !activeVideoId) return;
 
             addComment(activeVideoId, text);
 
             if (input) input.value = "";
         });
+
+        input?.addEventListener("input", () => {
+            const button = byId("postCommentBtn");
+            if (button) button.disabled = !input.value.trim();
+        });
     }
 
-    /* 11. SHARE VIDEO */
+    /* 11. SHARE */
 
     async function shareVideo(id) {
         const video = getVideo(id);
         if (!video) return;
 
-        const url = `${location.href.split("#")[0]}#video-${encodeURIComponent(id)}`;
+        const url =
+            `${location.href.split("#")[0]}#video-${encodeURIComponent(id)}`;
+
         const data = {
             title: `V-Tik video by @${video.username}`,
             text: video.caption || "Watch this video on V-Tik!",
@@ -762,20 +850,22 @@
             if (navigator.share) {
                 await navigator.share(data);
             } else if (navigator.clipboard?.writeText) {
-                await navigator.clipboard.writeText(`${data.text}\n${data.url}`);
+                await navigator.clipboard.writeText(
+                    `${data.text}\n${data.url}`
+                );
                 showToast("Video link copied!");
             } else {
                 window.prompt("Copy this video link:", url);
             }
         } catch (error) {
             if (error.name !== "AbortError") {
-                console.warn("V-Tik: sharing failed.", error);
+                console.warn("V-Tik: Sharing failed.", error);
                 showToast("Could not share this video.");
             }
         }
     }
 
-    /* 12. MODAL HELPERS */
+    /* 12. MODALS */
 
     function showModal(modal) {
         if (!modal) return;
@@ -793,58 +883,60 @@
         modal.hidden = true;
         modal.setAttribute("aria-hidden", "true");
 
-        const openDialogs = $$(".modal.open, [role='dialog'].open, .modal.active, [role='dialog'].active");
+        const stillOpen = $$(".modal.open, .modal.active, .viewer.open, .viewer.active")
+            .some(item => !item.hidden);
 
-        if (!openDialogs.length) {
+        if (!stillOpen) {
             document.body.classList.remove("modal-open");
         }
     }
 
     function openCreateModal() {
         if (!createModal) {
-            if (videoPicker) videoPicker.click();
-            else showToast("Create modal is missing from index.html.");
+            showToast("Create modal is missing from index.html.");
             return;
         }
 
         showModal(createModal);
     }
 
-    /* 13. VIDEO UPLOAD */
+    /* 13. VIDEO UPLOAD AND PREVIEW */
 
     function getUploadElements() {
         return {
-            input: videoPicker ||
-                $("input[type='file'][accept*='video']"),
-
-            caption: videoCaption ||
-                byId("captionInput") ||
-                $("textarea[name='caption']"),
-
-            username: byId("creatorName") ||
-                byId("uploadUsername"),
-
-            submit: postVideo ||
-                byId("publishVideo") ||
-                byId("uploadSubmit")
+            input: videoPicker,
+            caption: videoCaption,
+            submit: postVideo
         };
     }
 
     function clearPreview() {
-        if (previewObjectUrl) {
-            URL.revokeObjectURL(previewObjectUrl);
-            previewObjectUrl = null;
+        if (uploadPreview) {
+            uploadPreview.pause();
+            uploadPreview.removeAttribute("src");
+            uploadPreview.load();
         }
 
-        if (uploadPreview) {
-            uploadPreview.replaceChildren();
-        }
+        safeRevokeObjectURL(previewObjectUrl);
+        previewObjectUrl = null;
 
         if (previewContainer) {
             previewContainer.classList.remove("has-preview");
+            previewContainer.hidden = true;
         }
 
-        if (uploadName) uploadName.textContent = "";
+        if (uploadZone) {
+            uploadZone.hidden = false;
+            uploadZone.classList.remove("dragging");
+        }
+
+        if (uploadName) {
+            uploadName.textContent = "";
+        }
+
+        if (postVideo) {
+            postVideo.disabled = true;
+        }
     }
 
     function previewSelectedVideo(file) {
@@ -858,26 +950,41 @@
             return;
         }
 
+        const maxSize = 250 * 1024 * 1024;
+
+        if (file.size > maxSize) {
+            showToast("Please choose a video smaller than 250 MB.");
+            if (videoPicker) videoPicker.value = "";
+            return;
+        }
+
         previewObjectUrl = URL.createObjectURL(file);
 
-        if (uploadName) uploadName.textContent = file.name;
-
         if (uploadPreview) {
-            const preview = document.createElement("video");
-            preview.src = previewObjectUrl;
-            preview.controls = true;
-            preview.playsInline = true;
-            preview.preload = "metadata";
-            uploadPreview.replaceChildren(preview);
+            uploadPreview.src = previewObjectUrl;
+            uploadPreview.load();
+        }
+
+        if (uploadName) {
+            uploadName.textContent = file.name;
         }
 
         if (previewContainer) {
+            previewContainer.hidden = false;
             previewContainer.classList.add("has-preview");
+        }
+
+        if (uploadZone) {
+            uploadZone.hidden = true;
+        }
+
+        if (postVideo) {
+            postVideo.disabled = false;
         }
     }
 
     async function uploadVideo() {
-        const { input, caption, username, submit } = getUploadElements();
+        const { input, caption, submit } = getUploadElements();
         const file = input?.files?.[0];
 
         if (!file) {
@@ -890,9 +997,7 @@
             return;
         }
 
-        const maxSize = 250 * 1024 * 1024;
-
-        if (file.size > maxSize) {
+        if (file.size > 250 * 1024 * 1024) {
             showToast("Please choose a video smaller than 250 MB.");
             return;
         }
@@ -904,8 +1009,8 @@
         }
 
         const creatorName = safeText(
-            username?.value,
-            state.username || currentUser.username
+            state.username,
+            currentUser.username
         );
 
         const video = {
@@ -931,7 +1036,6 @@
             state.videos.unshift(video);
             state.activeTab = "For You";
             state.currentSection = "home";
-            state.activeTab = "For You";
             searchTerm = "";
 
             if (searchInput) searchInput.value = "";
@@ -942,18 +1046,22 @@
 
             if (input) input.value = "";
             if (caption) caption.value = "";
-            clearPreview();
 
+            clearPreview();
             hideModal(createModal);
+
             showToast("Video published successfully! 🎉");
         } catch (error) {
-            console.error("V-Tik: video upload failed.", error);
+            console.error("V-Tik: Upload failed.", error);
             showToast("Upload failed. Check browser storage and try again.");
         } finally {
             if (submit) {
-                submit.disabled = false;
-                submit.textContent = submit.dataset.originalText || "Publish";
+                submit.textContent =
+                    submit.dataset.originalText || "Post Video";
+
                 delete submit.dataset.originalText;
+
+                submit.disabled = !input?.files?.length;
             }
         }
     }
@@ -972,12 +1080,12 @@
         if (uploadZone && !uploadZone.dataset.vtikBound) {
             uploadZone.dataset.vtikBound = "true";
 
-            uploadZone.addEventListener("click", (event) => {
-                if (event.target.closest("button, input, video")) return;
+            uploadZone.addEventListener("click", event => {
+                if (event.target.closest("button, input, video, label")) return;
                 input?.click();
             });
 
-            uploadZone.addEventListener("dragover", (event) => {
+            uploadZone.addEventListener("dragover", event => {
                 event.preventDefault();
                 uploadZone.classList.add("dragging");
             });
@@ -986,7 +1094,7 @@
                 uploadZone.classList.remove("dragging");
             });
 
-            uploadZone.addEventListener("drop", (event) => {
+            uploadZone.addEventListener("drop", event => {
                 event.preventDefault();
                 uploadZone.classList.remove("dragging");
 
@@ -998,13 +1106,18 @@
                     return;
                 }
 
+                if (file.size > 250 * 1024 * 1024) {
+                    showToast("Please choose a video smaller than 250 MB.");
+                    return;
+                }
+
                 if (input) {
                     try {
                         const transfer = new DataTransfer();
                         transfer.items.add(file);
                         input.files = transfer.files;
                     } catch (error) {
-                        console.warn("V-Tik: could not attach dropped file.", error);
+                        console.warn("V-Tik: Could not attach dropped file.", error);
                     }
                 }
 
@@ -1015,7 +1128,7 @@
         if (submit && !submit.dataset.vtikBound) {
             submit.dataset.vtikBound = "true";
 
-            submit.addEventListener("click", (event) => {
+            submit.addEventListener("click", event => {
                 event.preventDefault();
                 uploadVideo();
             });
@@ -1028,21 +1141,8 @@
         const video = getVideo(id);
         if (!video) return;
 
-        activeVideoId = id;
-
         if (!viewer) {
-            const feedVideo = $(`.feed-video[data-video-id="${CSS.escape(id)}"]`, feed);
-
-            if (feedVideo?.requestFullscreen) {
-                try {
-                    await feedVideo.requestFullscreen();
-                } catch (error) {
-                    showToast("Fullscreen is unavailable in this browser.");
-                }
-            } else {
-                showToast("Fullscreen viewer is missing from index.html.");
-            }
-
+            showToast("Fullscreen viewer is missing from index.html.");
             return;
         }
 
@@ -1053,17 +1153,15 @@
             return;
         }
 
-        if (viewerObjectUrl) {
-            URL.revokeObjectURL(viewerObjectUrl);
-            viewerObjectUrl = null;
-        }
+        safeRevokeObjectURL(viewerObjectUrl);
+        viewerObjectUrl = null;
 
         let source = "";
 
         try {
             source = await resolveVideoSource(video);
         } catch (error) {
-            console.error(error);
+            console.warn("V-Tik: Could not open viewer.", error);
         }
 
         if (!source) {
@@ -1071,7 +1169,9 @@
             return;
         }
 
-        if (source.startsWith("blob:")) viewerObjectUrl = source;
+        if (source.startsWith("blob:")) {
+            viewerObjectUrl = source;
+        }
 
         viewerVideo.src = source;
         viewerVideo.loop = true;
@@ -1083,7 +1183,7 @@
         try {
             await viewerVideo.play();
         } catch (_) {
-            // The user can press play if autoplay is blocked.
+            // The viewer remains available for manual playback.
         }
     }
 
@@ -1098,10 +1198,8 @@
             viewerVideo.load();
         }
 
-        if (viewerObjectUrl) {
-            URL.revokeObjectURL(viewerObjectUrl);
-            viewerObjectUrl = null;
-        }
+        safeRevokeObjectURL(viewerObjectUrl);
+        viewerObjectUrl = null;
 
         hideModal(viewer);
     }
@@ -1110,20 +1208,21 @@
 
     const sectionMap = {
         home: "For You",
-        discover: "Explore",
+        discover: "For You",
         following: "Following",
         liked: "Liked",
         saved: "Saved",
-        messages: "Messages",
+        messages: "For You",
         trending: "Trending",
-        music: "Music",
-        gaming: "Gaming",
-        challenges: "Challenges"
+        music: "For You",
+        gaming: "For You",
+        challenges: "For You"
     };
 
     function updateNavigation(section) {
-        $$("[data-section]").forEach((button) => {
+        $$("[data-section]").forEach(button => {
             const active = button.dataset.section === section;
+
             button.classList.toggle("active", active);
 
             if (active) {
@@ -1135,29 +1234,33 @@
     }
 
     function setActiveTab(section) {
-        const allowed = Object.prototype.hasOwnProperty.call(sectionMap, section)
-            ? section
-            : "home";
+        if (!Object.prototype.hasOwnProperty.call(sectionMap, section)) {
+            section = "home";
+        }
 
-        state.currentSection = allowed;
-        state.activeTab = sectionMap[allowed];
+        state.currentSection = section;
+        state.activeTab = sectionMap[section];
 
-        updateNavigation(allowed);
+        updateNavigation(section);
         saveState();
 
-        if (["Messages", "Music", "Gaming", "Challenges"].includes(state.activeTab)) {
-            if (state.activeTab === "Messages") {
-                showToast("Messages will be available when messaging is connected.");
-            } else {
-                showToast(`${state.activeTab} is ready for your next update.`);
-            }
+        if (section === "messages") {
+            showToast("Messages will be available when messaging is connected.");
+        } else if (["music", "gaming", "challenges"].includes(section)) {
+            const labels = {
+                music: "Music",
+                gaming: "Gaming",
+                challenges: "Challenges"
+            };
+
+            showToast(`${labels[section]} videos are coming soon.`);
         }
 
         renderFeed();
     }
 
     function bindNavigation() {
-        document.addEventListener("click", (event) => {
+        document.addEventListener("click", event => {
             const button = event.target.closest("[data-section]");
             if (!button) return;
 
@@ -1168,6 +1271,12 @@
 
     /* 16. SEARCH */
 
+    function updateSearchClearButton() {
+        if (!clearSearchButton) return;
+
+        clearSearchButton.hidden = !(searchInput?.value || "").length;
+    }
+
     function bindSearch() {
         if (!searchInput || searchInput.dataset.vtikBound) return;
 
@@ -1175,40 +1284,39 @@
 
         searchInput.addEventListener("input", () => {
             searchTerm = searchInput.value.trim();
+            updateSearchClearButton();
             renderFeed();
         });
 
-        const clearButton = byId("clearSearch");
+        clearSearchButton?.addEventListener("click", () => {
+            searchInput.value = "";
+            searchTerm = "";
+            updateSearchClearButton();
+            renderFeed();
+            searchInput.focus();
+        });
 
-        if (clearButton && !clearButton.dataset.vtikBound) {
-            clearButton.dataset.vtikBound = "true";
-
-            clearButton.addEventListener("click", () => {
-                searchInput.value = "";
-                searchTerm = "";
-                renderFeed();
-                searchInput.focus();
-            });
-        }
-
-        searchInput.addEventListener("keydown", (event) => {
+        searchInput.addEventListener("keydown", event => {
             if (event.key === "Escape") {
                 searchInput.value = "";
                 searchTerm = "";
+                updateSearchClearButton();
                 renderFeed();
             }
         });
+
+        updateSearchClearButton();
     }
 
-    /* 17. FEED BUTTON ACTIONS */
+    /* 17. FEED ACTIONS */
 
     function bindFeedActions() {
         if (!feed || feed.dataset.vtikActionsBound) return;
+
         feed.dataset.vtikActionsBound = "true";
 
-        feed.addEventListener("click", (event) => {
+        feed.addEventListener("click", event => {
             const button = event.target.closest("[data-action]");
-
             if (!button || !feed.contains(button)) return;
 
             const action = button.dataset.action;
@@ -1221,10 +1329,8 @@
             }
 
             if (action === "sound") {
-                const videoElement = $(
-                    `.feed-video[data-video-id="${CSS.escape(id || "")}"]`,
-                    feed
-                );
+                const card = button.closest("[data-video-id]");
+                const videoElement = $(".feed-video", card);
 
                 if (videoElement) {
                     videoElement.muted = !videoElement.muted;
@@ -1240,18 +1346,23 @@
                 case "like":
                     toggleLike(id);
                     break;
+
                 case "save":
                     toggleSave(id);
                     break;
+
                 case "follow":
                     toggleFollow(id);
                     break;
+
                 case "comment":
                     openComments(id);
                     break;
+
                 case "share":
                     shareVideo(id);
                     break;
+
                 case "expand":
                     openViewer(id);
                     break;
@@ -1259,48 +1370,50 @@
         });
     }
 
-    /* 18. CREATE BUTTONS AND MODAL CONTROLS */
+    /* 18. MODAL BUTTONS AND KEYBOARD */
 
     function bindModalControls() {
-        // Do not use inline onclick handlers in index.html.
-        ["createTop", "mobileCreate"].forEach((id) => {
+        ["createTop", "mobileCreate"].forEach(id => {
             const button = byId(id);
             if (!button || button.dataset.vtikBound) return;
 
             button.dataset.vtikBound = "true";
 
-            button.addEventListener("click", (event) => {
+            button.addEventListener("click", event => {
                 event.preventDefault();
                 openCreateModal();
             });
         });
 
-        const closeCreate = byId("closeCreate");
-        const closeComments = byId("closeComments");
-        const viewerClose = byId("viewerClose");
+        byId("closeCreate")?.addEventListener("click", () => {
+            hideModal(createModal);
+        });
 
-        closeCreate?.addEventListener("click", () => hideModal(createModal));
-        closeComments?.addEventListener("click", () => hideModal(commentsModal));
-        viewerClose?.addEventListener("click", closeViewer);
+        byId("closeComments")?.addEventListener("click", () => {
+            hideModal(commentsModal);
+        });
 
-        byId("createBackdrop")?.addEventListener("click", () => hideModal(createModal));
-        byId("commentsBackdrop")?.addEventListener("click", () => hideModal(commentsModal));
+        byId("viewerClose")?.addEventListener("click", closeViewer);
 
-        // Support click-on-backdrop layouts where the backdrop is inside the modal.
-        [createModal, commentsModal, viewer].forEach((modal) => {
-            if (!modal || modal.dataset.vtikBackdropBound) return;
+        byId("createBackdrop")?.addEventListener("click", () => {
+            hideModal(createModal);
+        });
 
-            modal.dataset.vtikBackdropBound = "true";
+        byId("commentsBackdrop")?.addEventListener("click", () => {
+            hideModal(commentsModal);
+        });
 
-            modal.addEventListener("click", (event) => {
-                if (event.target !== modal) return;
+        [createModal, commentsModal].forEach(modal => {
+            if (!modal) return;
 
-                if (modal === viewer) closeViewer();
-                else hideModal(modal);
+            modal.addEventListener("click", event => {
+                if (event.target === modal) {
+                    hideModal(modal);
+                }
             });
         });
 
-        document.addEventListener("keydown", (event) => {
+        document.addEventListener("keydown", event => {
             if (event.key !== "Escape") return;
 
             hideModal(createModal);
@@ -1308,41 +1421,44 @@
             closeViewer();
         });
 
-        // Optional mobile create button from alternative HTML versions.
         byId("mobileCreate")?.setAttribute("aria-label", "Create a video");
     }
 
-    /* 19. VIDEO ERROR AND LOADING STATES */
+    /* 19. VIDEO LOADING AND ERROR EVENTS */
 
     function bindVideoEvents() {
         if (!feed || feed.dataset.vtikVideoEventsBound) return;
+
         feed.dataset.vtikVideoEventsBound = "true";
 
-        feed.addEventListener("loadstart", (event) => {
+        feed.addEventListener("loadstart", event => {
             const video = event.target.closest?.(".feed-video");
             video?.closest(".video-stage")?.classList.add("is-loading");
         }, true);
 
-        feed.addEventListener("loadeddata", (event) => {
+        feed.addEventListener("loadeddata", event => {
             const video = event.target.closest?.(".feed-video");
             const stage = video?.closest(".video-stage");
 
-            stage?.classList.remove("is-loading", "video-unavailable");
-            const notice = $(".video-unavailable-message", stage);
-            notice?.remove();
+            stage?.classList.remove(
+                "is-loading",
+                "video-unavailable"
+            );
+
+            $(".video-unavailable-message", stage)?.remove();
         }, true);
 
-        feed.addEventListener("error", (event) => {
+        feed.addEventListener("error", event => {
             const video = event.target.closest?.(".feed-video");
             if (!video) return;
 
             const stage = video.closest(".video-stage");
             stage?.classList.remove("is-loading");
-            video.classList.add("video-source-error");
+            stage?.classList.add("video-unavailable");
         }, true);
     }
 
-    /* 20. INITIALIZE */
+    /* 20. STARTUP */
 
     function initializeVtik() {
         bindNavigation();
@@ -1353,10 +1469,25 @@
         bindComments();
         bindVideoEvents();
 
+        /*
+         * Close all dialogs at startup.
+         * They open only when a user clicks the appropriate button.
+         */
+        [createModal, commentsModal, viewer].forEach(modal => {
+            if (!modal) return;
+
+            modal.classList.remove("active", "open");
+            modal.hidden = true;
+            modal.setAttribute("aria-hidden", "true");
+        });
+
+        document.body.classList.remove("modal-open");
+
         updateNavigation(state.currentSection || "home");
         updateProfileButton();
+        updateSearchClearButton();
 
-        // Keep the feed empty when no videos have been uploaded.
+        // Render saved videos or sample cards.
         renderFeed();
 
         console.info("V-Tik is ready.");
@@ -1370,4 +1501,3 @@
         initializeVtik();
     }
 })();
-```
