@@ -7,7 +7,7 @@
 
     <meta name="theme-color" content="#08090d">
     <meta name="description" content="Discover, watch, share, and create short videos on V-Tik.">
-    <meta name="keywords" content="V-Tik, short videos, video sharing, creators, trending videos">
+    <meta name="keywords" content="V-Tik, short videos, video sharing, trending videos, creators">
     <meta name="author" content="V-Tik">
 
     <title>V-Tik — Discover, Watch & Share Videos</title>
@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
-        /* Keep overlays hidden until activated. */
+        /* Modal visibility */
         #createModal,
         #commentsModal,
         #videoViewer {
@@ -44,7 +44,7 @@
             display: none !important;
         }
 
-        /* Main layout: sidebar + feed. */
+        /* Application layout */
         .shell {
             display: grid;
             grid-template-columns: 240px minmax(0, 1fr);
@@ -59,62 +59,41 @@
         .main-content {
             min-width: 0;
             position: relative;
+            padding-bottom: 50px;
         }
 
         .feed-heading {
-            margin: 0 0 22px;
+            margin: 0 0 24px;
         }
 
         .feed-heading h1 {
-            margin: 0 0 5px;
+            margin: 0 0 6px;
+            font-size: clamp(24px, 3vw, 32px);
+            font-weight: 800;
         }
 
         .feed-heading p {
             margin: 0;
             opacity: 0.7;
+            font-size: 14px;
         }
 
-        /* Feed scrolling controls. */
-        .scroll-controls {
-            position: fixed;
-            right: 24px;
-            bottom: 30px;
-            z-index: 50;
+        /* Video list: no feed section */
+        .video-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            align-items: center;
+            gap: 24px;
+            min-width: 0;
         }
 
-        .scroll-controls button {
-            display: grid;
-            place-items: center;
-            width: 44px;
-            height: 44px;
-            border: 1px solid rgba(255,255,255,.12);
-            border-radius: 50%;
-            color: #fff;
-            background: #181a22;
-            font: inherit;
-            font-size: 22px;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0,0,0,.25);
-            transition: transform .2s ease, background .2s ease;
-        }
-
-        .scroll-controls button:hover {
-            background: #fe2c55;
-            transform: translateY(-2px);
-        }
-
-        /* Fallback card layout for the videos in this HTML. */
         .video-card {
-            position: relative;
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 58px;
+            grid-template-columns: minmax(0, 1fr) 54px;
             align-items: end;
             gap: 14px;
             width: min(100%, 680px);
-            margin: 0 auto 30px;
+            margin: 0 auto;
             padding: 14px;
             border: 1px solid rgba(255,255,255,.09);
             border-radius: 22px;
@@ -170,15 +149,16 @@
         }
 
         .creator-meta span {
-            margin-top: 2px;
+            margin-top: 3px;
             font-size: 12px;
             opacity: .65;
         }
 
         .video-caption {
             margin: 0;
-            overflow-wrap: anywhere;
             line-height: 1.6;
+            overflow-wrap: anywhere;
+            font-size: 14px;
         }
 
         .video-actions {
@@ -202,7 +182,7 @@
             cursor: pointer;
         }
 
-        .video-actions button span:first-child {
+        .video-actions button span {
             display: grid;
             place-items: center;
             width: 44px;
@@ -211,6 +191,7 @@
             border-radius: 50%;
             background: #22232c;
             font-size: 19px;
+            transition: background .2s ease, color .2s ease;
         }
 
         .video-actions button small {
@@ -218,12 +199,44 @@
             opacity: .8;
         }
 
-        .video-actions button:hover span:first-child {
+        .video-actions button:hover span {
             color: #25f4ee;
+            background: #2b2c36;
         }
 
-        .video-actions .like-action:hover span:first-child {
+        .video-actions .like-action:hover span {
             color: #fe2c55;
+        }
+
+        /* Scroll buttons */
+        .scroll-controls {
+            position: fixed;
+            right: 24px;
+            bottom: 28px;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .scroll-controls button {
+            display: grid;
+            place-items: center;
+            width: 44px;
+            height: 44px;
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 50%;
+            color: #fff;
+            background: #181a22;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0,0,0,.25);
+            transition: transform .2s ease, background .2s ease;
+        }
+
+        .scroll-controls button:hover {
+            background: #fe2c55;
+            transform: translateY(-2px);
         }
 
         .empty-feed {
@@ -233,7 +246,7 @@
             opacity: .7;
         }
 
-        /* Keep mobile navigation above page content. */
+        /* Responsive layout */
         @media (max-width: 900px) {
             .shell {
                 grid-template-columns: 190px minmax(0, 1fr);
@@ -255,12 +268,16 @@
                 width: 100%;
             }
 
+            .video-list {
+                gap: 18px;
+            }
+
             .video-card {
                 width: 100%;
+                grid-template-columns: minmax(0, 1fr) 44px;
                 gap: 8px;
                 padding: 9px;
                 border-radius: 17px;
-                margin-bottom: 20px;
             }
 
             .feed-video {
@@ -272,10 +289,10 @@
                 gap: 13px;
             }
 
-            .video-actions button span:first-child {
-                width: 38px;
-                height: 38px;
-                font-size: 17px;
+            .video-actions button span {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
             }
 
             .scroll-controls {
@@ -291,14 +308,17 @@
 
         @media (max-width: 380px) {
             .video-card {
-                grid-template-columns: minmax(0, 1fr) 44px;
-                gap: 6px;
+                gap: 5px;
                 padding: 7px;
             }
 
-            .video-actions button span:first-child {
-                width: 34px;
-                height: 34px;
+            .video-actions button span {
+                width: 32px;
+                height: 32px;
+            }
+
+            .video-actions button small {
+                font-size: 10px;
             }
         }
     </style>
@@ -308,7 +328,7 @@
 
 <body>
 
-    <!-- TOP BAR -->
+    <!-- TOP NAVIGATION -->
     <header class="topbar">
         <a href="index.html" class="brand" aria-label="V-Tik home">
             <span class="brand-v">V</span>
@@ -384,12 +404,13 @@
     </header>
 
 
-    <!-- MAIN APPLICATION -->
+    <!-- APPLICATION SHELL -->
     <div class="shell">
 
         <!-- LEFT SIDEBAR -->
         <aside class="sidebar">
             <nav class="nav-group" aria-label="Main navigation">
+
                 <button class="nav-item active" type="button"
                         data-section="home" aria-current="page">
                     <span aria-hidden="true">⌂</span>
@@ -452,24 +473,24 @@
                     <a href="#privacy">Privacy</a>
                     <a href="#terms">Terms</a>
                 </div>
+
                 <p class="copyright">© 2026 V-Tik</p>
             </div>
         </aside>
 
 
-        <!-- MAIN VIDEO FEED -->
+        <!-- MAIN CONTENT: NO FEED SECTION -->
         <main class="main-content" id="mainContent">
+
             <div class="feed-heading">
                 <h1>For You</h1>
                 <p>Discover videos picked for your next scroll.</p>
             </div>
 
-            <!--
-                Video cards are inside #feed.
-                Keep this ID if app.js uses it to render or filter videos.
-            -->
-            <section id="feed" aria-label="Video feed">
+            <!-- Videos are placed directly in this div. -->
+            <div class="video-list" id="videoList">
 
+                <!-- VIDEO 1 -->
                 <article class="video-card" data-video-card>
                     <div class="video-card-main">
                         <video
@@ -491,23 +512,29 @@
                                     <span>V-Tik creator</span>
                                 </div>
                             </div>
-                            <p class="video-caption">Formula One donut action 🏎️ #F1 #motorsport</p>
+
+                            <p class="video-caption">
+                                Formula One donut action 🏎️ #F1 #motorsport
+                            </p>
                         </div>
                     </div>
 
                     <div class="video-actions" aria-label="Video actions">
-                        <button type="button" class="like-action" aria-label="Like video">
+                        <button class="like-action" type="button" aria-label="Like video">
                             <span aria-hidden="true">♡</span>
                             <small>Like</small>
                         </button>
+
                         <button type="button" aria-label="Open comments">
                             <span aria-hidden="true">☰</span>
                             <small>Comment</small>
                         </button>
+
                         <button type="button" aria-label="Save video">
                             <span aria-hidden="true">▤</span>
                             <small>Save</small>
                         </button>
+
                         <button type="button" aria-label="Share video">
                             <span aria-hidden="true">↗</span>
                             <small>Share</small>
@@ -515,6 +542,8 @@
                     </div>
                 </article>
 
+
+                <!-- VIDEO 2 -->
                 <article class="video-card" data-video-card>
                     <div class="video-card-main">
                         <video
@@ -522,7 +551,7 @@
                             controls
                             playsinline
                             preload="metadata"
-                            aria-label="Video two"
+                            aria-label="Second V-Tik video"
                         >
                             <source src="./video2.mp4" type="video/mp4">
                             Your browser does not support HTML video.
@@ -536,23 +565,29 @@
                                     <span>V-Tik creator</span>
                                 </div>
                             </div>
-                            <p class="video-caption">Watch this moment! ✨ #V-Tik</p>
+
+                            <p class="video-caption">
+                                Watch this moment! ✨ #V-Tik
+                            </p>
                         </div>
                     </div>
 
                     <div class="video-actions" aria-label="Video actions">
-                        <button type="button" class="like-action" aria-label="Like video">
+                        <button class="like-action" type="button" aria-label="Like video">
                             <span aria-hidden="true">♡</span>
                             <small>Like</small>
                         </button>
+
                         <button type="button" aria-label="Open comments">
                             <span aria-hidden="true">☰</span>
                             <small>Comment</small>
                         </button>
+
                         <button type="button" aria-label="Save video">
                             <span aria-hidden="true">▤</span>
                             <small>Save</small>
                         </button>
+
                         <button type="button" aria-label="Share video">
                             <span aria-hidden="true">↗</span>
                             <small>Share</small>
@@ -560,6 +595,8 @@
                     </div>
                 </article>
 
+
+                <!-- VIDEO 3 -->
                 <article class="video-card" data-video-card>
                     <div class="video-card-main">
                         <video
@@ -567,7 +604,7 @@
                             controls
                             playsinline
                             preload="metadata"
-                            aria-label="Video three"
+                            aria-label="Third V-Tik video"
                         >
                             <source src="./videoplayback.mp4" type="video/mp4">
                             Your browser does not support HTML video.
@@ -581,23 +618,29 @@
                                     <span>V-Tik creator</span>
                                 </div>
                             </div>
-                            <p class="video-caption">Another video to explore 🎬 #shorts</p>
+
+                            <p class="video-caption">
+                                Another video to explore 🎬 #shorts
+                            </p>
                         </div>
                     </div>
 
                     <div class="video-actions" aria-label="Video actions">
-                        <button type="button" class="like-action" aria-label="Like video">
+                        <button class="like-action" type="button" aria-label="Like video">
                             <span aria-hidden="true">♡</span>
                             <small>Like</small>
                         </button>
+
                         <button type="button" aria-label="Open comments">
                             <span aria-hidden="true">☰</span>
                             <small>Comment</small>
                         </button>
+
                         <button type="button" aria-label="Save video">
                             <span aria-hidden="true">▤</span>
                             <small>Save</small>
                         </button>
+
                         <button type="button" aria-label="Share video">
                             <span aria-hidden="true">↗</span>
                             <small>Share</small>
@@ -605,19 +648,23 @@
                     </div>
                 </article>
 
-            </section>
+            </div>
 
             <p class="empty-feed" id="emptyFeed" role="status">
                 No videos found. Try another search.
             </p>
+
         </main>
     </div>
 
 
-    <!-- FEED SCROLL CONTROLS -->
-    <div class="scroll-controls" aria-label="Feed scrolling controls">
-        <button id="scrollUp" type="button" aria-label="Scroll up" title="Scroll up">↑</button>
-        <button id="scrollDown" type="button" aria-label="Scroll down" title="Scroll down">↓</button>
+    <!-- SCROLL CONTROLS -->
+    <div class="scroll-controls" aria-label="Video scrolling controls">
+        <button id="scrollUp" type="button"
+                aria-label="Previous video" title="Previous video">↑</button>
+
+        <button id="scrollDown" type="button"
+                aria-label="Next video" title="Next video">↓</button>
     </div>
 
 
@@ -653,41 +700,60 @@
 
 
     <!-- COMMENTS MODAL -->
-    <div class="modal" id="commentsModal" role="dialog"
-         aria-modal="true" aria-labelledby="commentsTitle" aria-hidden="true">
+    <div class="modal" id="commentsModal"
+         role="dialog" aria-modal="true"
+         aria-labelledby="commentsTitle" aria-hidden="true">
+
         <div class="modal-backdrop" id="commentsBackdrop"></div>
 
         <div class="modal-box comments-box">
             <div class="modal-header">
                 <h2 id="commentsTitle">Comments</h2>
-                <button class="close" id="closeComments" type="button"
-                        aria-label="Close comments">✕</button>
+
+                <button class="close" id="closeComments"
+                        type="button" aria-label="Close comments">✕</button>
             </div>
 
             <div class="comments-list" id="comments"></div>
 
             <form class="comment-form" id="commentForm">
-                <input id="commentInput" name="comment" type="text"
-                       placeholder="Add a comment..." maxlength="180"
-                       autocomplete="off" aria-label="Write a comment" required>
+                <input
+                    id="commentInput"
+                    name="comment"
+                    type="text"
+                    placeholder="Add a comment..."
+                    maxlength="180"
+                    autocomplete="off"
+                    aria-label="Write a comment"
+                    required
+                >
 
-                <button type="submit" id="postCommentBtn" disabled>Post</button>
+                <button type="submit" id="postCommentBtn" disabled>
+                    Post
+                </button>
             </form>
         </div>
     </div>
 
 
     <!-- CREATE VIDEO MODAL -->
-    <div class="modal" id="createModal" role="dialog"
-         aria-modal="true" aria-labelledby="createTitle" aria-hidden="true">
+    <div class="modal" id="createModal"
+         role="dialog" aria-modal="true"
+         aria-labelledby="createTitle" aria-hidden="true">
+
         <div class="modal-backdrop" id="createBackdrop"></div>
 
         <div class="modal-box create-box">
-            <button class="close" id="closeCreate" type="button"
-                    aria-label="Close upload dialog">✕</button>
+            <button class="close" id="closeCreate"
+                    type="button" aria-label="Close upload dialog">✕</button>
 
-            <input id="videoPicker" name="video" type="file"
-                   accept="video/*" hidden>
+            <input
+                id="videoPicker"
+                name="video"
+                type="file"
+                accept="video/*"
+                hidden
+            >
 
             <div class="upload-zone" id="uploadZone">
                 <div class="upload-icon-wrapper" aria-hidden="true">
@@ -715,10 +781,16 @@
             </div>
 
             <div class="caption-wrapper">
-                <input id="videoCaption" class="caption-input"
-                       name="caption" type="text" maxlength="180"
-                       placeholder="Write a catchy caption..."
-                       autocomplete="off" aria-label="Video caption">
+                <input
+                    id="videoCaption"
+                    class="caption-input"
+                    name="caption"
+                    type="text"
+                    maxlength="180"
+                    placeholder="Write a catchy caption..."
+                    autocomplete="off"
+                    aria-label="Video caption"
+                >
             </div>
 
             <button id="postVideo" class="post-video-btn"
@@ -731,58 +803,60 @@
 
     <!-- FULLSCREEN VIDEO VIEWER -->
     <div class="viewer" id="videoViewer" aria-hidden="true">
-        <button class="viewer-close" id="viewerClose" type="button"
-                aria-label="Close video viewer">✕</button>
+        <button class="viewer-close" id="viewerClose"
+                type="button" aria-label="Close video viewer">✕</button>
 
         <video id="viewerVideo" controls playsinline></video>
     </div>
 
 
-    <!-- TOAST NOTIFICATION -->
+    <!-- TOAST MESSAGE -->
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 
-    <!-- BASIC SCROLL BUTTON BEHAVIOUR -->
+    <!-- SCROLL CONTROL BEHAVIOUR -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const scrollUp = document.getElementById("scrollUp");
             const scrollDown = document.getElementById("scrollDown");
 
-            if (scrollUp) {
-                scrollUp.addEventListener("click", function () {
-                    const cards = [...document.querySelectorAll("#feed .video-card")];
-                    const current = cards.find(card => {
-                        const rect = card.getBoundingClientRect();
-                        return rect.bottom > 100;
-                    });
+            function getVideoCards() {
+                return [...document.querySelectorAll("#videoList .video-card")];
+            }
 
-                    if (current) {
-                        const index = cards.indexOf(current);
-                        const target = cards[Math.max(0, index - 1)];
-                        target.scrollIntoView({ behavior: "smooth", block: "start" });
-                    } else {
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                    }
+            function scrollToCard(direction) {
+                const cards = getVideoCards();
+
+                if (!cards.length) {
+                    window.scrollBy({
+                        top: direction * window.innerHeight * 0.8,
+                        behavior: "smooth"
+                    });
+                    return;
+                }
+
+                const threshold = window.innerHeight * 0.4;
+                let currentIndex = cards.findIndex(card =>
+                    card.getBoundingClientRect().bottom > threshold
+                );
+
+                if (currentIndex < 0) {
+                    currentIndex = direction > 0 ? -1 : cards.length;
+                }
+
+                const nextIndex = Math.max(
+                    0,
+                    Math.min(cards.length - 1, currentIndex + direction)
+                );
+
+                cards[nextIndex].scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
                 });
             }
 
-            if (scrollDown) {
-                scrollDown.addEventListener("click", function () {
-                    const cards = [...document.querySelectorAll("#feed .video-card")];
-                    const current = cards.find(card => {
-                        const rect = card.getBoundingClientRect();
-                        return rect.bottom > window.innerHeight * 0.55;
-                    });
-
-                    if (current) {
-                        const index = cards.indexOf(current);
-                        const target = cards[Math.min(cards.length - 1, index + 1)];
-                        target.scrollIntoView({ behavior: "smooth", block: "start" });
-                    } else {
-                        window.scrollBy({ top: window.innerHeight * 0.8, behavior: "smooth" });
-                    }
-                });
-            }
+            scrollUp?.addEventListener("click", () => scrollToCard(-1));
+            scrollDown?.addEventListener("click", () => scrollToCard(1));
         });
     </script>
 
