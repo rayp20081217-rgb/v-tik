@@ -2942,4 +2942,11 @@ video {
         transform: translateY(-25px);
     }
 }
+#feed {
+    touch-action: pan-y;
+}
+
+.video-card {
+    scroll-margin-top: 90px;
+}
 
