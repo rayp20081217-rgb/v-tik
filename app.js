@@ -101,6 +101,18 @@ const videos = [
         following: false,
         category: "gaming"
     },
+    {
+        id: "video-2",
+        src: "./cb.mp4",
+        username: "cb talker",
+        caption: "Watch this moment! ✨ What do you think?",
+        likes: 842,
+        comments: [],
+        liked: false,
+        saved: false,
+        following: false,
+        category: "trending"
+    },
 ];
 
 let activeVideoId = null;
