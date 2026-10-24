@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Learn about V-Tik, a place to discover, watch, and share short videos.">
+  <meta name="theme-color" content="#08090d">
+  <title>About V-Tik â€” Discover. Create. Connect.</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08090d;
+      --surface: #111219;
+      --surface-2: #171923;
+      --text: #f7f8fc;
+      --muted: #a6a9b8;
+      --cyan: #25f4ee;
+      --pink: #fe2c55;
+      --line: rgba(255,255,255,.1);
+      --max: 1180px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font-family: "Plus Jakarta Sans", sans-serif;
+      line-height: 1.65;
+    }
+    a { color: inherit; text-decoration: none; }
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 22px; padding: 16px max(5vw, 22px);
+      background: rgba(8,9,13,.86); backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 1.35rem; font-weight: 800; letter-spacing: -.06em; }
+    .brand-mark {
+      display: grid; place-items: center; width: 36px; height: 36px;
+      border-radius: 12px; color: #08090d; font-size: 18px;
+      background: linear-gradient(135deg, var(--cyan), #fff 48%, var(--pink));
+      box-shadow: 3px 3px 0 rgba(254,44,85,.35);
+    }
+    .brand-v { color: var(--cyan); }
+    .brand-tik { color: var(--text); }
+    .nav { display: flex; align-items: center; gap: 28px; color: #d4d6e0; font-size: .9rem; font-weight: 600; }
+    .nav a:hover, .nav a[aria-current=page] { color: var(--cyan); }
+    .nav-cta, .primary-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 0; border-radius: 999px; padding: 11px 19px;
+      background: var(--text); color: #08090d; font-weight: 800;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .nav-cta:hover, .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,244,238,.15); }
+    .hero {
+      position: relative; overflow: hidden; isolation: isolate;
+      min-height: 560px; display: grid; place-items: center;
+      padding: 90px 24px 100px; text-align: center;
+      border-bottom: 1px solid var(--line);
+      background:
+        radial-gradient(ellipse at 18% 24%, rgba(37,244,238,.14), transparent 33%),
+        radial-gradient(ellipse at 82% 35%, rgba(254,44,85,.16), transparent 34%),
+        linear-gradient(180deg, #0b0c12, #08090d);
+    }
+    .hero::before, .hero::after {
+      content: ""; position: absolute; z-index: -1; width: 240px; height: 360px;
+      border: 1px solid rgba(255,255,255,.08); border-radius: 42px; transform: rotate(24deg);
+    }
+    .hero::before { left: 7%; top: 20%; box-shadow: 18px 18px 0 rgba(37,244,238,.06); }
+    .hero::after { right: 7%; bottom: 8%; transform: rotate(-24deg); box-shadow: -18px 18px 0 rgba(254,44,85,.06); }
+    .hero-content { max-width: 880px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px; margin-bottom: 20px;
+      padding: 7px 13px; border: 1px solid rgba(37,244,238,.25); border-radius: 999px;
+      color: var(--cyan); background: rgba(37,244,238,.06);
+      text-transform: uppercase; letter-spacing: .14em; font-size: .72rem; font-weight: 800;
+    }
+    .eyebrow::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 14px var(--pink); }
+    h1 { max-width: 850px; margin: 0 auto 22px; font-size: clamp(3rem, 8vw, 6.5rem); line-height: .99; letter-spacing: -.075em; font-weight: 800; }
+    .gradient-text { background: linear-gradient(100deg, var(--cyan), #f6f7ff 47%, var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p { max-width: 670px; margin: 0 auto 30px; color: #c3c5d1; font-size: clamp(1rem, 2vw, 1.2rem); }
+    .hero-actions { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 13px; }
+    .secondary-btn { display: inline-flex; justify-content: center; align-items: center; border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; color: var(--text); font-weight: 700; background: rgba(255,255,255,.03); }
+    .secondary-btn:hover { border-color: rgba(37,244,238,.55); }
+    .section { width: min(var(--max), 100%); margin: 0 auto; padding: 90px 28px; }
+    .section-head { max-width: 760px; margin-bottom: 36px; }
+    .section-kicker { color: var(--pink); text-transform: uppercase; letter-spacing: .15em; font-size: .72rem; font-weight: 800; }
+    h2 { margin: 9px 0 14px; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.08; letter-spacing: -.055em; }
+    .section-head p, .feature p, .story p { color: var(--muted); }
+    .mission-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; align-items: stretch; }
+    .mission-card, .feature, .story {
+      background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+      border: 1px solid var(--line); border-radius: 28px;
+    }
+    .mission-card { padding: clamp(26px, 5vw, 48px); min-height: 330px; display: flex; flex-direction: column; justify-content: space-between; }
+    .mission-card h3 { margin: 18px 0 10px; font-size: clamp(1.6rem, 3vw, 2.4rem); line-height: 1.15; letter-spacing: -.045em; }
+    .mission-card p { color: var(--muted); max-width: 550px; }
+    .symbol { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 18px; font-size: 1.6rem; background: rgba(37,244,238,.1); border: 1px solid rgba(37,244,238,.22); }
+    .mission-side { display: grid; gap: 24px; }
+    .mini-stat { padding: 27px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); }
+    .mini-stat strong { display: block; font-size: 1.4rem; letter-spacing: -.04em; }
+    .mini-stat span { color: var(--muted); font-size: .92rem; }
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature { padding: 27px; transition: transform .2s ease, border-color .2s ease; }
+    .feature:hover { transform: translateY(-5px); border-color: rgba(37,244,238,.35); }
+    .feature .symbol { margin-bottom: 28px; }
+    .feature h3 { margin: 0 0 9px; font-size: 1.2rem; }
+    .feature p { margin: 0; font-size: .95rem; }
+    .community {
+      margin: 0 28px; padding: clamp(34px, 7vw, 78px) 24px; border-radius: 32px;
+      text-align: center; border: 1px solid var(--line);
+      background: radial-gradient(ellipse at 15% 0%, rgba(37,244,238,.13), transparent 42%),
+                  radial-gradient(ellipse at 90% 100%, rgba(254,44,85,.14), transparent 42%), var(--surface);
+    }
+    .community h2 { max-width: 760px; margin: 12px auto 18px; }
+    .community p { max-width: 650px; margin: 0 auto 26px; color: var(--muted); }
+    .footer { border-top: 1px solid var(--line); margin-top: 90px; padding: 32px max(5vw, 22px); }
+    .footer-inner { width: min(var(--max), 100%); margin: auto; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .footer p { margin: 8px 0 0; color: #777b8c; font-size: .82rem; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 20px; color: var(--muted); font-size: .85rem; }
+    .footer-links a:hover { color: var(--cyan); }
+    @media (max-width: 760px) {
+      .topbar { padding: 12px 17px; }
+      .nav { gap: 14px; font-size: .82rem; }
+      .nav a:not(.nav-cta) { display: none; }
+      .hero { min-height: 500px; padding: 72px 22px 80px; }
+      .hero::before { left: -125px; }
+      .hero::after { right: -130px; }
+      .section { padding: 65px 20px; }
+      .mission-grid, .features { grid-template-columns: 1fr; }
+      .mission-card { min-height: 280px; }
+      .community { margin: 0 16px; border-radius: 24px; }
+      .footer { margin-top: 65px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./index.html" aria-label="V-Tik home">
+      <span class="brand-mark" aria-hidden="true">â–¶</span>
+      <span><span class="brand-v">V-</span><span class="brand-tik">TIK</span></span>
+    </a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="./index.html">Home</a>
+      <a href="./index.html#discover">Discover</a>
+      <a href="#about" aria-current="page">About</a>
+      <a href="#community">Community</a>
+      <a class="nav-cta" href="./index.html">Start watching <span aria-hidden="true">â†—</span></a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="about">
+      <div class="hero-content">
+        <span class="eyebrow">Meet V-Tik</span>
+        <h1>Every scroll starts a <span class="gradient-text">new story.</span></h1>
+        <p>V-Tik is a home for short videos, fresh ideas, and the moments worth sharing. Discover creators, find your next favourite clip, and bring your own point of view to the feed.</p>
+        <div class="hero-actions">
+          <a class="primary-btn" href="./index.html">Explore V-Tik <span aria-hidden="true">&nbsp;â†—</span></a>
+          <a class="secondary-btn" href="#our-mission">Learn about us</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="our-mission">
+      <div class="section-head">
+        <span class="section-kicker">Why weâ€™re here</span>
+        <h2>A small video can make a big connection.</h2>
+        <p>We believe great moments, creative ideas, and everyday talent deserve a place to be seen. V-Tik brings short-form video into one easy space to watch, share, and explore.</p>
+      </div>
+      <div class="mission-grid">
+        <article class="mission-card">
+          <div>
+            <span class="symbol" aria-hidden="true">âœ¦</span>
+            <h3>Made for discovery.<br><span class="gradient-text">Built for expression.</span></h3>
+            <p>From funny moments and music to skills, sports, and personal creativity, V-Tik helps you explore a mix of videos and discover perspectives beyond your usual feed.</p>
+          </div>
+          <a class="secondary-btn" href="./index.html" style="align-self:flex-start">Discover videos&nbsp; â†—</a>
+        </article>
+        <div class="mission-side">
+          <div class="mini-stat"><strong>Creativity first</strong><span>Make room for fresh ideas and original voices.</span></div>
+          <div class="mini-stat"><strong>Community matters</strong><span>Enjoy shared interests and moments with other people.</span></div>
+          <div class="mini-stat"><strong>Every creator counts</strong><span>Your style, your perspective, your story.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="what-we-do">
+      <div class="section-head">
+        <span class="section-kicker">The V-Tik experience</span>
+        <h2>Find your kind of video.</h2>
+        <p>Whether youâ€™re here to take a quick break or share something you made, thereâ€™s always something new to explore.</p>
+      </div>
+      <div class="features">
+        <article class="feature">
+          <span class="symbol" aria-hidden="true">âŒ•</span>
+          <h3>Discover something new</h3>
+          <p>Browse videos across interests, follow a trail of curiosity, and find creators and clips that catch your attention.</p>
+        </article>
+        <article class="feature">
+          <span class="symbol" aria-hidden="true">â–¶</span>
+          <h3>Watch your way</h3>
+          <p>Enjoy a short-form feed designed to make jumping from one interesting moment to the next feel simple.</p>
+        </article>
+        <article class="feature">
+          <span class="symbol" aria-hidden="true">ï¼‹</span>
+          <h3>Share your creativity</h3>
+          <p>Have a moment, talent, idea, or story to share? Bring your point of view and add something of your own.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="community" id="community">
+      <span class="section-kicker">Your story belongs here</span>
+      <h2>Different interests. Different voices. One V-Tik community.</h2>
+      <p>Weâ€™re building a space where people can explore what they enjoy, share what inspires them, and connect through the videos that make them stop scrolling.</p>
+      <a class="primary-btn" href="./index.html">Join the feed&nbsp; â†—</a>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <a class="brand" href="./index.html" aria-label="V-Tik home">
+          <span class="brand-mark" aria-hidden="true">â–¶</span>
+          <span><span class="brand-v">V-</span><span class="brand-tik">TIK</span></span>
+        </a>
+        <p>Â© 2026 V-Tik. Discover. Watch. Share.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="./index.html">Home</a>
+        <a href="#about">About V-Tik</a>
+        <a href="./privacy.html">Privacy</a>
+        <a href="./terms.html">Terms</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
