@@ -31,6 +31,42 @@ const toast = $("#toast");
 ========================================= */
 
 const videos = [
+     {
+        id: "video-1",
+        src: "./fik logogo.mp4",
+        username: "f1creator",
+        caption: "Ranking the best F1 donuts! 🏎️🔥 #F1 #Formula1 #Motorsport",
+        likes: 1250,
+        comments: [],
+        liked: false,
+        saved: false,
+        following: false,
+        category: "gaming"
+    },
+     {
+        id: "video-1",
+        src: "./fik ft spice diana.mp4",
+        username: "f1creator",
+        caption: "Ranking the best F1 donuts! 🏎️🔥 #F1 #Formula1 #Motorsport",
+        likes: 1250,
+        comments: [],
+        liked: false,
+        saved: false,
+        following: false,
+        category: "gaming"
+    },
+     {
+        id: "video-1",
+        src: "./football.mp4",
+        username: "f1creator",
+        caption: "Ranking the best F1 donuts! 🏎️🔥 #F1 #Formula1 #Motorsport",
+        likes: 1250,
+        comments: [],
+        liked: false,
+        saved: false,
+        following: false,
+        category: "gaming"
+    },
     {
         id: "video-1",
         src: "./Ranking Best F1 Donut's!.mp4",
@@ -65,7 +101,7 @@ const videos = [
         liked: false,
         saved: false,
         following: false,
-        category: "trending"
+        category: "gaming"
     },
     {
         id: "video-3",
@@ -77,7 +113,7 @@ const videos = [
         liked: false,
         saved: false,
         following: false,
-        category: "trending"
+        category: "gaming"
     },
    {
   id: 4,
@@ -111,14 +147,14 @@ const videos = [
         liked: false,
         saved: false,
         following: false,
-        category: "trending"
+        category: "gaming"
     },
       {
   id: 4,
   src: "./v3.mp4",
   username: "yourname",
   caption: "Check out my new video!",
-  category: "trending",
+  category: "gaming",
   likes: 0,
   comments: [],
   saved: false,
