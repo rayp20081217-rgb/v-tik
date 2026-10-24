@@ -170,7 +170,19 @@ const videos = [
   comments: [],
   saved: false,
   following: false
-}
+},
+     {
+        id: "video-1",
+        src: "./masape.mp4",
+        username: "f1creator",
+        caption: "Ranking the best F1 donuts! 🏎️🔥 #F1 #Formula1 #Motorsport",
+        likes: 1250,
+        comments: [],
+        liked: false,
+        saved: false,
+        following: false,
+        category: "gaming"
+    },
 ];
 
 let activeVideoId = null;
