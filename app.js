@@ -124,6 +124,17 @@ const videos = [
   saved: false,
   following: false
 }
+        {
+  id: 4,
+  src: "./school vybz.mp4",
+  username: "yourname",
+  caption: "Check out my new video!",
+  category: "trending",
+  likes: 0,
+  comments: [],
+  saved: false,
+  following: false
+}
 ];
 
 let activeVideoId = null;
