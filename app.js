@@ -123,8 +123,8 @@ const videos = [
   comments: [],
   saved: false,
   following: false
-}
-        {
+},
+       {
   id: 4,
   src: "./school vybz.mp4",
   username: "yourname",
